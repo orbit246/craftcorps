@@ -1,0 +1,118 @@
+import React from 'react';
+import { Sprout, Play, Loader2, X, ChevronRight, Plus } from 'lucide-react';
+import QuickSelectCard from '../components/common/QuickSelectCard';
+
+const HomeView = ({
+    selectedInstance,
+    launchStatus,
+    onPlay,
+    onStop,
+    activeAccount,
+    instances,
+    onManageAll,
+    setSelectedInstance,
+    onNewCrop
+}) => {
+    if (!selectedInstance) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
+                <Sprout size={48} className="mb-4 opacity-50" />
+                <p>No crops planted yet.</p>
+                <button
+                    onClick={onNewCrop}
+                    className="mt-4 text-emerald-500 hover:underline"
+                >
+                    Create your first crop
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex-1 flex flex-col items-center justify-center relative animate-in fade-in zoom-in-95 duration-500">
+
+            {/* Dynamic Background */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${selectedInstance.bgGradient} transition-colors duration-1000`} />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+
+            {/* Main Content */}
+            <div className="relative z-10 flex flex-col items-center text-center w-full max-w-4xl px-8">
+
+                {/* Instance Icon - Large */}
+                <div className={`w-32 h-32 rounded-3xl ${selectedInstance.iconColor} flex items-center justify-center text-slate-900 shadow-2xl shadow-black/50 mb-8 transform hover:scale-105 transition-transform duration-300 ring-4 ring-white/10`}>
+                    <Sprout size={64} />
+                </div>
+
+                {/* Instance Title */}
+                <h1 className="text-5xl font-bold text-white mb-2 tracking-tight drop-shadow-lg">{selectedInstance.name}</h1>
+                <div className="flex items-center gap-3 text-slate-300 mb-10 bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm border border-white/5">
+                    <span className="font-mono">{selectedInstance.version}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-500" />
+                    <span>{selectedInstance.loader}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-500" />
+                    <span className="text-emerald-400 font-medium">{selectedInstance.status}</span>
+                </div>
+
+                {/* THE BUTTON */}
+                {launchStatus === 'idle' ? (
+                    <button
+                        onClick={onPlay}
+                        className="group relative w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white py-6 rounded-2xl font-bold text-2xl shadow-[0_0_40px_rgba(5,150,105,0.4)] hover:shadow-[0_0_60px_rgba(5,150,105,0.6)] transform hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                        <span className="flex items-center justify-center gap-3">
+                            <Play size={32} fill="currentColor" /> PLAY
+                        </span>
+                    </button>
+                ) : (
+                    <button
+                        onClick={onStop}
+                        className="w-full max-w-sm bg-slate-800 border-2 border-slate-700 text-slate-300 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 py-6 rounded-2xl font-bold text-xl transition-all flex items-center justify-center gap-3"
+                    >
+                        {launchStatus === 'launching' ? <Loader2 size={24} className="animate-spin" /> : <X size={24} />}
+                        {launchStatus === 'launching' ? 'GERMINATING...' : 'STOP'}
+                    </button>
+                )}
+
+                {/* Last Played */}
+                <p className="mt-6 text-slate-500 text-sm font-medium">Last harvested: {selectedInstance.lastPlayed}</p>
+                <p className="text-xs text-slate-600 mt-1">Playing as: <span className="text-slate-400">{activeAccount.name}</span></p>
+
+            </div>
+
+            {/* Quick Switcher Carousel */}
+            <div className="absolute bottom-8 left-0 right-0 px-8 z-20">
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex items-center justify-between mb-3 px-2">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quick Switch</span>
+                        <button
+                            onClick={onManageAll}
+                            className="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1"
+                        >
+                            Manage All <ChevronRight size={12} />
+                        </button>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mask-linear-fade">
+                        {instances.map(inst => (
+                            <QuickSelectCard
+                                key={inst.id}
+                                instance={inst}
+                                isSelected={selectedInstance?.id === inst.id}
+                                onClick={() => setSelectedInstance(inst)}
+                            />
+                        ))}
+                        <button
+                            onClick={onNewCrop}
+                            className="flex-shrink-0 w-12 rounded-xl border border-dashed border-slate-800 flex items-center justify-center text-slate-600 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-slate-900 transition-colors"
+                        >
+                            <Plus size={20} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default HomeView;
