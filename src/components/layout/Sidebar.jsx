@@ -4,20 +4,86 @@ import SidebarItem from './SidebarItem';
 import SneakyAd from '../common/SneakyAd';
 
 const Sidebar = ({ activeTab, onTabChange }) => {
+    // Initialize from local storage or default to 256
+    const [width, setWidth] = React.useState(() => {
+        const saved = localStorage.getItem('sidebarWidth');
+        return saved ? parseInt(saved, 10) : 256;
+    });
+    const [isResizing, setIsResizing] = React.useState(false);
+    const sidebarRef = useRef(null);
+
+    // Save width to local storage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('sidebarWidth', width);
+    }, [width]);
+
+    const startResizing = React.useCallback(() => {
+        setIsResizing(true);
+    }, []);
+
+    const stopResizing = React.useCallback(() => {
+        setIsResizing(false);
+        // Reset cursor
+        document.body.style.cursor = 'default';
+    }, []);
+
+    const resize = React.useCallback(
+        (mouseMoveEvent) => {
+            if (isResizing) {
+                const newWidth = mouseMoveEvent.clientX;
+                const minWidth = window.innerWidth * 0.18; // 18%
+                const maxWidth = window.innerWidth * 0.4; // 40%
+
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    setWidth(newWidth);
+                }
+            }
+        },
+        [isResizing]
+    );
+
+    useEffect(() => {
+        if (isResizing) {
+            window.addEventListener('mousemove', resize);
+            window.addEventListener('mouseup', stopResizing);
+            // Prevent text selection while resizing
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        } else {
+            window.removeEventListener('mousemove', resize);
+            window.removeEventListener('mouseup', stopResizing);
+            document.body.style.userSelect = '';
+        }
+        return () => {
+            window.removeEventListener('mousemove', resize);
+            window.removeEventListener('mouseup', stopResizing);
+        };
+    }, [isResizing, resize, stopResizing]);
+
     return (
-        <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col p-4 z-20 select-none">
+        <aside
+            ref={sidebarRef}
+            className="bg-slate-900 border-r border-slate-800 flex flex-col p-4 z-20 select-none relative group/sidebar"
+            style={{ width: width }}
+        >
+            {/* Resize Handle */}
+            <div
+                className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-emerald-500/50 transition-colors z-30 ${isResizing ? 'bg-emerald-500' : 'bg-transparent'}`}
+                onMouseDown={startResizing}
+            />
+
             {/* Logo area */}
-            <div className="flex items-center gap-3 px-2 mb-8 mt-2 select-none pointer-events-none">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-900/50">
+            <div className="flex items-center gap-3 px-2 mb-8 mt-2 select-none pointer-events-none overflow-hidden whitespace-nowrap">
+                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-600 rounded-lg flex-shrink-0 flex items-center justify-center shadow-lg shadow-emerald-900/50">
                     <Sprout size={20} className="text-white" />
                 </div>
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-200">
+                <h1 className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-200 transition-opacity duration-200 ${width < 180 ? 'opacity-0' : 'opacity-100'}`}>
                     CraftCrops
                 </h1>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 space-y-1">
+            <nav className="flex-1 space-y-1 overflow-hidden">
                 <SidebarItem
                     icon={Play}
                     label="Play"
@@ -53,7 +119,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             </nav>
 
             {/* Ad Space (Preserved) */}
-            <div className="mt-auto pt-4 border-t border-slate-800 relative flex flex-col">
+            <div className={`mt-auto pt-4 border-t border-slate-800 relative flex flex-col overflow-hidden transition-opacity duration-200 ${width < 200 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 <SneakyAd />
             </div>
         </aside>
