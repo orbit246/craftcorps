@@ -62,8 +62,8 @@ const HomeView = ({
                 <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
                     className={`flex items-center gap-3.5 bg-slate-950/80 backdrop-blur-xl border transition-all duration-300 cursor-pointer group pl-1.5 pr-5 py-1.5 rounded-full shadow-2xl shadow-black/40 ${showProfileMenu
-                            ? 'border-emerald-500/50 ring-4 ring-emerald-500/10'
-                            : 'border-white/10 hover:border-emerald-500/40 hover:bg-slate-900/90'
+                        ? 'border-emerald-500/50 ring-4 ring-emerald-500/10'
+                        : 'border-white/10 hover:border-emerald-500/40 hover:bg-slate-900/90'
                         }`}
                 >
                     <div className={`w-10 h-10 rounded-full ${activeAccount?.avatarColor || 'bg-slate-600'} flex items-center justify-center shadow-inner relative ring-2 ring-white/5 group-hover:ring-emerald-500/30 transition-all`}>
@@ -235,7 +235,14 @@ const HomeView = ({
                         </button>
                     </div>
 
-                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mask-linear-fade">
+                    <div
+                        className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mask-linear-fade w-full snap-x snap-mandatory"
+                        onWheel={(e) => {
+                            if (e.deltaY !== 0) {
+                                e.currentTarget.scrollLeft += e.deltaY;
+                            }
+                        }}
+                    >
                         {instances?.map((inst) => (
                             <QuickSelectCard
                                 key={inst.id}
