@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { Sprout, Edit3, Trash2, Plus, GripVertical, Server } from 'lucide-react';
+import { Sprout, Edit3, Trash2, Plus, GripVertical, Server, X } from 'lucide-react';
 
 const InstancesView = ({ instances, onEditCrop, onDeleteCrop, onSelectInstance, onNewCrop, onReorder }) => {
     const [draggedIndex, setDraggedIndex] = useState(null);
     const [dragOverIndex, setDragOverIndex] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredInstances = instances.filter(inst =>
+        inst.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inst.version.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inst.loader.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const handleDragStart = (e, index) => {
         setDraggedIndex(index);
@@ -42,6 +49,16 @@ const InstancesView = ({ instances, onEditCrop, onDeleteCrop, onSelectInstance, 
             return;
         }
 
+        // Note: Reordering logic might need adjustment if filtering is active because indices won't match.
+        // For simplicity, we disable drag-and-drop while searching if it gets complicated, 
+        // OR we map dropIndex back to original index. 
+        // Given the requirement is just "implement search", let's disable D&D visually or finding index when searching?
+        // Actually, if filtered, drag and drop reordering becomes ambiguous (moving relative to what list?).
+        // Let's just pass the filtered list to map, and if drag happens, we might need to find the REAL index.
+        // Simpler: Disable drag and drop when filter is active.
+
+        if (searchQuery) return;
+
         onReorder(draggedIndex, dropIndex);
         setDraggedIndex(null);
         setDragOverIndex(null);
@@ -55,11 +72,23 @@ const InstancesView = ({ instances, onEditCrop, onDeleteCrop, onSelectInstance, 
                     <p className="text-slate-400 text-sm">Configure, update, or plant new instances.</p>
                 </div>
                 <div className="flex gap-2">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500/50 w-64"
-                    />
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search crops..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-slate-900 border border-slate-800 rounded-lg pl-4 pr-8 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500/50 w-64 focus:ring-1 focus:ring-emerald-500/50 transition-all placeholder:text-slate-600"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-slate-800"
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
+                    </div>
                     <button
                         onClick={onNewCrop}
                         className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium"
@@ -70,10 +99,10 @@ const InstancesView = ({ instances, onEditCrop, onDeleteCrop, onSelectInstance, 
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {instances.map((inst, index) => (
+                {filteredInstances.map((inst, index) => (
                     <div
                         key={inst.id}
-                        draggable
+                        draggable={!searchQuery} // Disable drag when searching
                         onDragStart={(e) => handleDragStart(e, index)}
                         onDragEnd={handleDragEnd}
                         onDragOver={handleDragOver}
