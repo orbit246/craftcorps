@@ -4,9 +4,9 @@ import { Sprout } from 'lucide-react';
 const QuickSelectCard = ({ instance, isSelected, onClick }) => (
     <button
         onClick={onClick}
-        className={`flex-shrink-0 w-48 p-3 rounded-xl border transition-all duration-200 text-left flex items-center gap-3 ${isSelected
-                ? 'bg-slate-800 border-emerald-500/50 ring-1 ring-emerald-500/20'
-                : 'bg-slate-900/50 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
+        className={`flex-shrink-0 w-48 p-3 rounded-xl border transition-all duration-200 text-left flex items-center gap-3 select-none ${isSelected
+            ? 'bg-slate-800 border-emerald-500/50 ring-1 ring-emerald-500/20'
+            : 'bg-slate-900/50 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
             }`}
     >
         <div className={`w-10 h-10 rounded-lg ${instance.iconColor} flex items-center justify-center text-slate-900 shadow-md`}>

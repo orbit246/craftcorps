@@ -3,7 +3,7 @@ import { Sprout } from 'lucide-react';
 
 const LoadingScreen = () => {
     return (
-        <div className="fixed inset-0 bg-slate-950 flex items-center justify-center z-[100]">
+        <div className="fixed inset-0 bg-slate-950 flex items-center justify-center z-[100] select-none">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
 

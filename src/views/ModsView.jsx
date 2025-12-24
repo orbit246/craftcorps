@@ -3,7 +3,7 @@ import { HardDrive, Box, Download, Search, Filter } from 'lucide-react';
 
 const ModsView = () => {
     return (
-        <div className="flex-1 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col h-full overflow-hidden relative">
+        <div className="flex-1 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col h-full overflow-hidden relative select-none">
             <h2 className="text-3xl font-bold text-white mb-6">Mod Vault</h2>
 
             {/* Construction Overlay */}

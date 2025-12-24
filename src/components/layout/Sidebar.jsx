@@ -18,9 +18,9 @@ const Sidebar = ({ activeTab, onTabChange, accounts, activeAccount, onSwitchAcco
     }, [setShowProfileMenu]);
 
     return (
-        <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col p-4 z-20">
+        <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col p-4 z-20 select-none">
             {/* Logo area */}
-            <div className="flex items-center gap-3 px-2 mb-8 mt-2">
+            <div className="flex items-center gap-3 px-2 mb-8 mt-2 select-none pointer-events-none">
                 <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-900/50">
                     <Sprout size={20} className="text-white" />
                 </div>

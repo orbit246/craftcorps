@@ -29,7 +29,7 @@ const HomeView = ({
     }
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center relative animate-in fade-in zoom-in-95 duration-500">
+        <div className="flex-1 flex flex-col items-center justify-center relative animate-in fade-in zoom-in-95 duration-500 select-none">
             {/* Dynamic Background */}
             <div
                 className={`absolute inset-0 bg-gradient-to-br ${selectedInstance.bgGradient} transition-colors duration-1000`}

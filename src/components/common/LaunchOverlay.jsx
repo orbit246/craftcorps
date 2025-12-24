@@ -5,7 +5,7 @@ const LaunchOverlay = ({ isOpen, status, progress, onCancel, instanceName }) => 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300 select-none">
             <div className="w-[480px] bg-slate-900/90 border border-slate-700/50 rounded-2xl p-6 shadow-2xl backdrop-blur-xl animate-in zoom-in-95 fade-in duration-300">
 
                 {/* Header */}
