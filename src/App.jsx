@@ -20,8 +20,10 @@ import { SKINS } from './data/mockData';
 import { useGameLaunch } from './hooks/useGameLaunch';
 import { useInstances } from './hooks/useInstances';
 import { useAccounts } from './hooks/useAccounts';
+import { useToast } from './contexts/ToastContext';
 
 function App() {
+    const { addToast } = useToast();
     const [activeTab, setActiveTab] = useState('home');
     const [ram, setRam] = useState(4);
     const [hideOnLaunch, setHideOnLaunch] = useState(true);
@@ -64,6 +66,32 @@ function App() {
         updateLastPlayed,
         reorderInstances
     } = useInstances();
+
+    // Wrapped Handlers for Toasts
+    const onSaveCropWithToast = (crop) => {
+        handleSaveCrop(crop);
+        addToast(editingCrop ? 'Crop updated successfully' : 'New crop planted!', 'success');
+    };
+
+    const onDeleteCropWithToast = (id) => {
+        handleDeleteCrop(id);
+        addToast('Crop harvested (deleted)', 'info');
+    };
+
+    const onAddAccountWithToast = (account) => {
+        handleAddAccount(account);
+        addToast(`Welcome, ${account.name}!`, 'success');
+    };
+
+    const onLogoutWithToast = () => {
+        handleLogout();
+        addToast('Signed out successfully', 'info');
+    };
+
+    const onAccountSwitchWithToast = (account) => {
+        handleAccountSwitch(account);
+        addToast(`Switched to ${account.name}`, 'info');
+    }
 
     const {
         launchStatus,
@@ -179,9 +207,9 @@ function App() {
                                 onEditCrop={handleEditCrop}
                                 // Account System Props
                                 accounts={accounts}
-                                onSwitchAccount={handleAccountSwitch}
+                                onSwitchAccount={onAccountSwitchWithToast}
                                 onAddAccount={() => { setShowLoginModal(true); setShowProfileMenu(false); }}
-                                onLogout={handleLogout}
+                                onLogout={onLogoutWithToast}
                                 showProfileMenu={showProfileMenu}
                                 setShowProfileMenu={setShowProfileMenu}
                                 disableAnimations={disableAnimations}
@@ -193,7 +221,7 @@ function App() {
                             instances={instances}
                             onSelectInstance={(inst) => { setSelectedInstance(inst); setActiveTab('home'); }}
                             onEditCrop={handleEditCrop}
-                            onDeleteCrop={handleDeleteCrop}
+                            onDeleteCrop={onDeleteCropWithToast}
                             onNewCrop={handleNewCrop}
                             onReorder={reorderInstances}
                         />
@@ -232,14 +260,14 @@ function App() {
             <LoginModal
                 isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
-                onAddAccount={handleAddAccount}
+                onAddAccount={onAddAccountWithToast}
             />
 
             {/* Crop (Edit/Create) Modal */}
             <CropModal
                 isOpen={showCropModal}
                 onClose={() => setShowCropModal(false)}
-                onSave={handleSaveCrop}
+                onSave={onSaveCropWithToast}
                 editingCrop={editingCrop}
             />
 
