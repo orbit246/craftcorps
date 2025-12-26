@@ -97,5 +97,9 @@
     "btn_save": "Save",
     "btn_cancel": "Cancel",
     "top_bar_running": "Game Running",
-    "top_bar_console": "Console"
+    "top_bar_console": "Console",
+    "settings_troubleshooting": "Troubleshooting",
+    "settings_logs": "Launcher Logs",
+    "settings_logs_desc": "View diagnostic logs",
+    "btn_open_logs": "Open Folder"
 }

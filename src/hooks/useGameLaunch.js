@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
-export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPlayed, hideOnLaunch) => {
+export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPlayed, hideOnLaunch, javaPath) => {
     const [launchStatus, setLaunchStatus] = useState('idle'); // idle, launching, running
     const [launchProgress, setLaunchProgress] = useState(0);
     const [launchStep, setLaunchStep] = useState('Initializing...');
@@ -8,18 +8,33 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
     const [showConsole, setShowConsole] = useState(false);
     const [logs, setLogs] = useState([]);
 
+    // Use ref to track status inside callbacks safely without dependency issues
+    const launchStatusRef = React.useRef(launchStatus);
+
+    useEffect(() => {
+        launchStatusRef.current = launchStatus;
+    }, [launchStatus]);
+
     const handlePlay = useCallback(() => {
         if (launchStatus !== 'idle') return;
 
         setLaunchStatus('launching');
+        launchStatusRef.current = 'launching'; // Sync ref
         setLaunchProgress(0);
         setLaunchStep("Initializing...");
         setLaunchFeedback(null);
         setShowConsole(false);
         setLogs([]);
 
+        if (window.electronAPI && window.electronAPI.log) {
+            window.electronAPI.log('info', `[UI] User clicked Play for instance: ${selectedInstance?.name} (Version: ${selectedInstance?.version})`);
+        } else {
+            console.log('[UI] User clicked Play');
+        }
+
         if (window.electronAPI) {
             window.electronAPI.removeLogListeners();
+            window.electronAPI.log('info', '[UI] Registering game event listeners...');
 
             window.electronAPI.onGameLog((log) => {
                 const now = new Date();
@@ -44,6 +59,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
                     setTimeout(() => {
                         setLaunchStatus('running');
+                        // ref update handled by effect
                     }, 500);
                 } else {
                     if (log.message && log.message.length < 50 && !log.message.includes('DEBUG')) {
@@ -55,12 +71,21 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
             window.electronAPI.onGameProgress((data) => {
                 setLaunchProgress(data.percent);
                 setLaunchStep(`Downloading ${data.type} (${data.percent}%)`);
+                // Optional: log milestone progress to file to avoid spamming
+                if (data.percent % 25 === 0 && window.electronAPI.log) {
+                    window.electronAPI.log('info', `[UI] Download Progress - ${data.type}: ${data.percent}%`);
+                }
             });
 
             window.electronAPI.onGameExit((code) => {
                 setLaunchStatus('idle');
                 setLaunchStep("Game exited.");
-                setLogs(prev => [...prev, { time: "Now", type: "INFO", message: `Process exited with code ${code}` }]);
+                const exitMsg = `Process exited with code ${code}`;
+                setLogs(prev => [...prev, { time: "Now", type: "INFO", message: exitMsg }]);
+
+                if (window.electronAPI.log) {
+                    window.electronAPI.log('info', `[UI] Game exited. Code: ${code}`);
+                }
 
                 if (window.electronAPI) {
                     window.electronAPI.show();
@@ -68,6 +93,14 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
                 // If it exited immediately/prematurely during launch, we might want to flag it?
                 // But usually this means user closed game or it crashed.
+
+                // If we were still in 'launching' state (haven't reached 'running' aka game window open for real)
+                // AND code != 0, it's likely a launch crash/failure.
+                if (launchStatusRef.current === 'launching' && code !== 0 && code !== -1) {
+                    setLaunchFeedback('error');
+                    setLaunchStep("Game launch failed.");
+                    setShowConsole(true);
+                }
             });
 
             window.electronAPI.launchGame({
@@ -78,12 +111,17 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
                 accessToken: activeAccount.accessToken,
                 userType: activeAccount.type, // 'Microsoft' or 'Offline'
                 useDefaultPath: true,
-                server: selectedInstance.autoConnect ? selectedInstance.serverAddress : null
+                server: selectedInstance.autoConnect ? selectedInstance.serverAddress : null,
+                javaPath: javaPath
             });
+
+            if (window.electronAPI.log) {
+                window.electronAPI.log('info', `[UI] Launch command sent to backend. RAM: ${ram}GB, User: ${activeAccount?.name}, Java: ${javaPath}`);
+            }
         } else {
             setLogs([{ time: "Now", type: "ERROR", message: "Electron API not found. Cannot launch native process." }]);
         }
-    }, [launchStatus, selectedInstance, ram, activeAccount, updateLastPlayed, hideOnLaunch]);
+    }, [launchStatus, selectedInstance, ram, activeAccount, updateLastPlayed, hideOnLaunch, javaPath]);
 
     const handleStop = useCallback(() => {
         if (launchStatus === 'launching') {
@@ -92,6 +130,9 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
         }
 
         if (window.electronAPI) {
+            if (window.electronAPI.log) {
+                window.electronAPI.log('warn', `[UI] User requested Launch STOP.`);
+            }
             window.electronAPI.stopGame();
         }
         setLaunchStatus('idle');

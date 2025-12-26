@@ -198,6 +198,10 @@ const HomeView = ({
                         <button disabled className="group relative w-full max-w-sm bg-slate-800 border-2 border-slate-700 text-amber-500 py-6 rounded-2xl font-bold text-xl cursor-not-allowed flex items-center justify-center gap-3 animate-pulse">
                             <X size={24} /> {t('home_launch_cancelled')}
                         </button>
+                    ) : launchFeedback === 'error' ? (
+                        <button disabled className="group relative w-full max-w-sm bg-slate-800 border-2 border-red-900/50 text-red-500 py-6 rounded-2xl font-bold text-xl cursor-not-allowed flex items-center justify-center gap-3">
+                            <X size={24} /> Launch Failed
+                        </button>
                     ) : (
                         <button
                             onClick={onPlay}

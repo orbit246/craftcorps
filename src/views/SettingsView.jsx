@@ -1,8 +1,8 @@
 import React from 'react';
-import { Cpu, Globe, Monitor } from 'lucide-react';
+import { Cpu, Globe, Monitor, Terminal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const SettingsView = ({ ram, setRam, hideOnLaunch, setHideOnLaunch, disableAnimations, setDisableAnimations }) => {
+const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHideOnLaunch, disableAnimations, setDisableAnimations }) => {
     const { t, i18n } = useTranslation();
     const languages = [
         { code: 'en', label: 'English' },
@@ -17,6 +17,17 @@ const SettingsView = ({ ram, setRam, hideOnLaunch, setHideOnLaunch, disableAnima
         { code: 'ja', label: '日本語' },
         { code: 'ko', label: '한국어' }
     ];
+
+    const handleBrowseJava = async () => {
+        if (window.electronAPI && window.electronAPI.selectFile) {
+            const path = await window.electronAPI.selectFile();
+            if (path) {
+                setJavaPath(path);
+            }
+        } else {
+            console.warn("Electron API not available");
+        }
+    };
 
     return (
         <div className="flex-1 overflow-y-auto p-8 max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-300 select-none">
@@ -58,11 +69,16 @@ const SettingsView = ({ ram, setRam, hideOnLaunch, setHideOnLaunch, disableAnima
                             <div className="flex gap-2">
                                 <input
                                     type="text"
-                                    value="C:\Program Files\Java\jdk-17.0.2\bin\javaw.exe"
+                                    value={javaPath}
                                     readOnly
                                     className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-400 font-mono"
                                 />
-                                <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium text-slate-200">{t('btn_browse')}</button>
+                                <button
+                                    onClick={handleBrowseJava}
+                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium text-slate-200"
+                                >
+                                    {t('btn_browse')}
+                                </button>
                             </div>
                         </div>
 
@@ -71,15 +87,30 @@ const SettingsView = ({ ram, setRam, hideOnLaunch, setHideOnLaunch, disableAnima
                                 <label className="block text-sm text-slate-400">{t('settings_ram_allocation')}</label>
                                 <span className="text-sm font-bold text-emerald-400">{ram} GB</span>
                             </div>
-                            <input
-                                type="range"
-                                min="2"
-                                max="16"
-                                step="0.5"
-                                value={ram}
-                                onChange={(e) => setRam(e.target.value)}
-                                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                            />
+                            <div className="relative pb-6 pt-2">
+                                <input
+                                    type="range"
+                                    min="2"
+                                    max="16"
+                                    step="0.5"
+                                    value={ram}
+                                    onChange={(e) => setRam(e.target.value)}
+                                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500 relative z-10"
+                                />
+                                {[2, 4, 8].map((cut) => {
+                                    const ratio = (cut - 2) / (16 - 2);
+                                    return (
+                                        <div
+                                            key={cut}
+                                            className="absolute top-4 flex flex-col items-center -translate-x-1/2 pointer-events-none"
+                                            style={{ left: `calc(0.5rem + (100% - 1rem) * ${ratio})` }}
+                                        >
+                                            <div className="w-0.5 h-1.5 bg-slate-600 mb-1"></div>
+                                            <span className="text-[10px] font-mono text-slate-500">{cut} GB</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -118,6 +149,25 @@ const SettingsView = ({ ram, setRam, hideOnLaunch, setHideOnLaunch, disableAnima
                             />
                             <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                         </label>
+                    </div>
+                </div>
+
+                {/* Troubleshooting */}
+                <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
+                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                        <Terminal size={18} className="text-emerald-500" /> {t('settings_troubleshooting', 'Troubleshooting')}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-slate-200 font-medium">{t('settings_logs')}</p>
+                            <p className="text-xs text-slate-500">{t('settings_logs_desc')}</p>
+                        </div>
+                        <button
+                            onClick={() => window.electronAPI.openLogsFolder()}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium text-slate-200 transition-colors"
+                        >
+                            {t('btn_open_logs')}
+                        </button>
                     </div>
                 </div>
             </div>

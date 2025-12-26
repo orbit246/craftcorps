@@ -28,7 +28,8 @@ function App() {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('home');
     const [ram, setRam] = useState(4);
-    const [hideOnLaunch, setHideOnLaunch] = useState(true);
+    const [javaPath, setJavaPath] = useState("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\javaw.exe");
+    const [hideOnLaunch, setHideOnLaunch] = useState(false);
     const [disableAnimations, setDisableAnimations] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -105,7 +106,7 @@ function App() {
         logs,
         handlePlay,
         handleStop
-    } = useGameLaunch(selectedInstance, ram, activeAccount, () => updateLastPlayed(selectedInstance?.id), hideOnLaunch);
+    } = useGameLaunch(selectedInstance, ram, activeAccount, () => updateLastPlayed(selectedInstance?.id), hideOnLaunch, javaPath);
 
     if (isLoading) {
         return <LoadingScreen />;
@@ -233,6 +234,8 @@ function App() {
                         <SettingsView
                             ram={ram}
                             setRam={setRam}
+                            javaPath={javaPath}
+                            setJavaPath={setJavaPath}
                             hideOnLaunch={hideOnLaunch}
                             setHideOnLaunch={setHideOnLaunch}
                             disableAnimations={disableAnimations}

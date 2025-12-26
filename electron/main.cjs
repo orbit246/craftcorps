@@ -1,5 +1,12 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
+const log = require('electron-log');
+
+// Configure logging
+log.transports.file.level = 'info';
+log.transports.console.format = '[{h}:{i}:{s} {level}] {text}';
+console.log = log.log; // Redirect console usage to electron-log handling
+Object.assign(console, log.functions);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // if (require('electron-squirrel-startup')) {
@@ -72,12 +79,40 @@ app.whenReady().then(() => {
         }
     });
 
+    ipcMain.handle('select-file', async () => {
+        const result = await dialog.showOpenDialog(mainWindow, {
+            properties: ['openFile'],
+            filters: [{ name: 'Executables', extensions: ['exe'] }]
+        });
+        return result.canceled ? null : result.filePaths[0];
+    });
+
+    ipcMain.on('renderer-log', (event, { level, message }) => {
+        if (log[level]) {
+            log[level](`[Renderer] ${message}`);
+        } else {
+            log.info(`[Renderer] ${message}`);
+        }
+    });
+
+    ipcMain.handle('open-logs-folder', async () => {
+        const logPath = log.transports.file.getFile().path;
+        return shell.showItemInFolder(logPath);
+    });
+
     // Game Launcher Integration
     const GameLauncher = require('./GameLauncher.cjs');
     const launcher = new GameLauncher();
 
-    launcher.on('log', (log) => {
-        mainWindow?.webContents.send('game-log', log);
+    launcher.on('log', (data) => {
+        const { type, message } = data;
+        // Log to file
+        if (type === 'ERROR') log.error(`[MCLC] ${message}`);
+        else if (type === 'WARN') log.warn(`[MCLC] ${message}`);
+        else log.info(`[MCLC] ${message}`);
+
+        // Forward to frontend
+        mainWindow?.webContents.send('game-log', data);
     });
 
     launcher.on('progress', (data) => {

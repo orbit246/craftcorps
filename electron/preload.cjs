@@ -9,7 +9,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     hide: () => ipcRenderer.send('window-hide'),
     show: () => ipcRenderer.send('window-show'),
 
+
     microsoftLogin: () => ipcRenderer.invoke('microsoft-login'),
+    selectFile: () => ipcRenderer.invoke('select-file'),
+    openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
+    log: (level, message) => ipcRenderer.send('renderer-log', { level, message }),
+
 
     launchGame: (options) => ipcRenderer.send('launch-game', options),
     stopGame: () => ipcRenderer.send('stop-game'),

@@ -82,6 +82,7 @@ class GameLauncher extends EventEmitter {
 
         this.emit('log', { type: 'INFO', message: `Starting MCLC for version ${launchOptions.version.number}` });
         this.emit('log', { type: 'INFO', message: `Root: ${launchOptions.root}` });
+        this.emit('log', { type: 'INFO', message: `Java: ${launchOptions.javaPath}` });
 
         this.client.launch(launchOptions).then((process) => {
             if (this.isCancelled) {
@@ -91,6 +92,12 @@ class GameLauncher extends EventEmitter {
                 if (process) {
                     process.kill();
                 }
+                return;
+            }
+
+            if (!process) {
+                this.emit('log', { type: 'ERROR', message: "Game launch failed: No process returned. Please verify your Java path." });
+                this.emit('exit', 1);
                 return;
             }
 
