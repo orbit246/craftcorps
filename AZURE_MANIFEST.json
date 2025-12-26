@@ -1,0 +1,72 @@
+{
+    "id": "23302893-3554-4e06-b175-5dae01845b0f",
+    "acceptMappedClaims": null,
+    "accessTokenAcceptedVersion": 2,
+    "addIns": [],
+    "allowPublicClient": true,
+    "appId": "2f559a44-6b34-4e39-9f6d-2e02fbe2caf8",
+    "appRoles": [],
+    "oauth2AllowUrlPathMatching": false,
+    "createdDateTime": "2025-12-26T08:11:03Z",
+    "description": null,
+    "certification": null,
+    "disabledByMicrosoftStatus": null,
+    "groupMembershipClaims": null,
+    "identifierUris": [],
+    "informationalUrls": {
+        "termsOfService": null,
+        "support": null,
+        "privacy": null,
+        "marketing": null
+    },
+    "keyCredentials": [],
+    "knownClientApplications": [],
+    "logoUrl": null,
+    "logoutUrl": null,
+    "name": "CraftCrops Launcher",
+    "notes": null,
+    "oauth2AllowIdTokenImplicitFlow": false,
+    "oauth2AllowImplicitFlow": false,
+    "oauth2Permissions": [],
+    "oauth2RequirePostResponse": false,
+    "optionalClaims": null,
+    "orgRestrictions": [],
+    "parentalControlSettings": {
+        "countriesBlockedForMinors": [],
+        "legalAgeGroupRule": "Allow"
+    },
+    "passwordCredentials": [],
+    "preAuthorizedApplications": [],
+    "publisherDomain": "orbitbobermc.onmicrosoft.com",
+    "replyUrlsWithType": [
+        {
+            "url": "https://login.live.com/oauth20_desktop.srf",
+            "type": "InstalledClient"
+        }
+    ],
+    "requiredResourceAccess": [
+        {
+            "resourceAppId": "00000003-0000-0000-c000-000000000000",
+            "resourceAccess": [
+                {
+                    "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+                    "type": "Scope"
+                }
+            ]
+        },
+        {
+            "resourceAppId": "00000000-4c49-5645-0000-000000000000",
+            "resourceAccess": [
+                {
+                    "id": "DE305D54-75D4-431D-8960-2645652613CE",
+                    "type": "Scope"
+                }
+            ]
+        }
+    ],
+    "samlMetadataUrl": null,
+    "signInUrl": null,
+    "signInAudience": "AzureADandPersonalMicrosoftAccount",
+    "tags": [],
+    "tokenEncryptionKeyId": null
+}
