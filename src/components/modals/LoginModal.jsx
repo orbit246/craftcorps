@@ -8,8 +8,21 @@ const LoginModal = ({ isOpen, onClose, onAddAccount }) => {
     const { t } = useTranslation();
     const [activeMethod, setActiveMethod] = useState('selection'); // selection | offline
     const [offlineName, setOfflineName] = useState('');
+    const [validationMsg, setValidationMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);
+
+    // Reset state when modal opens/closes
+    React.useEffect(() => {
+        if (!isOpen) {
+            setOfflineName('');
+            setValidationMsg('');
+            setErrorMsg(null);
+            // Don't reset activeMethod here if we want to remember tab? 
+            // Usually reset to selection is safer.
+            setActiveMethod('selection');
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -141,22 +154,44 @@ const LoginModal = ({ isOpen, onClose, onAddAccount }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder={t('auth_input_placeholder')}
-                                        value={offlineName}
-                                        onChange={(e) => setOfflineName(e.target.value)}
-                                        className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 placeholder:text-slate-600"
-                                        onKeyDown={(e) => e.key === 'Enter' && handleOfflineLogin()}
-                                    />
-                                    <button
-                                        onClick={handleOfflineLogin}
-                                        disabled={!offlineName.trim()}
-                                        className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                                    >
-                                        {t('auth_btn_add')}
-                                    </button>
+                                <div className="flex flex-col gap-2 w-full">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder={t('auth_input_placeholder')}
+                                            value={offlineName}
+                                            maxLength={16}
+                                            onChange={(e) => {
+                                                const raw = e.target.value;
+                                                let msg = '';
+
+                                                if (/[^a-zA-Z0-9_]/.test(raw)) {
+                                                    msg = t('auth_err_invalid_char');
+                                                } else if (raw.length > 0 && raw.length < 3) {
+                                                    msg = t('auth_err_min_length');
+                                                }
+
+                                                setValidationMsg(msg);
+
+                                                const val = raw.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 16);
+                                                setOfflineName(val);
+                                            }}
+                                            className={`flex-1 bg-slate-900 border rounded-lg px-3 py-2 text-sm text-white focus:outline-none placeholder:text-slate-600 ${validationMsg ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-emerald-500/50'}`}
+                                            onKeyDown={(e) => e.key === 'Enter' && offlineName.length >= 3 && handleOfflineLogin()}
+                                        />
+                                        <button
+                                            onClick={handleOfflineLogin}
+                                            disabled={offlineName.length < 3}
+                                            className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                        >
+                                            {t('auth_btn_add')}
+                                        </button>
+                                    </div>
+                                    {validationMsg && (
+                                        <span className="text-xs text-red-400 pl-1 animate-in fade-in slide-in-from-top-1">
+                                            {validationMsg}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>

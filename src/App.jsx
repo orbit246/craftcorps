@@ -8,6 +8,7 @@ import LoadingScreen from './components/common/LoadingScreen';
 import BackgroundBlobs from './components/common/BackgroundBlobs';
 import CropModal from './components/modals/CropModal';
 import LoginModal from './components/modals/LoginModal';
+import JavaInstallModal from './components/modals/JavaInstallModal';
 
 import HomeView from './views/HomeView';
 import InstancesView from './views/InstancesView';
@@ -27,19 +28,46 @@ function App() {
     const { addToast } = useToast();
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('home');
-    const [ram, setRam] = useState(4);
-    const [javaPath, setJavaPath] = useState("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\javaw.exe");
-    const [hideOnLaunch, setHideOnLaunch] = useState(false);
-    const [disableAnimations, setDisableAnimations] = useState(false);
+    const [ram, setRam] = useState(() => {
+        return parseFloat(localStorage.getItem('settings_ram')) || 4;
+    });
+    const [javaPath, setJavaPath] = useState(() => {
+        return localStorage.getItem('settings_javaPath') || "C:\\Program Files\\Java\\jdk-17.0.2\\bin\\javaw.exe";
+    });
+    const [hideOnLaunch, setHideOnLaunch] = useState(() => {
+        return localStorage.getItem('settings_hideOnLaunch') === 'true';
+    });
+    const [disableAnimations, setDisableAnimations] = useState(() => {
+        return localStorage.getItem('settings_disableAnimations') === 'true';
+    });
+    const [availableJavas, setAvailableJavas] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Simulate app initialization
+    // Simulate app initialization + Load Javas
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 1500);
-        return () => clearTimeout(timer);
+        const init = async () => {
+            if (window.electronAPI) {
+                try {
+                    const javas = await window.electronAPI.getAvailableJavas();
+                    setAvailableJavas(javas);
+                } catch (e) {
+                    console.error("Failed to list Javas", e);
+                }
+            }
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 1000);
+        };
+        init();
     }, []);
+
+    // Persist Settings
+    useEffect(() => {
+        localStorage.setItem('settings_ram', ram);
+        localStorage.setItem('settings_javaPath', javaPath);
+        localStorage.setItem('settings_hideOnLaunch', hideOnLaunch);
+        localStorage.setItem('settings_disableAnimations', disableAnimations);
+    }, [ram, javaPath, hideOnLaunch, disableAnimations]);
 
     // Hooks
     const {
@@ -105,8 +133,12 @@ function App() {
         setShowConsole,
         logs,
         handlePlay,
-        handleStop
-    } = useGameLaunch(selectedInstance, ram, activeAccount, () => updateLastPlayed(selectedInstance?.id), hideOnLaunch, javaPath);
+        handleStop,
+        showJavaModal,
+        setShowJavaModal,
+        handleJavaInstallComplete,
+        requiredJavaVersion
+    } = useGameLaunch(selectedInstance, ram, activeAccount, () => updateLastPlayed(selectedInstance?.id), hideOnLaunch, javaPath, setJavaPath);
 
     if (isLoading) {
         return <LoadingScreen />;
@@ -240,6 +272,7 @@ function App() {
                             setHideOnLaunch={setHideOnLaunch}
                             disableAnimations={disableAnimations}
                             setDisableAnimations={setDisableAnimations}
+                            availableJavas={availableJavas}
                         />
                     )}
                     {activeTab === 'mods' && <ModsView />}
@@ -276,6 +309,12 @@ function App() {
                 editingCrop={editingCrop}
             />
 
+            <JavaInstallModal
+                isOpen={showJavaModal}
+                onClose={() => setShowJavaModal(false)}
+                onInstallComplete={handleJavaInstallComplete}
+                version={requiredJavaVersion}
+            />
         </div>
     );
 }

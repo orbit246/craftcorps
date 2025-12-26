@@ -14,6 +14,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     selectFile: () => ipcRenderer.invoke('select-file'),
     openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
     log: (level, message) => ipcRenderer.send('renderer-log', { level, message }),
+    installJava: (version) => ipcRenderer.invoke('install-java', version),
+    getAvailableJavas: () => ipcRenderer.invoke('get-available-javas'),
+    cancelJavaInstall: () => ipcRenderer.invoke('cancel-java-install'),
+    pauseJavaInstall: () => ipcRenderer.invoke('pause-java-install'),
+    resumeJavaInstall: () => ipcRenderer.invoke('resume-java-install'),
+    onJavaProgress: (callback) => ipcRenderer.on('java-progress', (_event, value) => callback(value)),
 
 
     launchGame: (options) => ipcRenderer.send('launch-game', options),

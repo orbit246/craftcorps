@@ -100,6 +100,37 @@ app.whenReady().then(() => {
         return shell.showItemInFolder(logPath);
     });
 
+    const JavaManager = require('./JavaManager.cjs');
+
+    ipcMain.handle('install-java', async (event, version = 17) => {
+        try {
+            // First check if we already have it
+            const existing = await JavaManager.checkJava(version);
+            if (existing) return existing;
+
+            // If not, download
+            await JavaManager.downloadAndInstall(version, (stats) => {
+                mainWindow?.webContents.send('java-progress', stats);
+            });
+
+            // Return valid path
+            return await JavaManager.checkJava(version);
+        } catch (error) {
+            // Don't log as error if it was just cancelled?
+            log.error(`[JavaManager] Installation failed or checks: ${error}`);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('cancel-java-install', () => JavaManager.cancelDownload());
+    ipcMain.handle('pause-java-install', () => JavaManager.pauseDownload());
+    ipcMain.handle('resume-java-install', async () => {
+        return JavaManager.resumeDownload();
+    });
+
+    ipcMain.handle('get-available-javas', async () => {
+        return JavaManager.scanForJavas();
+    });
     // Game Launcher Integration
     const GameLauncher = require('./GameLauncher.cjs');
     const launcher = new GameLauncher();

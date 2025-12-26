@@ -2,7 +2,7 @@ import React from 'react';
 import { Cpu, Globe, Monitor, Terminal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHideOnLaunch, disableAnimations, setDisableAnimations }) => {
+const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHideOnLaunch, disableAnimations, setDisableAnimations, availableJavas }) => {
     const { t, i18n } = useTranslation();
     const languages = [
         { code: 'en', label: 'English' },
@@ -64,22 +64,45 @@ const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHid
                     </h3>
 
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-2">{t('settings_java_path')}</label>
+                        {/* Java Path */}
+                        <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800/50">
+                            <label className="block text-sm font-medium text-slate-300 mb-3">{t('settings_java_path')}</label>
                             <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={javaPath}
-                                    readOnly
-                                    className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-400 font-mono"
-                                />
+                                <div className="flex-1 relative">
+                                    <select
+                                        value={javaPath}
+                                        onChange={(e) => setJavaPath(e.target.value)}
+                                        className="w-full appearance-none bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-300 font-mono pr-8 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                                    >
+                                        <option value="" disabled>Select Java Version</option>
+                                        {availableJavas && availableJavas.length > 0 ? (
+                                            availableJavas.map((j, i) => (
+                                                <option key={i} value={j.path}>
+                                                    {j.name} (v{j.version}) - {j.path}
+                                                </option>
+                                            ))
+                                        ) : (
+                                            <option value={javaPath} disabled>{t('settings_no_java') || "No detected runtimes"}</option>
+                                        )}
+                                        {/* Always allow the current path even if not detected, so it doesn't break */}
+                                        {!availableJavas?.find(j => j.path === javaPath) && javaPath && (
+                                            <option value={javaPath}>{javaPath} (Custom)</option>
+                                        )}
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </div>
+                                </div>
                                 <button
                                     onClick={handleBrowseJava}
-                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium text-slate-200"
-                                >
-                                    {t('btn_browse')}
-                                </button>
+                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium text-slate-200 transition-colors whitespace-nowrap"
+                                >{t('btn_browse')}</button>
                             </div>
+                            <p className="mt-2 text-xs text-slate-500">
+                                Select a detected Java Runtime or browse for a custom executable (javaw.exe).
+                            </p>
                         </div>
 
                         <div>
