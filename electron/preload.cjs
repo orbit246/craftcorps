@@ -33,4 +33,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.removeAllListeners('game-log');
         ipcRenderer.removeAllListeners('game-progress');
     },
+
+    // Discord RPC
+    setDiscordActivity: (activity) => ipcRenderer.invoke('discord-set-activity', activity),
+    clearDiscordActivity: () => ipcRenderer.invoke('discord-clear-activity'),
 });

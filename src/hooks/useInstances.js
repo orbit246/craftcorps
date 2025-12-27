@@ -4,7 +4,7 @@ import { INITIAL_INSTANCES } from '../data/mockData';
 export const useInstances = () => {
     const [instances, setInstances] = useState(() => {
         try {
-            const saved = localStorage.getItem('craftcrops_instances');
+            const saved = localStorage.getItem('craftcorps_instances');
             return saved ? JSON.parse(saved) : INITIAL_INSTANCES;
         } catch (e) {
             return INITIAL_INSTANCES;
@@ -16,7 +16,7 @@ export const useInstances = () => {
 
     // Sync instances to localStorage
     useEffect(() => {
-        localStorage.setItem('craftcrops_instances', JSON.stringify(instances));
+        localStorage.setItem('craftcorps_instances', JSON.stringify(instances));
     }, [instances]);
 
     // Sync selected instance status update if it was edited

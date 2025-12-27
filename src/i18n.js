@@ -65,7 +65,7 @@ i18n
 
         detection: {
             order: ['localStorage', 'navigator'],
-            lookupLocalStorage: 'craftcrops_language',
+            lookupLocalStorage: 'craftcorps_language',
             caches: ['localStorage']
         }
     });

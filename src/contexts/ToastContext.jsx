@@ -9,11 +9,6 @@ export const ToastProvider = ({ children }) => {
     const addToast = useCallback((message, type = 'info') => {
         const id = Date.now();
         setToasts(prev => [...prev, { id, message, type }]);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== id));
-        }, 5000);
     }, []);
 
     const removeToast = useCallback((id) => {
@@ -25,14 +20,31 @@ export const ToastProvider = ({ children }) => {
             {children}
             <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
                 {toasts.map(toast => (
-                    <ToastItem key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
+                    <ToastItem key={toast.id} {...toast} removeCallback={removeToast} />
                 ))}
             </div>
         </ToastContext.Provider>
     );
 };
 
-const ToastItem = ({ message, type, onClose }) => {
+const ToastItem = ({ id, message, type, removeCallback }) => {
+    const [isExiting, setIsExiting] = useState(false);
+
+    const handleClose = () => {
+        setIsExiting(true);
+        setTimeout(() => {
+            removeCallback(id);
+        }, 300); // Match animation duration
+    };
+
+    // Auto-close effect
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            handleClose();
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, []);
+
     const icons = {
         success: <Check size={18} className="text-emerald-500" />,
         error: <X size={18} className="text-red-500" />,
@@ -48,12 +60,13 @@ const ToastItem = ({ message, type, onClose }) => {
     };
 
     return (
-        <div className={`pointer-events-auto min-w-[300px] max-w-md bg-slate-900/90 backdrop-blur-md border ${borderColors[type]} p-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-full fade-in duration-300`}>
+        <div className={`pointer-events-auto min-w-[300px] max-w-md bg-slate-900/90 backdrop-blur-md border ${borderColors[type]} p-4 rounded-xl shadow-2xl flex items-center gap-3 
+            ${isExiting ? 'animate-out slide-out-to-right fade-out duration-300' : 'animate-in slide-in-from-right fade-in duration-300'}`}>
             <div className="bg-slate-800/50 p-2 rounded-lg">
                 {icons[type]}
             </div>
             <p className="text-slate-200 text-sm font-medium flex-1">{message}</p>
-            <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+            <button onClick={handleClose} className="text-slate-500 hover:text-white transition-colors">
                 <X size={14} />
             </button>
         </div>

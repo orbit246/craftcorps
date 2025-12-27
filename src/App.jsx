@@ -82,6 +82,8 @@ function App() {
         localStorage.setItem('settings_disableAnimations', disableAnimations);
     }, [ram, javaPath, hideOnLaunch, disableAnimations]);
 
+
+
     // Hooks
     const {
         accounts,
@@ -153,6 +155,47 @@ function App() {
         requiredJavaVersion
     } = useGameLaunch(selectedInstance, ram, activeAccount, () => updateLastPlayed(selectedInstance?.id), hideOnLaunch, javaPath, setJavaPath);
 
+    // Update Discord RPC based on activeTab
+    useEffect(() => {
+        if (!window.electronAPI?.setDiscordActivity) return;
+
+        // Don't update status from frontend if game is launching or running
+        // The backend handles the "In Game" status
+        if (launchStatus === 'launching' || launchStatus === 'running') return;
+
+        let stateText = 'Idling';
+        let detailsText = 'In Launcher';
+
+        switch (activeTab) {
+            case 'home':
+                stateText = 'Dashboard';
+                break;
+            case 'instances':
+                stateText = 'Managing Instances';
+                break;
+            case 'wardrobe':
+                stateText = 'Changing Skin';
+                break;
+            case 'settings':
+                stateText = 'Configuring Settings';
+                break;
+            case 'mods':
+                stateText = 'Browsing Mods';
+                break;
+            default:
+                stateText = 'Idling';
+        }
+
+        window.electronAPI.setDiscordActivity({
+            details: detailsText,
+            state: stateText,
+            largeImageKey: 'icon',
+            largeImageText: 'CraftCorps Launcher',
+            instance: false,
+        });
+
+    }, [activeTab, launchStatus]);
+
     if (isLoading) {
         return <LoadingScreen />;
     }
@@ -172,7 +215,7 @@ function App() {
                 {/* Custom Window Title Bar (Drag Region) */}
                 <header className="absolute top-0 left-0 right-0 h-10 flex items-center justify-between px-4 z-50 select-none drag">
                     <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <span>CraftCrops Launcher v1.0.2</span>
+                        <span>CraftCorps Launcher v1.0.2</span>
                         {launchStatus === 'running' && <span className="text-emerald-500 flex items-center gap-1">● {t('top_bar_running')}</span>}
                     </div>
                     <div className="flex items-center gap-4 no-drag">

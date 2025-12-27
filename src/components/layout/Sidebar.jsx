@@ -80,7 +80,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                     <Sprout size={20} className="text-white" />
                 </div>
                 <h1 className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-200 transition-opacity duration-200 ${width < 180 ? 'opacity-0' : 'opacity-100'}`}>
-                    CraftCrops
+                    CraftCorps
                 </h1>
             </div>
 

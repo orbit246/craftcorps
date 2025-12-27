@@ -1,9 +1,9 @@
 {
-  "name": "craftcrops-launcher",
+  "name": "craftcorps-launcher",
   "private": true,
   "version": "1.0.2",
   "main": "electron/main.cjs",
-  "author": "CraftCrops Authors",
+  "author": "CraftCorps Authors",
   "description": "Premium Minecraft Instance Manager",
   "type": "module",
   "scripts": {
@@ -15,8 +15,8 @@
     "electron:build": "vite build && electron-builder"
   },
   "build": {
-    "appId": "com.craftcrops.launcher",
-    "productName": "CraftCrops",
+    "appId": "com.craftcorps.launcher",
+    "productName": "CraftCorps",
     "directories": {
       "output": "release"
     },
@@ -52,6 +52,7 @@
   "dependencies": {
     "adm-zip": "^0.5.16",
     "crypto-js": "^4.2.0",
+    "discord-rpc": "^4.0.1",
     "electron-log": "^5.4.3",
     "i18next": "^25.7.3",
     "i18next-browser-languagedetector": "^8.2.0",

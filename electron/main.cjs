@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const log = require('electron-log');
+const { initDiscordRPC, setActivity } = require('./discordRpc.cjs');
 
 // Configure logging
 log.transports.file.level = 'info';
@@ -51,12 +52,24 @@ function createWindow() {
         mainWindow.loadURL(startUrl);
         // mainWindow.webContents.openDevTools(); // Uncomment if needed for prod debug
     }
+
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
+        // Force window to top
+        mainWindow.setAlwaysOnTop(true);
+        mainWindow.setAlwaysOnTop(false);
+        mainWindow.focus();
+    });
 }
 
 app.whenReady().then(() => {
     createWindow();
 
+    // --- Discord RPC Setup ---
+    initDiscordRPC();
+
     // IPC Handlers
+
     ipcMain.on('window-minimize', () => mainWindow?.minimize());
     ipcMain.on('window-maximize', () => {
         if (mainWindow?.isMaximized()) {
@@ -153,6 +166,14 @@ app.whenReady().then(() => {
 
     launcher.on('exit', (code) => {
         mainWindow?.webContents.send('game-exit', code);
+        setActivity({
+            details: 'In Launcher',
+            state: 'Idling',
+            startTimestamp: Date.now(),
+            largeImageKey: 'icon',
+            largeImageText: 'CraftCorps Launcher',
+            instance: false,
+        });
     });
 
     ipcMain.on('launch-game', async (event, options) => {
@@ -243,6 +264,14 @@ app.whenReady().then(() => {
 
         // Here you would normally resolve paths to libraries/assets based on the version
         // For now, we pass the raw options or defaults
+        setActivity({
+            details: 'In Game',
+            state: options.version ? `Playing Minecraft ${options.version}` : 'Playing Minecraft',
+            startTimestamp: Date.now(),
+            largeImageKey: 'icon',
+            largeImageText: 'CraftCorps Launcher',
+            instance: true,
+        });
         launcher.launch(options);
     });
 
