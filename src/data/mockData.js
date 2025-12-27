@@ -1,33 +1,13 @@
 export const INITIAL_INSTANCES = [
     {
         id: 'inst_1',
-        name: 'Vanilla Harvest',
-        version: '1.20.4',
-        loader: 'Fabric',
+        name: 'Latest Version',
+        version: '1.21.1',
+        loader: 'Vanilla',
         status: 'Ready',
         lastPlayed: null,
         iconColor: 'bg-emerald-500',
         bgGradient: 'from-emerald-900/40 to-slate-900'
-    },
-    {
-        id: 'inst_2',
-        name: 'Tech & Turnips',
-        version: '1.19.2',
-        loader: 'Forge',
-        status: 'Update Available',
-        lastPlayed: null,
-        iconColor: 'bg-blue-500',
-        bgGradient: 'from-blue-900/40 to-slate-900'
-    },
-    {
-        id: 'inst_3',
-        name: 'SkyBlock: Organic',
-        version: '1.12.2',
-        loader: 'Vanilla',
-        status: 'Ready',
-        lastPlayed: null,
-        iconColor: 'bg-amber-500',
-        bgGradient: 'from-amber-900/40 to-slate-900'
     }
 ];
 

@@ -30,7 +30,7 @@ const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHid
     };
 
     return (
-        <div className="flex-1 overflow-y-auto p-8 max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-300 select-none">
+        <div className="flex-1 overflow-y-auto p-8 animate-in fade-in slide-in-from-bottom-4 duration-300 select-none custom-scrollbar">
             <h2 className="text-3xl font-bold text-white mb-8">{t('settings_title')}</h2>
 
             <div className="space-y-6">

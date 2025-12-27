@@ -251,7 +251,7 @@ function App() {
                 </header>
 
                 {/* Main View Container */}
-                <div className="flex-1 flex flex-col relative pt-10"> {/* Added pt-10 for header space */}
+                <div className="flex-1 flex flex-col relative pt-10 overflow-hidden"> {/* Added pt-10 for header space */}
 
                     {activeTab === 'home' && (
                         !activeAccount ? (

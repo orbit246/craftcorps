@@ -31,3 +31,4 @@ release
 .env
 .env.*
 !.env.example
+crash-service/crash_server.py

@@ -114,5 +114,13 @@
     "settings_troubleshooting": "Troubleshooting",
     "settings_logs": "Launcher Logs",
     "settings_logs_desc": "View diagnostic logs",
-    "btn_open_logs": "Open Folder"
+    "btn_open_logs": "Open Folder",
+    "time_never": "Never",
+    "time_just_now": "Just now",
+    "time_minutes_ago_one": "{{count}} minute ago",
+    "time_minutes_ago_other": "{{count}} minutes ago",
+    "time_hours_ago_one": "{{count}} hour ago",
+    "time_hours_ago_other": "{{count}} hours ago",
+    "time_days_ago_one": "{{count}} day ago",
+    "time_days_ago_other": "{{count}} days ago"
 }

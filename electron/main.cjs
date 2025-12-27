@@ -10,6 +10,35 @@ log.transports.console.format = '[{h}:{i}:{s} {level}] {text}';
 console.log = log.log; // Redirect console usage to electron-log handling
 Object.assign(console, log.functions);
 
+// Crash Handling (Fast & Free)
+// Native Crash Reporting
+app.setPath('crashDumps', path.join(app.getPath('userData'), 'crashDumps'));
+const { crashReporter } = require('electron');
+
+crashReporter.start({
+    productName: 'CraftCorps',
+    companyName: 'CraftCorps Authors',
+    submitURL: 'http://148.113.49.235:3000/crash-report',
+    uploadToServer: true,
+    compress: true,
+    extra: {
+        'platform': process.platform
+    }
+});
+
+// Crash Handling (Log-based)
+log.errorHandler.startCatching(); // Built-in electron-log error catcher
+
+process.on('uncaughtException', (error) => {
+    log.error('CRITICAL: Uncaught Exception:', error);
+    // Optional: Show error dialog
+    dialog.showErrorBox('Application Error', `An unexpected error occurred.\n\n${error.message}`);
+});
+
+process.on('unhandledRejection', (reason) => {
+    log.error('CRITICAL: Unhandled Rejection:', reason);
+});
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // if (require('electron-squirrel-startup')) {
 //     app.quit();
