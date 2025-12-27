@@ -50,6 +50,13 @@ function App() {
                 try {
                     const javas = await window.electronAPI.getAvailableJavas();
                     setAvailableJavas(javas);
+
+                    // Listen for auto-detected java updates
+                    window.electronAPI.onJavaPathUpdated((newPath) => {
+                        console.log("Received Java Path Update:", newPath);
+                        setJavaPath(newPath);
+                        addToast(t('toast_java_updated', { defaultValue: "Java path updated automatically" }), 'info');
+                    });
                 } catch (e) {
                     console.error("Failed to list Javas", e);
                 }
@@ -59,6 +66,12 @@ function App() {
             }, 1000);
         };
         init();
+
+        return () => {
+            if (window.electronAPI && window.electronAPI.removeJavaPathListener) {
+                window.electronAPI.removeJavaPathListener();
+            }
+        };
     }, []);
 
     // Persist Settings

@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     pauseJavaInstall: () => ipcRenderer.invoke('pause-java-install'),
     resumeJavaInstall: () => ipcRenderer.invoke('resume-java-install'),
     onJavaProgress: (callback) => ipcRenderer.on('java-progress', (_event, value) => callback(value)),
+    onJavaPathUpdated: (callback) => ipcRenderer.on('java-path-updated', (_event, value) => callback(value)),
+    removeJavaPathListener: () => ipcRenderer.removeAllListeners('java-path-updated'),
 
 
     launchGame: (options) => ipcRenderer.send('launch-game', options),

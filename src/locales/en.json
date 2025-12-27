@@ -46,7 +46,7 @@
     "auth_authenticating": "Authenticating...",
     "auth_browser_instruction": "Please complete the login in your browser.",
     "auth_microsoft": "Microsoft Account",
-    "auth_recommended": "Recommended for servers",
+    "auth_recommended": "Recommended for servers & Game Pass",
     "auth_or": "Or",
     "auth_offline": "Offline Access - Singleplayer Only",
     "auth_singleplayer_only": "You need to purchase a license from Microsoft to play in premium servers",

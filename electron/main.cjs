@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const log = require('electron-log');
 
@@ -154,7 +155,92 @@ app.whenReady().then(() => {
         mainWindow?.webContents.send('game-exit', code);
     });
 
-    ipcMain.on('launch-game', (event, options) => {
+    ipcMain.on('launch-game', async (event, options) => {
+        // Check if Java path is valid, if not, try to auto-detect
+        let javaValid = false;
+        if (options.javaPath && typeof options.javaPath === 'string') {
+            try {
+                if (fs.existsSync(options.javaPath)) {
+                    // Start basic validation: filename must contain 'java'
+                    const lower = path.basename(options.javaPath).toLowerCase();
+                    if (lower.includes('java')) {
+                        javaValid = true;
+                    }
+                }
+            } catch (e) { }
+        }
+
+        if (!javaValid) {
+            log.warn(`[Launch] Provided Java path '${options.javaPath}' invalid or missing (or not an executable). Attempting auto-detection...`);
+
+            // Determine required Java version based on MC version
+            let v = 17; // Default to 17
+            if (options.version) {
+                const parts = options.version.split('.');
+                if (parts.length >= 2) {
+                    const minor = parseInt(parts[1]);
+                    if (minor >= 21) {
+                        v = 21;
+                    } else if (minor === 20) {
+                        if (parts.length > 2 && parseInt(parts[2]) >= 5) v = 21;
+                        else v = 17;
+                    } else if (minor >= 17) {
+                        v = 17;
+                    } else {
+                        v = 8;
+                    }
+                }
+            }
+
+            log.info(`[Launch] Required Java Version for ${options.version}: base ${v}`);
+
+            // Scan widely for Javas
+            const allJavas = await JavaManager.scanForJavas();
+            log.info(`[Launch] System scan found ${allJavas.length} Java installations.`);
+
+            let selectedJava = null;
+
+            // Sort to find best match? 
+            // We want closest to requirement, but newer is usually okay for >= 17
+
+            // Strategy:
+            // If v == 8: strict 8. (Unless user forces override, but usually 8)
+            // If v >= 17: anything >= v. (Prefer closest?)
+
+            if (v === 8) {
+                // Try to find exactly 8
+                selectedJava = allJavas.find(j => j.version === 8);
+            } else {
+                // Find all >= v
+                const candidates = allJavas.filter(j => j.version >= v);
+                // Sort ascending version (prefer 17 over 21 if 17 is requested? actually closer is safer)
+                candidates.sort((a, b) => a.version - b.version);
+                if (candidates.length > 0) selectedJava = candidates[0];
+            }
+
+            // Fallback: if we needed 8 but only have newer, maybe try newer? (Rarely works for modded 1.12, but for vanilla 1.12 it might run)
+            // But per user request "do not force... if there are other versions available for the GIVEN java version"
+            // "available for the GIVEN java version" implies matching the requirement.
+
+            // Checking checkJava() as last resort (managed folder) if scan missed it?
+            if (!selectedJava) {
+                const managed = await JavaManager.checkJava(v);
+                if (managed) selectedJava = { path: managed, version: v };
+            }
+
+            if (selectedJava) {
+                log.info(`[Launch] Auto-detected suitable Java: ${selectedJava.path} (Version ${selectedJava.version})`);
+                options.javaPath = selectedJava.path;
+                // Emit log to frontend
+                mainWindow?.webContents.send('game-log', { type: 'INFO', message: `Auto-selected Java ${selectedJava.version}: ${selectedJava.path}` });
+                // Update frontend settings
+                mainWindow?.webContents.send('java-path-updated', selectedJava.path);
+            } else {
+                log.warn(`[Launch] Could not find a suitable Java ${v} installation.`);
+                mainWindow?.webContents.send('game-log', { type: 'WARN', message: `No suitable Java ${v} found. Please install it.` });
+            }
+        }
+
         // Here you would normally resolve paths to libraries/assets based on the version
         // For now, we pass the raw options or defaults
         launcher.launch(options);
