@@ -1,11 +1,12 @@
 const { BrowserWindow } = require('electron');
 const https = require('https');
+const path = require('path');
 
-const CLIENT_ID = "2f559a44-6b34-4e39-9f6d-2e02fbe2caf8"; // Custom Application ID
+const CLIENT_ID = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb"; // Custom Application ID
 // NOTE: If you get "Invalid app registration" (AUTH_INVALID_APP_CONFIG), it means Mojang has not approved your App ID.
 // For DEVELOPMENT ONLY, you can test with a known ID (e.g. Prism Launcher's ID) to verify your code works:
 // const CLIENT_ID = "d173c8d1-561b-4b2d-9b1b-4d7a8d7a1240"; // Prism Launcher (Open Source) - USE ONLY FOR DEV TEST
-const REDIRECT_URI = "https://login.live.com/oauth20_desktop.srf";
+const REDIRECT_URI = "http://localhost";
 
 function post(url, data, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -85,9 +86,13 @@ function get(url, headers = {}) {
 async function authenticateMicrosoft(mainWindow) {
     return new Promise((resolve, reject) => {
         const authWindow = new BrowserWindow({
-            width: 500,
+            width: 800,
             height: 600,
             show: true,
+            title: "Microsoft Login",
+            icon: process.env.NODE_ENV === 'development'
+                ? path.join(__dirname, '../public/icon.png')
+                : path.join(__dirname, '../dist/icon.png'),
             parent: mainWindow,
             modal: true,
             webPreferences: {

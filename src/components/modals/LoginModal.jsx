@@ -29,8 +29,8 @@ const LoginModal = ({ isOpen, onClose, onAddAccount }) => {
     const handleMicrosoftLogin = async () => {
         // Show widget instead of alert
         setErrorMsg("Coming soon, we're waiting approval from mojang");
+        //
 
-        /* Temporarily Loading Disabled
         setIsLoading(true);
         setErrorMsg(null);
         try {
@@ -72,7 +72,7 @@ const LoginModal = ({ isOpen, onClose, onAddAccount }) => {
             setErrorMsg(e.message || t('auth_err_unknown'));
             setIsLoading(false);
         }
-        */
+
     };
 
     const handleOfflineLogin = () => {
