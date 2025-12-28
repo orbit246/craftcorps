@@ -32,3 +32,11 @@ release
 .env.*
 !.env.example
 crash-service/crash_server.py
+
+# Cloudflare
+.wrangler
+
+# Crash Dumps
+crashDumps
+*.dmp
+DEPLOY_TO_R2.md

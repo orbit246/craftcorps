@@ -41,26 +41,37 @@ function App() {
     const [disableAnimations, setDisableAnimations] = useState(() => {
         return localStorage.getItem('settings_disableAnimations') === 'true';
     });
+    const [enableDiscordRPC, setEnableDiscordRPC] = useState(() => {
+        const stored = localStorage.getItem('settings_enableDiscordRPC');
+        return stored !== null ? stored === 'true' : true; // Default true
+    });
     const [availableJavas, setAvailableJavas] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const refreshJavas = async () => {
+        if (window.electronAPI) {
+            try {
+                const javas = await window.electronAPI.getAvailableJavas();
+                setAvailableJavas(javas);
+            } catch (e) {
+                console.error("Failed to list Javas", e);
+            }
+        }
+    };
 
     // Simulate app initialization + Load Javas
     useEffect(() => {
         const init = async () => {
-            if (window.electronAPI) {
-                try {
-                    const javas = await window.electronAPI.getAvailableJavas();
-                    setAvailableJavas(javas);
+            await refreshJavas();
 
-                    // Listen for auto-detected java updates
-                    window.electronAPI.onJavaPathUpdated((newPath) => {
-                        console.log("Received Java Path Update:", newPath);
-                        setJavaPath(newPath);
-                        addToast(t('toast_java_updated', { defaultValue: "Java path updated automatically" }), 'info');
-                    });
-                } catch (e) {
-                    console.error("Failed to list Javas", e);
-                }
+            if (window.electronAPI) {
+                // Listen for auto-detected java updates
+                window.electronAPI.onJavaPathUpdated((newPath) => {
+                    console.log("Received Java Path Update:", newPath);
+                    setJavaPath(newPath);
+                    addToast(t('toast_java_updated', { defaultValue: "Java path updated automatically" }), 'info');
+                    refreshJavas(); // Refresh list so the new path appears
+                });
             }
             setTimeout(() => {
                 setIsLoading(false);
@@ -81,7 +92,8 @@ function App() {
         localStorage.setItem('settings_javaPath', javaPath);
         localStorage.setItem('settings_hideOnLaunch', hideOnLaunch);
         localStorage.setItem('settings_disableAnimations', disableAnimations);
-    }, [ram, javaPath, hideOnLaunch, disableAnimations]);
+        localStorage.setItem('settings_enableDiscordRPC', enableDiscordRPC);
+    }, [ram, javaPath, hideOnLaunch, disableAnimations, enableDiscordRPC]);
 
 
 
@@ -166,6 +178,11 @@ function App() {
         // The backend handles the "In Game" status
         if (launchStatus === 'launching' || launchStatus === 'running') return;
 
+        if (!enableDiscordRPC) {
+            window.electronAPI.clearDiscordActivity();
+            return;
+        }
+
         let stateText = 'Idling';
         let detailsText = 'In Launcher';
 
@@ -197,7 +214,7 @@ function App() {
             instance: false,
         });
 
-    }, [activeTab, launchStatus]);
+    }, [activeTab, launchStatus, enableDiscordRPC]);
 
     if (isLoading) {
         return <LoadingScreen />;
@@ -332,6 +349,8 @@ function App() {
                             disableAnimations={disableAnimations}
                             setDisableAnimations={setDisableAnimations}
                             availableJavas={availableJavas}
+                            enableDiscordRPC={enableDiscordRPC}
+                            setEnableDiscordRPC={setEnableDiscordRPC}
                         />
                     )}
                     {activeTab === 'mods' && <ModsView />}
@@ -371,7 +390,10 @@ function App() {
             <JavaInstallModal
                 isOpen={showJavaModal}
                 onClose={() => setShowJavaModal(false)}
-                onInstallComplete={handleJavaInstallComplete}
+                onInstallComplete={(path) => {
+                    handleJavaInstallComplete(path);
+                    refreshJavas();
+                }}
                 version={requiredJavaVersion}
             />
 

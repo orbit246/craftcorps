@@ -5,7 +5,7 @@ const { app } = require('electron');
 const { DownloaderHelper } = require('node-downloader-helper');
 const AdmZip = require('adm-zip');
 const log = require('electron-log');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 class JavaManager {
     constructor() {
@@ -48,15 +48,26 @@ class JavaManager {
     async checkJava(version = 17) {
         const targetDir = this.getInstallDir(version);
 
-        // 1. Check our managed directory
-        const managed = this.findJavaBinary(targetDir);
-        if (managed) return managed;
+        // 1. Check our managed directory first (Best match)
+        const managed = await this.findJavaBinary(targetDir);
+        if (managed) {
+            // Verify it really is the version we think
+            const v = this.getVersionFromBinary(managed);
+            if (v >= version) return managed;
+        }
 
-        // 2. Check system paths
+        // 2. Check system paths (PATH env)
         const systemJava = await this.checkSystemJava(version);
         if (systemJava) {
             log.info(`[JavaManager] Found system Java ${version} at: ${systemJava}`);
             return systemJava;
+        }
+
+        // 3. Scan common directories if specific managed one was missing/wrong
+        if (!managed) {
+            const all = await this.scanForJavas();
+            const valid = all.filter(j => j.version >= version).sort((a, b) => a.version - b.version);
+            if (valid.length > 0) return valid[0].path;
         }
 
         return null;
@@ -123,22 +134,38 @@ class JavaManager {
             searchPaths = [
                 `C:\\Program Files\\Java`,
                 `C:\\Program Files (x86)\\Java`,
+                `C:\\Program Files\\Eclipse Adoptium`,
+                `C:\\Program Files\\BellSoft`,
+                `C:\\Program Files\\Amazon Corretto`,
+                `C:\\Program Files\\Azul\\zulu`,
+                `C:\\Program Files\\Microsoft\\jdk`,
                 path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Common', 'Eclipse', 'Adoptium'),
                 path.join(process.env.PROGRAMFILES || 'C:\\Program Files', 'Eclipse Adoptium'),
             ];
+            // Add likely user paths
+            const userProfile = process.env.USERPROFILE;
+            if (userProfile) {
+                searchPaths.push(path.join(userProfile, '.jdks'));
+                searchPaths.push(path.join(userProfile, '.sdkman', 'candidates', 'java'));
+            }
+
         } else if (this.platform === 'darwin') {
             searchPaths = [
                 '/Library/Java/JavaVirtualMachines',
                 path.join(os.homedir(), 'Library/Java/JavaVirtualMachines'),
                 // Homebrew
-                '/opt/homebrew/opt/openjdk/bin', // direct bin
-                '/usr/local/opt/openjdk/bin'
+                '/opt/homebrew/opt/openjdk/bin',
+                '/usr/local/opt/openjdk/bin',
+                // SDKMAN
+                path.join(os.homedir(), '.sdkman/candidates/java')
             ];
         } else if (this.platform === 'linux') {
             searchPaths = [
                 '/usr/lib/jvm',
                 '/usr/java',
-                '/opt/java'
+                '/opt/java',
+                path.join(os.homedir(), '.sdkman/candidates/java'),
+                '/snap/openjdk' // Snap installs
             ];
         }
 
@@ -146,103 +173,98 @@ class JavaManager {
         searchPaths.push(this.baseRuntimeDir);
 
         const found = [];
+        const seen = new Set();
 
         for (const root of searchPaths) {
             if (!fs.existsSync(root)) continue;
 
-            // macOS /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home/bin/java
-            if (this.platform === 'darwin' && root.includes('JavaVirtualMachines')) {
-                try {
-                    const entries = fs.readdirSync(root);
-                    for (const entry of entries) {
-                        // entry is likely "jdk-17.jdk"
-                        const homePath = path.join(root, entry, 'Contents', 'Home');
-                        const binJava = path.join(homePath, 'bin', 'java');
-                        if (fs.existsSync(binJava)) {
-                            found.push({
-                                path: binJava,
-                                version: this.guessVersionFromPath(entry),
-                                name: entry
-                            });
-                        }
-                    }
-                } catch (e) { }
-                continue;
-            }
+            const candidates = await this.recursiveFindJava(root, 0, 3);
+            for (const cand of candidates) {
+                if (seen.has(cand)) continue;
+                seen.add(cand);
 
-            // General Scan
-            try {
-                // If the root IS a bin folder (like homebrew)
-                if (root.endsWith('bin')) {
-                    const binJava = path.join(root, this.execName);
-                    if (fs.existsSync(binJava)) {
-                        found.push({ path: binJava, version: 17, name: 'OpenJDK' }); // Rough guess
-                    }
-                    continue;
+                // Verify version properly
+                const v = this.getVersionFromBinary(cand);
+                if (v > 0) {
+                    found.push({
+                        path: cand,
+                        version: v,
+                        name: 'Java ' + v // heuristic name
+                    });
                 }
-
-                // Normal directory scanning
-                const subdirs = fs.readdirSync(root);
-                for (const sub of subdirs) {
-                    const fullPath = path.join(root, sub);
-                    if (!fs.statSync(fullPath).isDirectory()) continue;
-
-                    // Standard layout: folder/bin/java
-                    const binJava = path.join(fullPath, 'bin', this.execName);
-                    if (fs.existsSync(binJava)) {
-                        found.push({
-                            path: binJava,
-                            version: this.guessVersionFromPath(sub),
-                            name: sub
-                        });
-                        continue;
-                    }
-
-                    // Nested layout (managed dir): folder/jdk-something/bin/java
-                    try {
-                        const nested = fs.readdirSync(fullPath);
-                        for (const n of nested) {
-                            const nestedDir = path.join(fullPath, n);
-                            if (fs.statSync(nestedDir).isDirectory()) {
-                                const nestedBin = path.join(nestedDir, 'bin', this.execName);
-                                if (fs.existsSync(nestedBin)) {
-                                    found.push({
-                                        path: nestedBin,
-                                        version: this.guessVersionFromPath(n),
-                                        name: n
-                                    });
-                                }
-                                // macOS managed extraction: nestedDir might be Contents/Home ??
-                                // Usually tar.gz extract preserves structure.
-                                // If mac, check nestedDir/Contents/Home/bin/java
-                                if (this.platform === 'darwin') {
-                                    const macBin = path.join(nestedDir, 'Contents', 'Home', 'bin', 'java');
-                                    if (fs.existsSync(macBin)) {
-                                        found.push({
-                                            path: macBin,
-                                            version: this.guessVersionFromPath(n),
-                                            name: n
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e) { }
-                }
-
-            } catch (e) { }
-        }
-
-        // Deduplicate
-        const unique = [];
-        const seen = new Set();
-        for (const j of found) {
-            if (!seen.has(j.path)) {
-                seen.add(j.path);
-                unique.push(j);
             }
         }
-        return unique;
+
+        return found;
+    }
+
+    async recursiveFindJava(dir, depth, maxDepth) {
+        const results = [];
+        if (depth > maxDepth) return results;
+
+        try {
+            // Check if this dir IS a java home candidate (has bin/java)
+            const binJava = path.join(dir, 'bin', this.execName);
+            if (fs.existsSync(binJava)) {
+                results.push(binJava);
+            }
+
+            // Mac-specific: Contents/Home/bin/java
+            if (this.platform === 'darwin') {
+                const macBin = path.join(dir, 'Contents', 'Home', 'bin', 'java');
+                if (fs.existsSync(macBin)) {
+                    results.push(macBin);
+                }
+            }
+
+            // Read children to recurse
+            // Avoid recuring into known non-java heavy dirs if they aren't potential roots
+            const entries = fs.readdirSync(dir);
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry);
+                if (fs.statSync(fullPath).isDirectory()) {
+                    // Filter out unlikely folders
+                    if (entry.startsWith('.') || entry === 'node_modules' || entry === 'lib' || entry === 'conf') continue;
+
+                    // If we found a java binary here, we typically don't need to recurse INSIDE it 
+                    // (unless it's a wrapper dir, but bin/java usually terminates the JDK structure)
+                    // But we checked 'dir/bin/java' above. 'dir' is the root.
+                    // The children might be OTHER JDK roots (e.g. C:\Program Files\Java\jdk1; jdk2)
+
+                    results.push(...await this.recursiveFindJava(fullPath, depth + 1, maxDepth));
+                }
+            }
+        } catch (e) { }
+
+        return results;
+    }
+
+    getVersionFromBinary(binPath) {
+        try {
+            const result = spawnSync(binPath, ['-version'], { encoding: 'utf8' });
+            // spawnSync returns object. java -version output is usually in stderr.
+            const output = (result.stdout || '') + '\n' + (result.stderr || '');
+
+            // Match: version "1.8.0_202" or "17.0.1"
+            // Also: openjdk version "11.0.12"
+            const match = output.match(/version "([^"]+)"/i);
+
+            if (match && match[1]) {
+                const vStr = match[1];
+                if (vStr.startsWith('1.')) {
+                    // 1.8.0 -> 8
+                    return parseInt(vStr.split('.')[1]);
+                } else {
+                    // 17.0.1 -> 17
+                    return parseInt(vStr.split('.')[0]);
+                }
+            }
+            // Fallback for some OpenJDK strings that might differ?
+            // Usually standard enough.
+            return 0;
+        } catch (e) {
+            return 0;
+        }
     }
 
     guessVersionFromPath(pathName) {
@@ -271,22 +293,32 @@ class JavaManager {
 
     async checkSystemJava(version) {
         // Quick verify: 'java -version'
-        // If system default matches, use it.
         try {
-            const output = execSync('java -version', { encoding: 'utf8', stdio: 'pipe' });
-            // Output usually: "openjdk version "17.0.1" ..." (on stderr mostly for java)
-        } catch (e) {
-            // java not in path or failed, proceed to manual scan
-            // Actually, java -version often writes to stderr
-        }
+            // exec checks system PATH
+            // On Windows 'where java' might return multiple, but running 'java' runs the first one.
+            // We want to know the version of the one in PATH.
+            const v = this.getVersionFromBinary('java');
+            if (v > 0) {
+                // Return 'java' literal if it's usable, OR resolve it to full path?
+                // MCLC prefers full path usually, but 'java' works if in path.
+                // However, 'java' might be a symlink or shim (Oracle shim).
+                // Safest to return 'java' if it works, or try to find where it is?
 
+                // If it matches our requirement (e.g. 17), return it.
+                // Note: if request is 17 and system is 8, we return null.
+                if (v >= version) return 'java';
+
+                // If system is newer (e.g. 21) and we asked for 17, it's usually fine too.
+            }
+        } catch (e) { }
+
+        // If system java wasn't good enough or found, we scan.
         const all = await this.scanForJavas();
-        // Filter for >= version
-        // Sort by version desc
-        const valid = all.filter(j => {
-            if (version === 8) return j.version === 8;
-            return j.version >= version;
-        }).sort((a, b) => a.version - b.version); // get closest valid version
+
+        if (all.length === 0) return null;
+
+        // Filter and sort
+        const valid = all.filter(j => j.version >= version).sort((a, b) => a.version - b.version);
 
         return valid.length > 0 ? valid[0].path : null;
     }

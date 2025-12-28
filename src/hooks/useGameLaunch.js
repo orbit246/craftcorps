@@ -74,16 +74,23 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
                 console.error("Launch Error received:", err);
                 setLaunchStatus('idle');
                 setLaunchFeedback('error');
-                setErrorModal(err);
+
+                // Check if error is related to Java
+                const isJavaError = (err.summary && err.summary.toLowerCase().includes('java')) ||
+                    (err.advice && err.advice.toLowerCase().includes('java'));
+
+                if (isJavaError) {
+                    setShowJavaModal(true);
+                    setErrorModal(null); // specific modal handles it
+                } else {
+                    setErrorModal(err);
+                }
 
                 const timeStr = new Date().toLocaleTimeString();
                 setLogs(prev => [...prev, { time: timeStr, type: "ERROR", message: err.summary }]);
                 if (err.advice) {
                     setLogs(prev => [...prev, { time: timeStr, type: "WARN", message: `Advice: ${err.advice}` }]);
                 }
-
-                // Force console show if critical? Or let modal handle it?
-                // Modal handles it.
             });
 
             window.electronAPI.onGameLog((log) => {
