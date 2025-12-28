@@ -1,7 +1,7 @@
 {
   "name": "craftcorps-launcher",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.1.10",
   "main": "electron/main.cjs",
   "author": "CraftCorps Authors",
   "description": "Premium Minecraft Instance Manager",
@@ -27,7 +27,7 @@
     "win": {
       "target": "nsis",
       "icon": "public/icon.png",
-      "artifactName": "${productName}-Setup.exe"
+      "artifactName": "CraftCorps Setup 1.0.2.exe"
     },
     "mac": {
       "target": {
@@ -51,7 +51,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "artifactName": "${productName}-Setup.exe",
+      "artifactName": "CraftCorps Setup 1.0.2.exe",
       "include": "build/installer.nsh"
     }
   },

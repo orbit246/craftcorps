@@ -6,75 +6,8 @@ const EventEmitter = require('events');
 class GameLauncher extends EventEmitter {
     constructor() {
         super();
-        this.client = new Client();
         this.isCancelled = false;
         this.lastError = null;
-
-        this.client.on('debug', (e) => {
-            const raw = e.toString();
-            // Don't emit generic info logs from game to main process file logger
-            // this.emit('log', { type: 'INFO', message: raw });
-
-            // Analyze for specific errors and emit user-friendly warnings
-            if (raw.includes('SyntaxError') && raw.includes('JSON')) {
-                this.lastError = {
-                    summary: 'Asset index corruption detected.',
-                    advice: 'We are attempting to clean up the corrupt file. Please try clicking Play again.'
-                };
-                this.emit('log', { type: 'ERROR', message: this.lastError.summary });
-                this.emit('log', { type: 'WARN', message: this.lastError.advice });
-            }
-
-            if (raw.includes('ENOTFOUND') && raw.includes('mojang')) {
-                this.lastError = {
-                    summary: 'Network Error: Cannot reach Minecraft servers.',
-                    advice: 'You seem to be offline or your DNS is blocked. Assets cannot be downloaded.'
-                };
-                this.emit('log', { type: 'ERROR', message: this.lastError.summary });
-                this.emit('log', { type: 'WARN', message: this.lastError.advice });
-            }
-
-            if (raw.includes('EPERM') || raw.includes('EACCES')) {
-                this.lastError = {
-                    summary: 'Permission Error: Cannot write to game folder.',
-                    advice: 'Close any open Minecraft instances, specific folder windows, or run the launcher as Administrator.'
-                };
-                this.emit('log', { type: 'ERROR', message: this.lastError.summary });
-                this.emit('log', { type: 'WARN', message: this.lastError.advice });
-            }
-        });
-
-        // Disable data logging to file, but we might want it for the Console Overlay.
-        // The prompt says "Stop importing in-game logs into the application logs".
-        // Application logs usually means the file/terminal output of the electron main process.
-        // We still need to send it to the UI console overlay.
-
-        // Current Flow: 
-        // 1. client.on('data') -> emit('log')
-        // 2. main.cjs: launcher.on('log') -> log.info(...) AND webContents.send('game-log')
-
-        // We need to differentiate "Log to File" vs "Send to UI".
-        // Let's emit a different event for raw game output vs app logs.
-        this.client.on('data', (e) => this.emit('game-output', e.toString()));
-        this.client.on('debug', (e) => this.emit('game-output', e.toString())); // Send debug to UI too? Often noisy. MCLC debug includes passwords sometimes? MCLC filters it usually.
-
-        // Actually, let's just emit 'game-output' instead of 'log' for stdout
-        // And update main.cjs to ONLY forward 'game-output' to UI, but NOT log it to electron-log.
-        this.client.on('close', (e) => this.emit('exit', e));
-        this.client.on('progress', (e) => {
-            const percent = Math.round((e.task / e.total) * 100);
-            this.emit('progress', {
-                type: e.type,
-                task: e.task,
-                total: e.total,
-                percent: percent
-            });
-            // Also log it for debugging/console history
-            // this.emit('log', { type: 'INFO', message: `Downloading ${e.type}: ${percent}%` });
-        });
-        this.client.on('download-status', (e) => {
-            // MCLC might emit this for overall file info
-        });
     }
 
     launch(options) {
@@ -150,8 +83,71 @@ class GameLauncher extends EventEmitter {
             this.emit('log', { type: 'WARN', message: `Failed to check asset index: ${e}` });
         }
 
-        this.isCancelled = false; // Reset cancel flag on new launch
+        this.isCancelled = false; // Reset cancel flag
         this.lastError = null; // Reset last error
+
+        // Instantiate a new MCLC Client for this launch to ensure clean state
+        this.client = new Client();
+
+        // --- Attach Listeners to new Client ---
+        this.client.on('debug', (e) => {
+            const raw = e.toString();
+            // Analyze for specific errors and emit user-friendly warnings
+            if (raw.includes('SyntaxError') && raw.includes('JSON')) {
+                this.lastError = {
+                    summary: 'Asset index corruption detected.',
+                    advice: 'We are attempting to clean up the corrupt file. Please try clicking Play again.'
+                };
+                this.emit('log', { type: 'ERROR', message: this.lastError.summary });
+                this.emit('log', { type: 'WARN', message: this.lastError.advice });
+            }
+
+            if (raw.includes('ENOTFOUND') && raw.includes('mojang')) {
+                this.lastError = {
+                    summary: 'Network Error: Cannot reach Minecraft servers.',
+                    advice: 'You seem to be offline or your DNS is blocked. Assets cannot be downloaded.'
+                };
+                this.emit('log', { type: 'ERROR', message: this.lastError.summary });
+                this.emit('log', { type: 'WARN', message: this.lastError.advice });
+            }
+
+            if (raw.includes('EPERM') || raw.includes('EACCES')) {
+                this.lastError = {
+                    summary: 'Permission Error: Cannot write to game folder.',
+                    advice: 'Close any open Minecraft instances, specific folder windows, or run the launcher as Administrator.'
+                };
+                this.emit('log', { type: 'ERROR', message: this.lastError.summary });
+                this.emit('log', { type: 'WARN', message: this.lastError.advice });
+            }
+
+            // Forward debug output to UI console
+            this.emit('game-output', raw);
+        });
+
+        this.client.on('data', (e) => this.emit('game-output', e.toString()));
+
+        // MCLC 'close' event is redundant if we listen to child process 'close', but good as backup
+        this.client.on('close', (e) => {
+            // If we already handled exit via process.on('close'), ignore?
+            // Usually MCLC emits this when the game process ends.
+            // We'll let the process.on('close') handle the authoritative exit to avoid double events if possible,
+            // but keeping this doesn't hurt much if logic allows idempotent exit.
+            // For now, let's rely on process object returned by promise.
+        });
+
+        this.client.on('progress', (e) => {
+            if (e.total === 0) return;
+            let percent = Math.round((e.task / e.total) * 100);
+            // Safety clamp still useful for bad upstream data, but new Client instance prevents accumulation bugs
+            if (percent > 100) percent = 100;
+
+            this.emit('progress', {
+                type: e.type,
+                task: e.task,
+                total: e.total,
+                percent: percent
+            });
+        });
 
         this.emit('log', { type: 'INFO', message: `Starting MCLC for version ${launchOptions.version.number}` });
         this.emit('log', { type: 'INFO', message: `Root: ${launchOptions.root}` });
@@ -161,7 +157,6 @@ class GameLauncher extends EventEmitter {
             if (this.isCancelled) {
                 // User cancelled during download/prepare phase
                 this.emit('log', { type: 'WARN', message: "Launch was cancelled by user. Killing spawned process immediately." });
-                // If the process just spawned, kill it
                 if (process) {
                     process.kill();
                 }

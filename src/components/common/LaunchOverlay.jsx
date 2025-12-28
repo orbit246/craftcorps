@@ -28,7 +28,7 @@ const LaunchOverlay = ({ isOpen, status, progress, onCancel, instanceName }) => 
                     <div className="h-2 w-full bg-slate-950/50 rounded-full overflow-hidden border border-slate-800/50">
                         <div
                             className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(52,211,153,0.5)]"
-                            style={{ width: `${Math.max(2, progress)}%` }}
+                            style={{ width: `${Math.min(100, Math.max(2, progress))}%` }}
                         />
                     </div>
                 </div>
@@ -36,7 +36,7 @@ const LaunchOverlay = ({ isOpen, status, progress, onCancel, instanceName }) => 
                 {/* Status Text */}
                 <div className="flex justify-between text-xs mb-6">
                     <span className="text-slate-400 truncate max-w-[340px] font-medium">{status || t('launch_status_init')}</span>
-                    <span className="text-emerald-500 font-mono font-bold">{progress}%</span>
+                    <span className="text-emerald-500 font-mono font-bold">{Math.min(100, Math.max(0, progress))}%</span>
                 </div>
 
                 {/* Action Button */}
