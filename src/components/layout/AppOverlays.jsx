@@ -5,6 +5,7 @@ import LoginModal from '../modals/LoginModal';
 import CropModal from '../modals/CropModal';
 import JavaInstallModal from '../modals/JavaInstallModal';
 import ErrorModal from '../modals/ErrorModal';
+import CrashReportModal from '../modals/CrashReportModal';
 
 const AppOverlays = ({
     // Console
@@ -18,7 +19,9 @@ const AppOverlays = ({
     // Java
     showJavaModal, setShowJavaModal, handleJavaInstallComplete, refreshJavas, requiredJavaVersion,
     // Error
-    errorModal, setErrorModal
+    errorModal, setErrorModal,
+    // Crash
+    crashModal, setCrashModal
 }) => {
     return (
         <>
@@ -65,6 +68,12 @@ const AppOverlays = ({
                 isOpen={!!errorModal}
                 onClose={() => setErrorModal(null)}
                 error={errorModal}
+            />
+
+            <CrashReportModal
+                isOpen={!!crashModal}
+                onClose={() => setCrashModal(null)}
+                crashData={crashModal}
             />
         </>
     );

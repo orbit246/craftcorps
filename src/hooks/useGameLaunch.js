@@ -11,6 +11,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
     const [requiredJavaVersion, setRequiredJavaVersion] = useState(17);
     const [showJavaModal, setShowJavaModal] = useState(false);
     const [errorModal, setErrorModal] = useState(null); // { summary, advice }
+    const [crashModal, setCrashModal] = useState(null); // { code, crashReport }
 
     // Determine Java Version based on selected instance
     useEffect(() => {
@@ -174,6 +175,12 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
             if (window.electronAPI.log) {
                 window.electronAPI.log('info', `[UI] Launch command sent to backend. RAM: ${ram}GB, User: ${activeAccount?.name}, Java: ${javaPath}`);
             }
+            // Check for crash
+            window.electronAPI.onGameCrashDetected((data) => {
+                // data = { code, crashReport }
+                setCrashModal(data);
+            });
+
         } else {
             setLogs([{ time: "Now", type: "ERROR", message: "Electron API not found. Cannot launch native process." }]);
         }
@@ -224,6 +231,8 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
         handleJavaInstallComplete,
         requiredJavaVersion,
         errorModal,
-        setErrorModal
+        setErrorModal,
+        crashModal,
+        setCrashModal
     };
 };

@@ -105,7 +105,9 @@ function App() {
         handleJavaInstallComplete,
         requiredJavaVersion,
         errorModal,
-        setErrorModal
+        setErrorModal,
+        crashModal,
+        setCrashModal
     } = useGameLaunch(selectedInstance, ram, activeAccount, () => updateLastPlayed(selectedInstance?.id), hideOnLaunch, javaPath, setJavaPath);
 
     // Update Discord RPC based on activeTab
@@ -180,6 +182,7 @@ function App() {
                 showCropModal={showCropModal} setShowCropModal={setShowCropModal} onSaveCropWithToast={onSaveCropWithToast} editingCrop={editingCrop}
                 showJavaModal={showJavaModal} setShowJavaModal={setShowJavaModal} handleJavaInstallComplete={handleJavaInstallComplete} refreshJavas={refreshJavas} requiredJavaVersion={requiredJavaVersion}
                 errorModal={errorModal} setErrorModal={setErrorModal}
+                crashModal={crashModal} setCrashModal={setCrashModal}
             />
         </div>
     );

@@ -257,6 +257,26 @@ class ForgeHandler {
                     changed = true;
                 }
 
+                // Ensure Authentication Args
+                if (!cleanArgs.includes('--accessToken')) {
+                    emit('log', { type: 'INFO', message: 'Patching Forge JSON with --accessToken argument...' });
+                    cleanArgs.push('--accessToken', '${auth_access_token}');
+                    changed = true;
+                }
+                if (!cleanArgs.includes('--version')) {
+                    emit('log', { type: 'INFO', message: 'Patching Forge JSON with --version argument...' });
+                    cleanArgs.push('--version', '${version_name}');
+                    changed = true;
+                }
+                if (!cleanArgs.includes('--username')) {
+                    cleanArgs.push('--username', '${auth_player_name}');
+                    changed = true;
+                }
+                if (!cleanArgs.includes('--uuid')) {
+                    cleanArgs.push('--uuid', '${auth_uuid}');
+                    changed = true;
+                }
+
                 if (cleanArgs.length !== originalCount || !hasGameDir) {
                     forgeData.arguments.game = cleanArgs;
                     changed = true;

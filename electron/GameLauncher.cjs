@@ -42,8 +42,8 @@ class GameLauncher extends EventEmitter {
         const launchOptions = {
             clientPackage: null, // Let MCLC handle it
             authorization: {
-                access_token: options.accessToken || '',
-                client_token: options.clientToken || '',
+                access_token: options.accessToken || '000000',
+                client_token: options.clientToken || '000000',
                 uuid: options.uuid || '00000000-0000-0000-0000-000000000000',
                 name: options.username || 'Player',
                 user_properties: '{}',
@@ -71,6 +71,28 @@ class GameLauncher extends EventEmitter {
 
         this.emit('log', { type: 'INFO', message: `Launch configured with Game Directory: ${gameRoot}` });
         this.emit('log', { type: 'INFO', message: `Launch configured with Common Root: ${commonRoot}` });
+
+        // Ensure critical directories exist (Fix for picky mods like FancyMenu/Drippy)
+        const dirsToEnsure = [
+            'config',
+            'mods',
+            'saves',
+            'screenshots',
+            'local',
+            path.join('config', 'fancymenu'),
+            path.join('config', 'drippyloadingscreen'),
+            'fancymenu_data'
+        ];
+        dirsToEnsure.forEach(d => {
+            const p = path.join(gameRoot, d);
+            if (!fs.existsSync(p)) {
+                try {
+                    fs.mkdirSync(p, { recursive: true });
+                } catch (e) {
+                    this.emit('log', { type: 'WARN', message: `Failed to create directory ${d}: ${e.message}` });
+                }
+            }
+        });
 
         // 3. Mod Loader Handlers
         const emitShim = (type, message) => {
@@ -185,7 +207,7 @@ class GameLauncher extends EventEmitter {
 
             // Analysis
             if (raw.includes('SyntaxError') && raw.includes('JSON')) {
-                this.lastError = { summary: 'Asset index corruption detected.', advice: 'Try interacting again to redownload.' };
+                this.lastError = { summary: 'Asset index corruption detected.', advice: 'The game asset index is corrupted. The launcher will attempt to fix this automatically on the next launch.' };
 
                 // Enhanced Debugging: Inspect the suspicious asset index file
                 try {
@@ -214,6 +236,14 @@ class GameLauncher extends EventEmitter {
                             this.emit('log', { type: 'DEBUG', message: `[Debug-Check] Found index file: ${f}` });
                             this.emit('log', { type: 'DEBUG', message: `[Debug-Check] Size: ${stats.size} bytes` });
 
+                            // Delete the corrupt file immediately to fix next launch
+                            try {
+                                fs.unlinkSync(f);
+                                this.emit('log', { type: 'WARN', message: `[Auto-Fix] Deleted corrupt asset index: ${f}` });
+                            } catch (delErr) {
+                                this.emit('log', { type: 'ERROR', message: `[Auto-Fix] Failed to delete corrupt file: ${delErr.message}` });
+                            }
+
                             if (stats.size < 1000) {
                                 // It's small, print it
                                 try {
@@ -231,6 +261,13 @@ class GameLauncher extends EventEmitter {
                 } catch (err) {
                     this.emit('log', { type: 'WARN', message: `[Debug-Check] Failed to run diagnostics: ${err.message}` });
                 }
+
+                // IMPORTANT: Abort launch to prevent getting stuck
+                this.emit('log', { type: 'ERROR', message: '[Critical] Aborting launch due to JSON SyntaxError in assets.' });
+                this.emit('launch-error', this.lastError);
+                this.emit('exit', 1);
+                this.isCancelled = true;
+                return;
             }
             if (raw.includes('ENOTFOUND') && raw.includes('mojang')) {
                 this.lastError = { summary: 'Network Error: Cannot reach Minecraft servers.', advice: 'Check internet.' };

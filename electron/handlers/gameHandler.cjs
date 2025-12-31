@@ -9,6 +9,8 @@ const JavaManager = require('../JavaManager.cjs');
 function setupGameHandlers(getMainWindow) {
     const launcher = new GameLauncher();
 
+    let lastCrashReport = null;
+
     // --- Launcher Events ---
     launcher.on('log', (data) => {
         const { type, message } = data;
@@ -17,6 +19,16 @@ function setupGameHandlers(getMainWindow) {
         else if (type === 'WARN') log.warn(`[MCLC] ${message}`);
         else if (type === 'DEBUG') console.log(`[DEBUG] ${message}`); // Log debugs to terminal
         else log.info(`[MCLC] ${message}`);
+
+        // Detect Crash Report path
+        // Pattern: "Crash report saved to: #@!@# C:\Path\To\crash-reports\crash-....txt"
+        if (message.includes('Crash report saved to:')) {
+            const match = message.match(/Crash report saved to:\s*(?:#@!@#)?\s*(.*)/);
+            if (match && match[1]) {
+                lastCrashReport = match[1].trim();
+                log.info(`[Main] Detected crash report: ${lastCrashReport}`);
+            }
+        }
 
         // Forward to frontend
         getMainWindow()?.webContents.send('game-log', data);
@@ -50,12 +62,18 @@ function setupGameHandlers(getMainWindow) {
 
         if (code !== 0 && code !== -1 && code !== null) {
             log.error(`[Main] Game crashed with exit code ${code}`);
-            getMainWindow()?.webContents.send('game-crash-detected', { code });
+            getMainWindow()?.webContents.send('game-crash-detected', { code, crashReport: lastCrashReport });
         }
+
+        // Reset for next run
+        lastCrashReport = null;
     });
 
     // --- IPC Handlers ---
+
+
     ipcMain.on('launch-game', async (event, options) => {
+        lastCrashReport = null; // Reset on new launch
         log.info(`[Launch] Received Request. GameDir: ${options.gameDir}, JavaPath: ${options.javaPath}, Version: ${options.version}`);
 
         // 1. Determine Required Java Version
