@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Maximize2, Minimize2, X, User } from 'lucide-react';
+import { Terminal, Maximize2, Minimize2, X, User, RefreshCw } from 'lucide-react';
 
 import Sidebar from './components/layout/Sidebar';
 import ConsoleOverlay from './components/common/ConsoleOverlay';
@@ -106,7 +106,8 @@ function App() {
         handleAccountSwitch,
         handleAddAccount,
         handleLogout,
-        isRefreshing
+        isRefreshing,
+        authError
     } = useAccounts();
 
     const {
@@ -235,6 +236,28 @@ function App() {
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                         <span>CraftCorps Launcher v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}</span>
                         {launchStatus === 'running' && <span className="text-emerald-500 flex items-center gap-1">● {t('top_bar_running')}</span>}
+                        {isRefreshing && (
+                            <div className="relative group ml-3 no-drag">
+                                <div className="flex items-center gap-1.5 text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20 cursor-help">
+                                    <RefreshCw size={10} className="animate-spin" />
+                                    <span className="font-medium">Refreshing Account</span>
+                                </div>
+                                <div className="absolute top-full left-0 mt-2 w-64 p-2.5 bg-slate-900/95 backdrop-blur border border-sky-500/30 rounded-lg shadow-xl text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
+                                    We're verifying your account details to make sure everything is ready for you to play.
+                                </div>
+                            </div>
+                        )}
+                        {!isRefreshing && authError && (
+                            <div className="relative group ml-3 no-drag">
+                                <div className="flex items-center gap-1.5 text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500 cursor-help">
+                                    <X size={10} />
+                                    <span className="font-medium">Auth Failed</span>
+                                </div>
+                                <div className="absolute top-full left-0 mt-2 w-64 p-2.5 bg-slate-900/95 backdrop-blur border border-red-500/30 rounded-lg shadow-xl text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
+                                    Auth failed due to internet connection missing, mojang auth servers are down or due to VPN use
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-4 no-drag">
                         {launchStatus !== 'idle' && (
@@ -383,7 +406,7 @@ function App() {
             />
 
             <LoginModal
-                isOpen={showLoginModal || isRefreshing}
+                isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
                 onAddAccount={onAddAccountWithToast}
                 isAutoRefreshing={isRefreshing}

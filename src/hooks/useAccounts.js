@@ -24,6 +24,8 @@ export const useAccounts = () => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
+    const [authError, setAuthError] = useState(false);
+
     // Track active account ID to prevent race conditions during async refresh
     const activeAccountIdRef = useRef(activeAccount?.id);
     const hasRefreshedRef = useRef(false); // Ref to prevent double execution in Strict Mode
@@ -44,9 +46,11 @@ export const useAccounts = () => {
             // Mark as running
             hasRefreshedRef.current = true;
             setIsRefreshing(true);
+            setAuthError(false);
             console.log(`[Auth] Attempting to refresh ${accountsToRefresh.length} accounts sequentially...`);
 
             let updatesMade = false;
+            let errorOccurred = false;
             let currentAccounts = [...accounts]; // Local copy to update incrementally if needed
 
             // Sequential Loop
@@ -65,6 +69,7 @@ export const useAccounts = () => {
                         }
                     } else {
                         console.warn(`[Auth] Failed to refresh ${acc.name}:`, result.error);
+                        errorOccurred = true;
                     }
 
                     // Delay between requests to avoid Rate Limiting (TOO_MANY_REQUESTS)
@@ -73,6 +78,7 @@ export const useAccounts = () => {
                     }
                 } catch (e) {
                     console.error(`[Auth] Error refreshing ${acc.name}:`, e);
+                    errorOccurred = true;
                 }
             }
 
@@ -91,6 +97,10 @@ export const useAccounts = () => {
                 console.log(`[Auth] Refresh cycle complete. Updates made.`);
             } else {
                 console.log(`[Auth] Refresh cycle complete. No updates.`);
+            }
+
+            if (errorOccurred) {
+                setAuthError(true);
             }
 
             // Keep visible briefly
@@ -150,6 +160,7 @@ export const useAccounts = () => {
         handleAccountSwitch,
         handleAddAccount,
         handleLogout,
-        isRefreshing
+        isRefreshing,
+        authError
     };
 };
