@@ -329,7 +329,13 @@ function App() {
                                 selectedInstance={selectedInstance}
                                 launchStatus={launchStatus}
                                 launchFeedback={launchFeedback}
-                                onPlay={handlePlay}
+                                onPlay={() => {
+                                    if (isRefreshing) {
+                                        addToast("Please wait for account refresh to finish.", "error");
+                                        return;
+                                    }
+                                    handlePlay();
+                                }}
                                 onStop={handleStop}
                                 activeAccount={activeAccount}
                                 instances={instances}
