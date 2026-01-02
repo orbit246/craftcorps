@@ -2,11 +2,11 @@ const { BrowserWindow } = require('electron');
 const https = require('https');
 const path = require('path');
 
-const CLIENT_ID = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb"; // Custom Application ID
+const CLIENT_ID = "2f559a44-6b34-4e39-9f6d-2e02fbe2caf8"; // Custom Application ID
 // NOTE: If you get "Invalid app registration" (AUTH_INVALID_APP_CONFIG), it means Mojang has not approved your App ID.
 // For DEVELOPMENT ONLY, you can test with a known ID (e.g. Prism Launcher's ID) to verify your code works:
 // const CLIENT_ID = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb"; // Prism Launcher (Open Source) - USE ONLY FOR DEV TEST
-const REDIRECT_URI = "http://localhost";
+const REDIRECT_URI = "https://login.live.com/oauth20_desktop.srf";
 
 function post(url, data, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -195,13 +195,17 @@ async function authenticateMicrosoft(mainWindow) {
             modal: true,
             webPreferences: {
                 nodeIntegration: false,
-                contextIsolation: true
+                contextIsolation: true,
+                partition: 'auth'
             }
         });
 
-        const authUrl = `https://login.live.com/oauth20_authorize.srf?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=XboxLive.signin%20offline_access`;
+        const authUrl = `https://login.live.com/oauth20_authorize.srf?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=XboxLive.signin%20offline_access&prompt=select_account`;
+        console.log('[Auth] Generated URL:', authUrl);
 
-        authWindow.loadURL(authUrl);
+        authWindow.webContents.session.clearStorageData().then(() => {
+            authWindow.loadURL(authUrl);
+        });
 
         authWindow.webContents.on('will-redirect', async (event, url) => {
             if (url.startsWith(REDIRECT_URI)) {
