@@ -36,7 +36,7 @@ const QuickSwitchPanel = ({
 
                 <button
                     onClick={onNewCrop}
-                    className="snap-center flex-shrink-0 w-12 h-[72px] rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 flex items-center justify-center transition-all group"
+                    className="focus:outline-none snap-center flex-shrink-0 w-12 h-[72px] rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 flex items-center justify-center transition-all group"
                     title={t ? t('home_new_crop') : 'New Crop'}
                 >
                     <Plus size={20} className="text-slate-500 group-hover:text-emerald-400" />
