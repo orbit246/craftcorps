@@ -64,7 +64,7 @@ class GameLauncher extends EventEmitter {
                 '-Xdock:icon=' + path.join(__dirname, '..', 'public', 'icon.png')
             ] : [],
             overrides: {
-                detached: false,
+                detached: true,
                 gameDirectory: gameRoot
             }
         };
