@@ -1,21 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
-import {
-    Sprout, Play, Loader2, X, ChevronRight, Plus, Edit3, Server, LogOut, PlusCircle, Check,
-    Box, Layers, Cpu, CheckCircle, RefreshCw, Search,
-    Pickaxe, Axe, Sword, Shield, Map, Compass, Flame, Snowflake, Droplet, Zap, Heart, Skull, Ghost, Trophy
-} from 'lucide-react';
-import QuickSelectCard from '../components/common/QuickSelectCard';
+import React, { useState, useEffect } from 'react';
+import { Edit3 } from 'lucide-react';
 import BackgroundBlobs from '../components/common/BackgroundBlobs';
-import PlayerAvatar from '../components/common/PlayerAvatar';
 import { useToast } from '../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
-import { formatLastPlayed } from '../utils/dateUtils';
 
-const ICON_MAP = {
-    Sprout, Pickaxe, Axe, Sword, Shield, Box,
-    Map, Compass, Flame, Snowflake, Droplet,
-    Zap, Heart, Skull, Ghost, Trophy
-};
+// Imported Sub-components
+import AccountProfile from '../components/home/AccountProfile';
+import InstanceHero from '../components/home/InstanceHero';
+import ModsList from '../components/home/ModsList';
+import ResourcePacksList from '../components/home/ResourcePacksList';
+import EmptyState from '../components/home/EmptyState';
+import QuickSwitchPanel from '../components/home/QuickSwitchPanel';
 
 const HomeView = ({
     selectedInstance,
@@ -40,28 +35,15 @@ const HomeView = ({
     theme
 }) => {
     const { t } = useTranslation();
-    const profileMenuRef = useRef(null);
-
-    // Close profile menu when clicking outside
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-                setShowProfileMenu(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [setShowProfileMenu]);
-
     const { addToast: showToast } = useToast();
+
     const [installedMods, setInstalledMods] = useState([]);
     const [isLoadingMods, setIsLoadingMods] = useState(false);
     const [resourcePacks, setResourcePacks] = useState(null);
     const [isLoadingResourcePacks, setIsLoadingResourcePacks] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [modSearchQuery, setModSearchQuery] = useState('');
-    const [resourcePackSearchQuery, setResourcePackSearchQuery] = useState('');
 
+    // Handlers
     const handleAddMods = async (filePaths = null) => {
         if (!selectedInstance?.path || !window.electronAPI) {
             showToast(t('Error: Configuration missing'), 'error');
@@ -82,7 +64,6 @@ const HomeView = ({
             showToast(t('Adding mods...'), 'info');
 
             try {
-                // simple direct call
                 const result = await window.electronAPI.addInstanceMods(selectedInstance.path, files);
 
                 if (result.success) {
@@ -103,7 +84,6 @@ const HomeView = ({
                     showToast(result.error || t('Failed to add mods'), 'error');
                 }
 
-                // Show warnings for specific skipped files (up to 3)
                 if (result.errors && result.errors.length > 0) {
                     result.errors.slice(0, 3).forEach(err => showToast(`Skipped: ${err}`, 'warning'));
                     if (result.errors.length > 3) {
@@ -161,10 +141,6 @@ const HomeView = ({
 
     const handleDragLeave = (e) => {
         e.preventDefault();
-        // Check if we really left the main container or entered a child (not reliable with just leave)
-        // Usually safer to use a backdrop, but simple toggle often works if carefully placed.
-        // Actually, reliable drag leave usually requires counting enters/leaves or checking relatedTarget.
-        // For now simple toggle:
         if (e.currentTarget.contains(e.relatedTarget)) return;
         setIsDragging(false);
     };
@@ -303,21 +279,13 @@ const HomeView = ({
                     })
                     .finally(() => setIsLoadingResourcePacks(false));
             } else {
-                setInstalledMods([]); // No path or no API -> use fallback/mock
+                setInstalledMods([]);
             }
         }
     }, [selectedInstance]);
 
     if (!selectedInstance) {
-        return (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
-                <Sprout size={48} className="mb-4 opacity-50" />
-                <p>{t('home_no_crops')}</p>
-                <button onClick={onNewCrop} className="mt-4 text-emerald-500 hover:underline">
-                    {t('home_btn_create_first')}
-                </button>
-            </div>
-        );
+        return <EmptyState onNewCrop={onNewCrop} />;
     }
 
     const isModded = selectedInstance.loader !== 'Vanilla';
@@ -337,88 +305,15 @@ const HomeView = ({
             <BackgroundBlobs disabled={disableAnimations || isModded || theme === 'midnight'} />
 
             {/* Account Pill & System - Top Right */}
-            <div className="absolute top-8 right-8 z-50 pointer-events-auto" ref={profileMenuRef}>
-                <button
-                    onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className={`flex items-center gap-3.5 bg-slate-950/80 backdrop-blur-xl border transition-all duration-300 cursor-pointer group pl-1.5 pr-5 py-1.5 rounded-full shadow-2xl shadow-black/40 ${showProfileMenu
-                        ? 'border-emerald-500/50 ring-4 ring-emerald-500/10'
-                        : 'border-white/10 hover:border-emerald-500/40 hover:bg-slate-900/90'
-                        }`}
-                >
-                    <div className={`w-10 h-10 rounded-full ${activeAccount?.avatarColor || 'bg-slate-600'} flex items-center justify-center shadow-inner relative ring-2 ring-white/5 group-hover:ring-emerald-500/30 transition-all`}>
-                        <PlayerAvatar name={activeAccount?.name} uuid={activeAccount?.uuid} />
-                        {/* Status Dot */}
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-[2.5px] border-slate-900 rounded-full shadow-sm"></div>
-                    </div>
-
-                    <div className="flex flex-col items-start gap-0.5">
-                        <span className="font-bold text-[15px] text-slate-100 group-hover:text-white transition-colors leading-none tracking-tight">
-                            {activeAccount?.name}
-                        </span>
-                        <span className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-1.5 py-0.5 rounded leading-none border border-emerald-500/10">
-                            {activeAccount?.type}
-                        </span>
-                    </div>
-
-                    <ChevronRight
-                        size={14}
-                        className={`text-slate-500 group-hover:text-slate-300 transition-transform duration-300 ml-1 ${showProfileMenu ? 'rotate-90' : ''}`}
-                    />
-                </button>
-
-                {/* Dropdown Menu */}
-                {showProfileMenu && (
-                    <div className="absolute top-full right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        {/* Account List */}
-                        <div className="p-2 space-y-1">
-                            <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex justify-between items-center">
-                                Login Identities
-                                <span className="bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded text-[10px]">
-                                    {accounts?.length || 0}
-                                </span>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto custom-scrollbar">
-                                {accounts?.map(acc => (
-                                    <button
-                                        key={acc.id}
-                                        onClick={() => { onSwitchAccount(acc); setShowProfileMenu(false); }}
-                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${activeAccount?.id === acc.id
-                                            ? 'bg-emerald-600 text-white shadow-emerald-900/20 shadow-lg'
-                                            : 'hover:bg-slate-800 text-slate-300'
-                                            }`}
-                                    >
-                                        <div className={`w-6 h-6 rounded-full ${acc.avatarColor} flex items-center justify-center text-[10px] font-bold shadow-sm relative`}>
-                                            <PlayerAvatar name={acc.name} uuid={acc.uuid} size={32} />
-                                        </div>
-                                        <div className="flex-1 text-left min-w-0">
-                                            <div className="truncate text-sm font-medium">{acc.name}</div>
-                                        </div>
-                                        {activeAccount?.id === acc.id && <Check size={14} className="text-white" />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="p-2 bg-slate-950/50 border-t border-slate-800 space-y-1">
-                            <button
-                                onClick={() => { onAddAccount(); setShowProfileMenu(false); }}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-xs font-medium group"
-                            >
-                                <PlusCircle size={14} className="text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                                Add Another Account
-                            </button>
-                            <button
-                                onClick={() => { onLogout(); setShowProfileMenu(false); }}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs font-medium group"
-                            >
-                                <LogOut size={14} className="text-slate-500 group-hover:text-red-400 transition-colors" />
-                                Log Out
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+            <AccountProfile
+                activeAccount={activeAccount}
+                accounts={accounts}
+                showProfileMenu={showProfileMenu}
+                setShowProfileMenu={setShowProfileMenu}
+                onSwitchAccount={onSwitchAccount}
+                onAddAccount={onAddAccount}
+                onLogout={onLogout}
+            />
 
             {/* Edit Button - positioned under profile */}
             <button
@@ -433,457 +328,57 @@ const HomeView = ({
             {/* Main Content Scrollable Area */}
             <div className={`relative z-10 flex-1 w-full overflow-y-auto custom-scrollbar ${isModded ? '' : 'flex flex-col items-center justify-center'}`}>
 
-                {/* Hero Section */}
-                <div className={`flex flex-col items-center text-center w-full px-8 pb-8 ${isModded ? 'pt-16 max-w-7xl mx-auto' : 'max-w-4xl'}`}>
-
-                    {/* Horizontal Hero for Modded */}
-                    <div className={`${isModded ? 'flex items-start gap-8 w-full text-left bg-slate-900/40 p-8 rounded-3xl border border-white/5 backdrop-blur-sm shadow-xl' : 'contents'}`}>
-
-                        {/* Instance Icon */}
-                        <div
-                            className={`${isModded ? 'w-24 h-24 shrink-0' : 'w-32 h-32 mb-8'} rounded-3xl ${selectedInstance.icon ? 'bg-transparent' : selectedInstance.iconColor} flex items-center justify-center ${selectedInstance.glyphColor || 'text-slate-900'} shadow-2xl shadow-black/50 transform hover:scale-105 transition-transform duration-300 ring-4 ring-white/10 overflow-hidden`}
-                        >
-                            {selectedInstance.icon ? (
-                                <img src={selectedInstance.icon} alt={selectedInstance.name} className="w-full h-full object-cover" />
-                            ) : (
-                                React.createElement(ICON_MAP[selectedInstance.iconKey] || Sprout, { size: 64 })
-                            )}
-                        </div>
-
-                        {/* Info & Play */}
-                        <div className={isModded ? 'flex-1 min-w-0' : 'contents'}>
-                            {/* Title */}
-                            <h1 className={`${isModded ? 'text-3xl mb-3' : 'text-5xl mb-2'} font-bold text-white tracking-tight drop-shadow-lg truncate`}>
-                                {selectedInstance.name}
-                            </h1>
-
-                            {/* Tags */}
-                            <div className={`flex items-center gap-3 text-slate-300 mb-8 ${isModded ? '' : 'justify-center bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm border border-white/5'}`}>
-                                <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
-                                    <span className="font-mono text-emerald-300">{selectedInstance.version}</span>
-                                </div>
-
-                                <span className={`w-1 h-1 rounded-full bg-slate-500 ${isModded ? 'hidden' : ''}`} />
-
-                                <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
-                                    <div className={`w-2 h-2 rounded-full ${isModded ? 'bg-amber-400' : 'bg-slate-400'}`}></div>
-                                    <span>{selectedInstance.loader}</span>
-                                </div>
-
-                                <span className={`w-1 h-1 rounded-full bg-slate-500 ${isModded ? 'hidden' : ''}`} />
-
-                                <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
-                                    <span className="text-emerald-400 font-medium">{selectedInstance.status === 'Ready' ? t('home_status_ready') : selectedInstance.status}</span>
-                                </div>
-
-                                {selectedInstance.autoConnect && (
-                                    <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5 text-emerald-400">
-                                        <Server size={14} />
-                                        <span className="text-xs font-medium">{selectedInstance.serverAddress}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Play Button - Inline for Modded */}
-                            <div className={`${isModded ? 'max-w-md' : 'w-full flex justify-center'}`}>
-                                {launchStatus === 'idle' ? (
-                                    launchFeedback === 'cancelled' ? (
-                                        <button disabled className="group relative w-full max-w-sm bg-slate-800 border-2 border-slate-700 text-amber-500 py-4 px-8 rounded-2xl font-bold text-lg cursor-not-allowed flex items-center justify-center gap-3 animate-pulse">
-                                            <X size={24} /> {t('home_launch_cancelled')}
-                                        </button>
-                                    ) : launchFeedback === 'error' ? (
-                                        <button disabled className="group relative w-full max-w-sm bg-slate-800 border-2 border-red-900/50 text-red-500 py-4 px-8 rounded-2xl font-bold text-lg cursor-not-allowed flex items-center justify-center gap-3">
-                                            <X size={24} /> Launch Failed
-                                        </button>
-                                    ) : (
-                                        <div className="group relative w-full max-w-sm">
-                                            <button
-                                                onClick={onPlay}
-                                                className={`relative w-full bg-emerald-600 group-hover:bg-emerald-500 text-white rounded-2xl font-bold ${theme === 'midnight'
-                                                    ? 'shadow-lg shadow-black/40 group-hover:shadow-2xl group-hover:shadow-black/60'
-                                                    : 'shadow-[0_0_40px_rgba(5,150,105,0.4)] group-hover:shadow-[0_0_60px_rgba(5,150,105,0.6)]'
-                                                    } transform group-hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-[transform,box-shadow,background-color] duration-200 overflow-hidden flex items-center ring-offset-2 ring-offset-transparent group-hover:ring-2 group-hover:ring-emerald-400/30 ${isModded ? 'py-4 text-xl justify-between text-left px-6' : 'py-6 text-2xl justify-center gap-3'}`}
-                                            >
-                                                {/* Shiny Edge Overlay */}
-                                                <div className={`absolute inset-0 rounded-2xl ring-1 ${theme === 'midnight' ? 'ring-white/5 group-hover:ring-white/10' : 'ring-white/10 group-hover:ring-white/30'} transition-all pointer-events-none`} />
-
-                                                <div className={`absolute inset-0 bg-gradient-to-r from-transparent ${theme === 'midnight' ? 'via-white/5' : 'via-white/20'} to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000`} />
-                                                <span className="flex items-center gap-4">
-                                                    <Play size={isModded ? 28 : 32} fill="currentColor" />
-                                                    <span className="flex flex-col items-start leading-none gap-1">
-                                                        <span>{t('home_playing')}</span>
-                                                        {isModded && <span className="text-xs font-medium text-emerald-200 opacity-80 font-sans tracking-wide">Last Played: {formatLastPlayed(selectedInstance.lastPlayed, t)}</span>}
-                                                    </span>
-                                                </span>
-                                                {isModded && <ChevronRight size={24} className="opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />}
-                                            </button>
-                                        </div>
-                                    )
-                                ) : (
-                                    <button
-                                        onClick={onStop}
-                                        className="w-full max-w-sm bg-slate-800 border-2 border-slate-700 text-slate-300 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 py-5 rounded-2xl font-bold text-xl transition-all flex items-center justify-center gap-3"
-                                    >
-                                        {launchStatus === 'launching' ? (
-                                            <Loader2 size={24} className="animate-spin" />
-                                        ) : (
-                                            <X size={24} />
-                                        )}
-                                        {launchStatus === 'launching' ? t('home_germinating') : t('home_stop')}
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Last Played - Only for Vanilla layout as it's inline for Modded */}
-                            {!isModded && (
-                                <p className="mt-6 text-slate-500 text-sm font-medium">
-                                    {t('home_last_harvested')} {formatLastPlayed(selectedInstance.lastPlayed, t)}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <InstanceHero
+                    selectedInstance={selectedInstance}
+                    launchStatus={launchStatus}
+                    launchFeedback={launchFeedback}
+                    onPlay={onPlay}
+                    onStop={onStop}
+                    theme={theme}
+                />
 
                 {/* Modded Details Section */}
                 {isModded && (
                     <div className="w-full max-w-7xl mx-auto px-8 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-100">
 
-                        {/* Mods Box */}
-                        <div
-                            className={`bg-slate-900/40 border transition-colors rounded-3xl p-6 backdrop-blur-sm flex flex-col h-[500px] relative ${isDragging ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/5'}`}
+                        <ModsList
+                            installedMods={installedMods}
+                            selectedInstance={selectedInstance}
+                            isLoading={isLoadingMods}
+                            onRefresh={handleRefreshMods}
+                            onAdd={handleAddMods}
+                            onDelete={handleDeleteMod}
+                            isDraggingGlobal={isDragging}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
-                        >
-                            <div className="flex flex-col gap-4 mb-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-                                            <Box size={20} />
-                                        </div>
-                                        Installed Mods
-                                        <span className="text-xs font-medium bg-slate-800 text-slate-400 px-2 py-1 rounded-full">
-                                            {isLoadingMods ? '...' : (installedMods.length > 0 ? installedMods.length : (selectedInstance.mods?.length || 0))}
-                                        </span>
-                                    </h3>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={handleRefreshMods}
-                                            className={`p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-colors ${isLoadingMods ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            title="Refresh Mods"
-                                            disabled={isLoadingMods}
-                                        >
-                                            <RefreshCw size={20} className={isLoadingMods ? 'animate-spin' : ''} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleAddMods(null)}
-                                            className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30 rounded-xl transition-all active:scale-95 flex items-center justify-center"
-                                            title="Add Mod"
-                                        >
-                                            <Plus size={20} />
-                                        </button>
-                                    </div>
-                                </div>
+                        />
 
-                                {/* Mod Search Bar */}
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                        <Search size={16} className="text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={modSearchQuery}
-                                        onChange={(e) => setModSearchQuery(e.target.value)}
-                                        placeholder="Search installed mods..."
-                                        className="w-full bg-slate-950/50 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:bg-slate-900/80 transition-all font-medium"
-                                    />
-                                    {modSearchQuery && (
-                                        <button
-                                            onClick={() => setModSearchQuery('')}
-                                            className="absolute inset-y-0 right-3 flex items-center text-slate-600 hover:text-slate-300 transition-colors"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2 relative">
-                                {isLoadingMods ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-3">
-                                        <Loader2 size={32} className="animate-spin text-indigo-500" />
-                                        <span className="text-sm font-medium">Scanning mods...</span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {(() => {
-                                            const allMods = installedMods.length > 0 ? installedMods : (selectedInstance.mods || []);
-
-                                            // Search Filter Logic
-                                            const mods = modSearchQuery
-                                                ? allMods.filter(m => m.name.toLowerCase().includes(modSearchQuery.toLowerCase()))
-                                                : allMods;
-
-                                            return mods.length > 0 ? (
-                                                mods.map((mod, idx) => (
-                                                    <div key={idx} className="bg-slate-950/50 hover:bg-slate-900/80 border border-white/5 p-3 rounded-xl flex items-center justify-between transition-colors group">
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${mod.enabled ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-600'}`}>
-                                                                <Cpu size={16} />
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <div className={`font-medium text-sm truncate ${mod.enabled ? 'text-slate-200' : 'text-slate-500 decoration-slate-600 line-through'}`}>{mod.name}</div>
-                                                                {mod.version && <div className="text-xs text-slate-500 font-mono truncate mr-2">{mod.version}</div>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                                            {mod.enabled ? <span className="text-emerald-500 text-xs font-medium bg-emerald-500/10 px-2 py-0.5 rounded">Enabled</span> : <span className="text-slate-500 text-xs">Disabled</span>}
-                                                            {mod.path && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteMod(mod);
-                                                                    }}
-                                                                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                    title="Delete Mod"
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center text-slate-500 py-12 flex flex-col items-center gap-2">
-                                                    {modSearchQuery ? (
-                                                        <>
-                                                            <Search size={32} className="opacity-20" />
-                                                            <p>No mods matching "{modSearchQuery}"</p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Box size={32} className="opacity-20" />
-                                                            <p>No mods detected</p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                    </>
-                                )}
-                            </div>
-
-                            {isDragging && (
-                                <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 rounded-3xl backdrop-blur-sm pointer-events-none border-2 border-indigo-500 border-dashed">
-                                    <div className="flex flex-col items-center gap-4 text-indigo-400">
-                                        <PlusCircle size={48} />
-                                        <span className="text-xl font-bold">Drop JARs to Install</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-
-
-
-                        {/* Resource Packs Box */}
-                        <div
-                            className={`bg-slate-900/40 border transition-colors rounded-3xl p-6 backdrop-blur-sm flex flex-col h-[500px] relative ${isDragging ? 'border-pink-500 bg-pink-500/10' : 'border-white/5'}`}
+                        <ResourcePacksList
+                            resourcePacks={resourcePacks}
+                            selectedInstance={selectedInstance}
+                            isLoading={isLoadingResourcePacks}
+                            onRefresh={handleRefreshResourcePacks}
+                            onAdd={handleAddResourcePacks}
+                            onDelete={handleDeleteResourcePack}
+                            isDraggingGlobal={isDragging}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleResourcePackDrop}
-                        >
-                            <div className="flex flex-col gap-4 mb-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-pink-500/10 text-pink-400">
-                                            <Layers size={20} />
-                                        </div>
-                                        Resource Packs
-                                        <span className="text-xs font-medium bg-slate-800 text-slate-400 px-2 py-1 rounded-full">
-                                            {isLoadingResourcePacks ? '...' : (resourcePacks !== null ? resourcePacks.length : (selectedInstance.resourcePacks?.length || 0))}
-                                        </span>
-                                    </h3>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={handleRefreshResourcePacks}
-                                            className={`p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-colors ${isLoadingResourcePacks ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            title="Refresh Resource Packs"
-                                            disabled={isLoadingResourcePacks}
-                                        >
-                                            <RefreshCw size={20} className={isLoadingResourcePacks ? 'animate-spin' : ''} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleAddResourcePacks(null)}
-                                            className="p-2 bg-pink-600 hover:bg-pink-500 text-white shadow-lg shadow-pink-900/20 hover:shadow-pink-500/30 rounded-xl transition-all active:scale-95 flex items-center justify-center"
-                                            title="Add Resource Pack"
-                                        >
-                                            <Plus size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Resource Pack Search Bar */}
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                        <Search size={16} className="text-slate-500 group-focus-within:text-pink-400 transition-colors" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={resourcePackSearchQuery}
-                                        onChange={(e) => setResourcePackSearchQuery(e.target.value)}
-                                        placeholder="Search resource packs..."
-                                        className="w-full bg-slate-950/50 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-pink-500/50 focus:bg-slate-900/80 transition-all font-medium"
-                                    />
-                                    {resourcePackSearchQuery && (
-                                        <button
-                                            onClick={() => setResourcePackSearchQuery('')}
-                                            className="absolute inset-y-0 right-3 flex items-center text-slate-600 hover:text-slate-300 transition-colors"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2 relative">
-                                {isLoadingResourcePacks ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-3">
-                                        <Loader2 size={32} className="animate-spin text-pink-500" />
-                                        <span className="text-sm font-medium">Scanning packs...</span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {(() => {
-                                            const allPacks = resourcePacks !== null ? resourcePacks : (selectedInstance.resourcePacks || []);
-
-                                            // Search Filter Logic
-                                            const packs = resourcePackSearchQuery
-                                                ? allPacks.filter(p => p.name.toLowerCase().includes(resourcePackSearchQuery.toLowerCase()))
-                                                : allPacks;
-
-                                            return packs.length > 0 ? (
-                                                packs.map((pack, idx) => (
-                                                    <div key={idx} className="bg-slate-950/50 hover:bg-slate-900/80 border border-white/5 p-3 rounded-xl flex items-center justify-between transition-colors group">
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-800 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-cover flex items-center justify-center opacity-80 border border-white/5 overflow-hidden">
-                                                                {pack.icon ? (
-                                                                    <img src={pack.icon} alt={pack.name} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <Layers size={20} className="text-slate-600" />
-                                                                )}
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <div className={`font-medium text-sm truncate ${pack.enabled ? 'text-slate-200' : 'text-slate-400'}`}>{pack.name}</div>
-                                                                <div className="text-xs text-slate-500 truncate">{pack.description || (pack.enabled ? 'Active' : 'Inactive')}</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {pack.enabled && <CheckCircle size={16} className="text-emerald-500 shrink-0" />}
-                                                            {pack.path && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteResourcePack(pack);
-                                                                    }}
-                                                                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                                    title="Delete Resource Pack"
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center text-slate-500 py-12 flex flex-col items-center gap-2">
-                                                    {resourcePackSearchQuery ? (
-                                                        <>
-                                                            <Search size={32} className="opacity-20" />
-                                                            <p>No packs matching "{resourcePackSearchQuery}"</p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Layers size={32} className="opacity-20" />
-                                                            <p>No resource packs</p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                    </>
-                                )}
-                            </div>
-
-                            {isDragging && (
-                                <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 rounded-3xl backdrop-blur-sm pointer-events-none border-2 border-pink-500 border-dashed">
-                                    <div className="flex flex-col items-center gap-4 text-pink-400">
-                                        <PlusCircle size={48} />
-                                        <span className="text-xl font-bold">Drop ZIPs to Install</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                    </div >
+                        />
+                    </div>
                 )}
-            </div >
-
-            {/* Quick Switcher Carousel */}
-            < div className="absolute bottom-8 left-0 right-0 px-8 z-20 pointer-events-none" >
-                <div className="max-w-4xl mx-auto pointer-events-auto bg-slate-900/50 backdrop-blur-md p-3 rounded-3xl border border-white/10 shadow-2xl transition-all hover:bg-slate-900/70">
-                    <div className="flex items-center justify-between mb-3 px-2">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            {t('home_quick_switch')}
-                        </span>
-                        <button
-                            onClick={onManageAll}
-                            className="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1"
-                        >
-                            {t('home_manage_all')} <ChevronRight size={12} />
-                        </button>
-                    </div>
-
-                    <div
-                        className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mask-linear-fade w-full snap-x snap-mandatory"
-                        onWheel={(e) => {
-                            if (e.deltaY !== 0) {
-                                e.currentTarget.scrollLeft += e.deltaY;
-                            }
-                        }}
-                    >
-                        {instances?.map((inst) => (
-                            <QuickSelectCard
-                                key={inst.id}
-                                instance={inst}
-                                isSelected={selectedInstance?.id === inst.id}
-                                onClick={() => setSelectedInstance(inst)}
-                            />
-                        ))}
-
-                        {launchStatus === 'running' ? (
-                            <button
-                                onClick={onStop}
-                                className="w-full py-4 rounded-xl bg-red-500/10 border border-red-500/50 hover:bg-red-500/20 text-red-500 font-bold uppercase tracking-wide transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-500/10 flex items-center justify-center gap-2"
-                            >
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                {t('home_stop_game')}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={onNewCrop}
-                                className="flex-shrink-0 w-12 rounded-xl border border-dashed border-slate-800 flex items-center justify-center text-slate-600 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-slate-900 transition-colors"
-                                aria-label="Create new crop"
-                            >
-                                <Plus size={20} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div >
-        </div >
+            </div>
+            {/* Quick Switch Panel */}
+            <QuickSwitchPanel
+                instances={instances}
+                selectedInstance={selectedInstance}
+                setSelectedInstance={setSelectedInstance}
+                onManageAll={onManageAll}
+                onNewCrop={onNewCrop}
+            />
+        </div>
     );
-
 };
 
 export default HomeView;
