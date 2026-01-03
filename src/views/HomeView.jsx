@@ -493,23 +493,25 @@ const HomeView = ({
                                             <X size={24} /> Launch Failed
                                         </button>
                                     ) : (
-                                        <button
-                                            onClick={onPlay}
-                                            className={`group relative w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold shadow-[0_0_40px_rgba(5,150,105,0.4)] hover:shadow-[0_0_60px_rgba(5,150,105,0.6)] transform hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-[transform,box-shadow,background-color] duration-200 overflow-hidden flex items-center ring-offset-2 ring-offset-transparent group-hover:ring-2 group-hover:ring-emerald-400/30 ${isModded ? 'py-4 text-xl justify-between text-left px-6' : 'py-6 text-2xl justify-center gap-3'}`}
-                                        >
-                                            {/* Shiny Edge Overlay */}
-                                            <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 group-hover:ring-white/30 transition-all pointer-events-none" />
+                                        <div className="group relative w-full max-w-sm">
+                                            <button
+                                                onClick={onPlay}
+                                                className={`relative w-full bg-emerald-600 group-hover:bg-emerald-500 text-white rounded-2xl font-bold shadow-[0_0_40px_rgba(5,150,105,0.4)] group-hover:shadow-[0_0_60px_rgba(5,150,105,0.6)] transform group-hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-[transform,box-shadow,background-color] duration-200 overflow-hidden flex items-center ring-offset-2 ring-offset-transparent group-hover:ring-2 group-hover:ring-emerald-400/30 ${isModded ? 'py-4 text-xl justify-between text-left px-6' : 'py-6 text-2xl justify-center gap-3'}`}
+                                            >
+                                                {/* Shiny Edge Overlay */}
+                                                <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 group-hover:ring-white/30 transition-all pointer-events-none" />
 
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                                            <span className="flex items-center gap-4">
-                                                <Play size={isModded ? 28 : 32} fill="currentColor" />
-                                                <span className="flex flex-col items-start leading-none gap-1">
-                                                    <span>{t('home_playing')}</span>
-                                                    {isModded && <span className="text-xs font-medium text-emerald-200 opacity-80 font-sans tracking-wide">Last Played: {formatLastPlayed(selectedInstance.lastPlayed, t)}</span>}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                                <span className="flex items-center gap-4">
+                                                    <Play size={isModded ? 28 : 32} fill="currentColor" />
+                                                    <span className="flex flex-col items-start leading-none gap-1">
+                                                        <span>{t('home_playing')}</span>
+                                                        {isModded && <span className="text-xs font-medium text-emerald-200 opacity-80 font-sans tracking-wide">Last Played: {formatLastPlayed(selectedInstance.lastPlayed, t)}</span>}
+                                                    </span>
                                                 </span>
-                                            </span>
-                                            {isModded && <ChevronRight size={24} className="opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />}
-                                        </button>
+                                                {isModded && <ChevronRight size={24} className="opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />}
+                                            </button>
+                                        </div>
                                     )
                                 ) : (
                                     <button
