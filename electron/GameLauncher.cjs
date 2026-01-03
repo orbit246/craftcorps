@@ -292,7 +292,7 @@ class GameLauncher extends EventEmitter {
                 return;
             }
             if (!process) {
-                const errorInfo = this.lastError || { summary: "Game process failed to start.", advice: "Check Java path." };
+                const errorInfo = this.lastError || { summary: "Game process failed to start.", advice: "Check game logs regarding the crash." };
                 this.emit('launch-error', errorInfo);
                 this.emit('exit', 1);
                 return;

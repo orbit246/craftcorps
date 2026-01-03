@@ -110,87 +110,81 @@ class FabricHandler {
                     }
                 }
 
-                // PATCH 3: Merge Libraries
+                // PATCH 3 & 4: Merge Libraries & Arguments
                 if (vanillaData.libraries) {
                     if (!fabricData.libraries) {
                         fabricData.libraries = [];
                         changed = true;
                     }
 
-                    // SANITIZATION: Remove conflicting Vanilla ASM libs (Fixes duplicate ASM crash)
-                    // Even if we already merged libraries, we must check for conflicts (e.g. from previous broken runs)
-                    const vanillaAsmLibs = vanillaData.libraries.filter(l => l.name.includes('org.ow2.asm'));
-                    if (vanillaAsmLibs.length > 0) {
-                        const preCount = fabricData.libraries.length;
-                        fabricData.libraries = fabricData.libraries.filter(fl => {
-                            // If this lib is one of the Vanilla ASM libs, remove it (Fabric provides its own compatible version)
-                            const isBis = vanillaAsmLibs.some(vl => vl.name === fl.name);
-                            if (isBis) return false;
-                            return true;
-                        });
-
-                        if (fabricData.libraries.length !== preCount) {
-                            emit('log', { type: 'INFO', message: 'Sanitized Fabric JSON: Removed conflicting Vanilla ASM libraries.' });
-                            changed = true;
-                        }
-                    }
-
+                    // Check if we already patched this file to avoid duplication
                     const firstVanillaLib = vanillaData.libraries[0];
                     const alreadyHasVanilla = firstVanillaLib && fabricData.libraries.some(l => l.name === firstVanillaLib.name);
 
                     if (!alreadyHasVanilla) {
+                        // SANITIZATION: Remove conflicting Vanilla ASM libs (Fixes duplicate ASM crash)
+                        const vanillaAsmLibs = vanillaData.libraries.filter(l => l.name.includes('org.ow2.asm'));
+                        if (vanillaAsmLibs.length > 0) {
+                            const preCount = fabricData.libraries.length;
+                            fabricData.libraries = fabricData.libraries.filter(fl => {
+                                const isBis = vanillaAsmLibs.some(vl => vl.name === fl.name);
+                                return !isBis;
+                            });
+                            if (fabricData.libraries.length !== preCount) {
+                                emit('log', { type: 'INFO', message: 'Sanitized Fabric JSON: Removed conflicting Vanilla ASM libraries.' });
+                                changed = true;
+                            }
+                        }
+
                         emit('log', { type: 'INFO', message: 'Patching Fabric JSON with Vanilla libraries...' });
 
                         // MERGE: Add all vanilla libs EXCEPT ASM ones
                         const filteredVanillaLibs = vanillaData.libraries.filter(lib => {
-                            if (lib.name.includes('org.ow2.asm')) {
-                                // emit('log', { type: 'DEBUG', message: `Skipping Vanilla lib: ${lib.name}` });
-                                return false;
-                            }
+                            if (lib.name.includes('org.ow2.asm')) return false;
                             return true;
                         });
 
                         fabricData.libraries = [...fabricData.libraries, ...filteredVanillaLibs];
                         changed = true;
-                    }
 
-                    // PATCH 4: Merge Arguments (Fixes missing --assetsDir, duplicates, etc)
-                    if (vanillaData.arguments) {
-                        if (!fabricData.arguments) {
-                            // If Fabric has no args, just take Vanilla's
-                            fabricData.arguments = JSON.parse(JSON.stringify(vanillaData.arguments));
-                        } else {
-                            // Merge Game Args
-                            if (vanillaData.arguments.game) {
-                                if (!fabricData.arguments.game) fabricData.arguments.game = [];
-                                // Combine: Fabric args + Vanilla args
-                                fabricData.arguments.game = [...fabricData.arguments.game, ...vanillaData.arguments.game];
+                        // PATCH 4: Merge Arguments (Only done if we just merged libraries to prevent dupes)
+                        if (vanillaData.arguments) {
+                            if (!fabricData.arguments) {
+                                // If Fabric has no args, just take Vanilla's
+                                fabricData.arguments = JSON.parse(JSON.stringify(vanillaData.arguments));
+                            } else {
+                                // Merge Game Args
+                                if (vanillaData.arguments.game) {
+                                    if (!fabricData.arguments.game) fabricData.arguments.game = [];
+                                    // Combine: Fabric args + Vanilla args
+                                    fabricData.arguments.game = [...fabricData.arguments.game, ...vanillaData.arguments.game];
+                                }
+                                // Merge JVM Args
+                                if (vanillaData.arguments.jvm) {
+                                    if (!fabricData.arguments.jvm) fabricData.arguments.jvm = [];
+                                    fabricData.arguments.jvm = [...fabricData.arguments.jvm, ...vanillaData.arguments.jvm];
+                                }
                             }
-                            // Merge JVM Args
-                            if (vanillaData.arguments.jvm) {
-                                if (!fabricData.arguments.jvm) fabricData.arguments.jvm = [];
-                                fabricData.arguments.jvm = [...fabricData.arguments.jvm, ...vanillaData.arguments.jvm];
-                            }
-                        }
-                        changed = true;
-                    } else if (vanillaData.minecraftArguments) {
-                        // Legacy handling (1.12 and older)
-                        if (!fabricData.minecraftArguments && !fabricData.arguments) {
-                            fabricData.minecraftArguments = vanillaData.minecraftArguments;
                             changed = true;
+                        } else if (vanillaData.minecraftArguments) {
+                            // Legacy handling (1.12 and older)
+                            if (!fabricData.minecraftArguments && !fabricData.arguments) {
+                                fabricData.minecraftArguments = vanillaData.minecraftArguments;
+                                changed = true;
+                            }
                         }
-                    }
 
-                    // FINAL CHECK: Ensure --gameDir exists
-                    // Vanilla usually provides it, but just in case:
-                    if (fabricData.arguments && fabricData.arguments.game) {
-                        // Note: args can be strings or objects. We look for the string flag.
-                        const hasGameDir = fabricData.arguments.game.some(arg => typeof arg === 'string' && arg === '--gameDir');
-                        if (!hasGameDir) {
-                            emit('log', { type: 'INFO', message: 'Patching Fabric JSON with --gameDir argument...' });
-                            fabricData.arguments.game.push('--gameDir', '${game_directory}');
-                            changed = true;
+                        // FINAL CHECK: Ensure --gameDir exists
+                        if (fabricData.arguments && fabricData.arguments.game) {
+                            const hasGameDir = fabricData.arguments.game.some(arg => typeof arg === 'string' && arg === '--gameDir');
+                            if (!hasGameDir) {
+                                emit('log', { type: 'INFO', message: 'Patching Fabric JSON with --gameDir argument...' });
+                                fabricData.arguments.game.push('--gameDir', '${game_directory}');
+                                changed = true;
+                            }
                         }
+                    } else {
+                        emit('log', { type: 'DEBUG', message: 'Fabric JSON already contains Vanilla libraries/args. Skipping merge.' });
                     }
                 }
 

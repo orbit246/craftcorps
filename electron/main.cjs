@@ -2,6 +2,12 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const log = require('electron-log');
 
+// Set AppUserModelID for Windows Taskbar
+if (process.platform === 'win32') {
+    app.setAppUserModelId('com.craftcorps.launcher'); // Matches package.json appId
+}
+app.setName('CraftCorps Launcher');
+
 // Import Handlers - Moved to app.whenReady for faster startup
 
 // Configure logging
