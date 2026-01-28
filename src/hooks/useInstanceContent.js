@@ -23,6 +23,11 @@ export const useInstanceContent = (selectedInstance) => {
     // Automatically refresh content when instance changes
     useEffect(() => {
         if (selectedInstance && selectedInstance.path) {
+            // Reset to null to prevent installer from triggering before refresh
+            setInstalledMods(null);
+            setResourcePacks(null);
+            setInstalledShaders(null);
+
             handleRefreshMods();
             handleRefreshResourcePacks();
             handleRefreshShaders();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../contexts/ToastContext';
 
@@ -26,7 +26,7 @@ export const useAppSettings = () => {
     const [startOnStartup, setStartOnStartup] = useState(false);
     const [availableJavas, setAvailableJavas] = useState([]);
 
-    const refreshJavas = async () => {
+    const refreshJavas = useCallback(async () => {
         if (window.electronAPI) {
             try {
                 const javas = await window.electronAPI.getAvailableJavas();
@@ -35,7 +35,7 @@ export const useAppSettings = () => {
                 console.error("Failed to list Javas", e);
             }
         }
-    };
+    }, []);
 
     // Use ref to track current path for event listener without re-running effect
     const javaPathRef = useRef(javaPath);
@@ -43,10 +43,13 @@ export const useAppSettings = () => {
 
     useEffect(() => {
         const init = async () => {
-            // Defer heavy Java detection
+            // Defer heavy Java detection moved to App.jsx handleAppReady
+            // to ensure it happens after the window is fully visible.
+            /*
             setTimeout(() => {
                 refreshJavas();
             }, 6000);
+            */
 
             if (window.electronAPI) {
                 window.electronAPI.onJavaPathUpdated((newPath) => {

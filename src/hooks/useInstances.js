@@ -57,7 +57,7 @@ export const useInstances = () => {
                                     { id: 'appleskin', name: 'AppleSkin' },
                                     { id: 'zoomify', name: 'Zoomify' },
                                     { id: 'continuity', name: 'Continuity' },
-                                    { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-core.jar' }
+                                    { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-cosmetics-0.1.3.jar' }
                                 ];
                                 changed = true;
                             }
@@ -93,7 +93,7 @@ export const useInstances = () => {
                             id: `cc_client_${Date.now()}`,
                             name: 'CraftCorps Client',
                             version: '1.21.11',
-                            loader: 'Fabric',
+                            loader: 'Vanilla', // Start with nothing
                             status: 'Ready',
                             lastPlayed: null,
                             iconColor: 'bg-emerald-500',
@@ -101,18 +101,7 @@ export const useInstances = () => {
                             created: Date.now(),
                             path: defaultPath,
                             icon: '/images/cc-logo.png',
-                            modManifest: [
-                                { id: 'sodium', name: 'Sodium (FPS)' },
-                                { id: 'lithium', name: 'Lithium (Logic Fixes)' },
-                                { id: 'iris', name: 'Iris (Shaders)' },
-                                { id: 'fabric-api', name: 'Fabric API' },
-                                { id: 'sodium-extra', name: 'Sodium Extra' },
-                                { id: 'reeses-sodium-options', name: "Reese's Sodium Options" },
-                                { id: 'appleskin', name: 'AppleSkin' },
-                                { id: 'zoomify', name: 'Zoomify' },
-                                { id: 'continuity', name: 'Continuity' },
-                                { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-core.jar' }
-                            ]
+                            modManifest: [] // Start with nothing
                         };
 
                         // Auto-save to persistence so it exists
@@ -164,6 +153,49 @@ export const useInstances = () => {
         }
     }, [instances, selectedInstance]);
 
+    // Hydrate CraftCorps Client Manifest after a delay (Render first, then load)
+    useEffect(() => {
+        if (isLoading || instances.length === 0) return;
+
+        const ccClient = instances.find(inst => inst.name === 'CraftCorps Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'craftcorps-core')));
+        if (ccClient) {
+            console.log("[Instances] CraftCorps Client detected with no manifest. Scheduling hydration...");
+            const timer = setTimeout(async () => {
+                const hydratedManifest = [
+                    { id: 'sodium', name: 'Sodium (FPS)' },
+                    { id: 'lithium', name: 'Lithium (Logic Fixes)' },
+                    { id: 'iris', name: 'Iris (Shaders)' },
+                    { id: 'fabric-api', name: 'Fabric API' },
+                    { id: 'sodium-extra', name: 'Sodium Extra' },
+                    { id: 'reeses-sodium-options', name: "Reese's Sodium Options" },
+                    { id: 'appleskin', name: 'AppleSkin' },
+                    { id: 'zoomify', name: 'Zoomify' },
+                    { id: 'continuity', name: 'Continuity' },
+                    { id: 'craftcorps', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-cosmetics-0.1.3.jar' }
+                ];
+
+                // Functional update to avoid clobbering other state changes (like lastPlayed)
+                setInstances(prev => prev.map(inst => {
+                    if (inst.id === ccClient.id) {
+                        const updated = {
+                            ...inst,
+                            loader: 'Fabric',
+                            modManifest: hydratedManifest
+                        };
+                        // Persist the individual update
+                        if (window.electronAPI?.saveInstance) {
+                            window.electronAPI.saveInstance(updated).catch(err => console.error(err));
+                        }
+                        return updated;
+                    }
+                    return inst;
+                }));
+                console.log("[Instances] CraftCorps Client hydrated with Fabric and Mod Manifest.");
+            }, 3000); // 3 second delay after rendering
+            return () => clearTimeout(timer);
+        }
+    }, [instances, isLoading]);
+
     const handleSaveCrop = async (cropData) => {
         setIsLoading(true);
         // Save to Backend
@@ -198,6 +230,11 @@ export const useInstances = () => {
         // Delete File System Folder
         if (instanceToDelete && instanceToDelete.path && window.electronAPI) {
             try {
+                // Stop any background downloads for this instance
+                if (window.electronAPI.modrinthCancelInstanceInstalls) {
+                    await window.electronAPI.modrinthCancelInstanceInstalls(instanceToDelete.path);
+                }
+
                 // Delete folder
                 const res = await window.electronAPI.deleteInstanceFolder(instanceToDelete.path);
                 if (!res.success) {
@@ -272,7 +309,7 @@ export const useInstances = () => {
             id: `cc_client_${Date.now()}`,
             name: 'CraftCorps Client',
             version: '1.21.11',
-            loader: 'Fabric',
+            loader: 'Vanilla', // Start with nothing
             status: 'Ready',
             lastPlayed: null,
             iconColor: 'bg-emerald-500',
@@ -280,18 +317,7 @@ export const useInstances = () => {
             created: Date.now(),
             path: defaultPath,
             icon: '/images/cc-logo.png',
-            modManifest: [
-                { id: 'sodium', name: 'Sodium (FPS)' },
-                { id: 'lithium', name: 'Lithium (Logic Fixes)' },
-                { id: 'iris', name: 'Iris (Shaders)' },
-                { id: 'fabric-api', name: 'Fabric API' },
-                { id: 'sodium-extra', name: 'Sodium Extra' },
-                { id: 'reeses-sodium-options', name: "Reese's Sodium Options" },
-                { id: 'appleskin', name: 'AppleSkin' },
-                { id: 'zoomify', name: 'Zoomify' },
-                { id: 'continuity', name: 'Continuity' },
-                { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-core.jar' }
-            ]
+            modManifest: [] // Start with nothing
         };
 
         try {

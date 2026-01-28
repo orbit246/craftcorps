@@ -60,24 +60,23 @@ function setupGameHandlers(getMainWindow) {
 
     ipcMain.on('launch-game', async (event, options) => {
         const gameDir = options.gameDir;
+
+        // Prevent Duplicate Launches for same instance
+        const existing = Array.from(activeLaunchers.values()).find(l => l.gameDir === gameDir);
+        if (existing) {
+            log.warn(`[Launch] Blocking duplicate request for ${gameDir}. Status: ${existing.status}`);
+            return;
+        }
+
         const launchId = crypto.randomUUID();
         const launcher = new GameLauncher();
-        activeLaunchers.set(launchId, { gameDir, launcher, options, status: 'launching' });
+        activeLaunchers.set(launchId, { gameDir, launcher, options, status: 'launching', sessionStarted: false });
         // Don't emitRunningInstances yet, it's not 'running'
 
         // Local state for this instance
         let lastCrashReport = null;
 
         log.info(`[Launch] Received Request. ID: ${launchId}, GameDir: ${gameDir}, JavaPath: ${options.javaPath}, Version: ${options.version}`);
-
-        // Start Tracking Play Time
-        // Note: multiple instances of same game will overlap updates, acceptable for now.
-        playTimeService.startSession(options.id || '0', {
-            playerName: options.username,
-            playerUuid: options.uuid,
-            isOnline: options.userType !== 'offline',
-            version: options.version
-        });
 
         // --- Instance Listeners ---
         launcher.on('started', () => {
@@ -108,6 +107,35 @@ function setupGameHandlers(getMainWindow) {
 
             // Forward to frontend with gameDir
             safeSend('game-log', { ...data, gameDir, launchId });
+
+            // Start playtime session only after window is created
+            const sessionData = activeLaunchers.get(launchId);
+            if (sessionData && !sessionData.sessionStarted) {
+                // Heuristics for window creation:
+                // - "Created: ..." (LWJGL window created)
+                // - "OpenAL initialized" (Sound engine ready, usually same time as window)
+                if (message.includes('Created:') || message.includes('OpenAL initialized')) {
+                    sessionData.sessionStarted = true;
+                    playTimeService.startSession(options.id || '0', {
+                        playerName: options.username,
+                        playerUuid: options.uuid,
+                        isOnline: options.userType !== 'offline',
+                        version: options.version
+                    });
+
+                    // Update Discord RPC to match the actual game start
+                    setActivity({
+                        details: 'In Game',
+                        state: options.version ? `Playing Minecraft ${options.version}` : 'Playing Minecraft',
+                        startTimestamp: Date.now(),
+                        largeImageKey: 'icon',
+                        largeImageText: 'CraftCorps Launcher',
+                        instance: true,
+                        priority: 1
+                    });
+                    log.info(`[PlayTime] Started session with window creation trigger for ${path.basename(gameDir)}`);
+                }
+            }
         });
 
         launcher.on('game-output', (text) => {
@@ -233,17 +261,6 @@ function setupGameHandlers(getMainWindow) {
                 return;
             }
         }
-
-        // Set Discord RPC Activity for this launch
-        setActivity({
-            details: 'In Game',
-            state: options.version ? `Playing Minecraft ${options.version}` : 'Playing Minecraft',
-            startTimestamp: Date.now(),
-            largeImageKey: 'icon',
-            largeImageText: 'CraftCorps Launcher',
-            instance: true,
-            priority: 1
-        });
 
         // GO!
         launcher.launch(options);

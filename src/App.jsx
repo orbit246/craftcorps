@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import Sidebar from './components/layout/Sidebar';
 import TitleBar from './components/layout/TitleBar';
@@ -167,20 +167,31 @@ function App() {
     } = useInstances();
 
     // Initial Paint Signal: Hide splash screen once instances are loaded and UI is stable
+    const hasSentReadyRef = useRef(false);
     const handleAppReady = useCallback(() => {
+        if (hasSentReadyRef.current) return;
+        hasSentReadyRef.current = true;
+
         if (window.electronAPI?.sendAppReady) {
             // Wait for 2 frames to ensure Chromium has actually rasterized the paint
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     window.electronAPI.sendAppReady();
+                    // Fetch Java version and paths AFTER the window pops-up
+                    if (typeof refreshJavas === 'function') {
+                        setTimeout(() => {
+                            console.log('[App] Deferred Java detection starting...');
+                            refreshJavas();
+                        }, 2000); // 2s after splash disappears
+                    }
                 });
             });
         }
-    }, []);
+    }, [refreshJavas]);
 
     // Initial readiness monitoring
     useEffect(() => {
-        if (!isLoadingInstances && backgroundLoaded) {
+        if (!isLoadingInstances && backgroundLoaded && !hasSentReadyRef.current) {
             handleAppReady();
         }
     }, [isLoadingInstances, backgroundLoaded, handleAppReady]);

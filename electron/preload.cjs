@@ -99,6 +99,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     selectModFiles: () => ipcRenderer.invoke('select-mod-files'),
     modrinthInstallModpack: (params) => ipcRenderer.invoke('modrinth-install-modpack', params),
     modrinthCancelInstall: (projectId) => ipcRenderer.invoke('modrinth-cancel-install', { projectId }),
+    modrinthCancelInstanceInstalls: (instancePath) => ipcRenderer.invoke('modrinth-cancel-instance-installs', { instancePath }),
     getInstanceResourcePacks: (instancePath, force) => ipcRenderer.invoke('get-instance-resource-packs', instancePath, force),
     selectResourcePackFiles: () => ipcRenderer.invoke('select-resource-pack-files'),
     addInstanceResourcePacks: async (instancePath, filePaths) => {

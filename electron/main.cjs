@@ -204,6 +204,7 @@ async function createWindow() {
         }, 10000);
     });
 
+    let isFadingIn = false;
     ipcMain.on('app-ready', () => {
         const totalStartupTime = Date.now() - appBootTime;
         console.log(`[PERF] TOTAL STARTUP DURATION: ${totalStartupTime}ms (Splash -> Dashboard)`);
@@ -211,7 +212,10 @@ async function createWindow() {
 
         console.log('[MAIN] Received app-ready from renderer');
 
+        if (isFadingIn) return;
+
         if (mainWindow && !mainWindow.isDestroyed() && !isHidden) {
+            isFadingIn = true;
             // Start main window at 0 opacity
             mainWindow.setOpacity(0);
             mainWindow.show();
@@ -222,10 +226,17 @@ async function createWindow() {
             // Smooth cross-fade
             let opacity = 0;
             const fadeInInterval = setInterval(() => {
+                if (!mainWindow || mainWindow.isDestroyed()) {
+                    clearInterval(fadeInInterval);
+                    isFadingIn = false;
+                    return;
+                }
+
                 opacity += 0.05;
                 if (opacity >= 1) {
                     mainWindow.setOpacity(1);
                     clearInterval(fadeInInterval);
+                    isFadingIn = false;
 
                     // Final focus push
                     mainWindow.focus();

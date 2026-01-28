@@ -14,9 +14,6 @@ const client = new ModrinthV2Client({
 // Track active installations at module level
 const activeInstalls = new Map();
 
-/**
- * Cancel Installation
- */
 const cancelInstall = async (event, { projectId }) => {
     if (activeInstalls.has(projectId)) {
         const task = activeInstalls.get(projectId);
@@ -29,6 +26,26 @@ const cancelInstall = async (event, { projectId }) => {
         return { success: true };
     }
     return { success: false, error: 'No active installation found' };
+};
+
+/**
+ * Cancel All Installations for an Instance
+ */
+const cancelInstanceInstalls = async (event, { instancePath }) => {
+    log.info(`[Modrinth] Cancelling all installations for instance: ${instancePath}`);
+    let cancelledCount = 0;
+    for (const [projectId, task] of activeInstalls.entries()) {
+        if (task.instancePath === instancePath) {
+            task.cancelled = true;
+            if (task.downloader) {
+                task.downloader.stop();
+            }
+            activeInstalls.delete(projectId);
+            cancelledCount++;
+        }
+    }
+    log.info(`[Modrinth] Cancelled ${cancelledCount} installations for instance: ${instancePath}`);
+    return { success: true, cancelledCount };
 };
 
 /**
@@ -201,7 +218,7 @@ const installMod = async (event, { project, instancePath, gameVersion, loader, v
             return { success: false, error: "Installation already in progress" };
         }
 
-        const task = { cancelled: false, downloader: null };
+        const task = { cancelled: false, downloader: null, instancePath: instancePath };
         activeInstalls.set(projectId, task);
 
         let targetDir = instancePath;
@@ -310,9 +327,6 @@ const installModpack = async (event, { project, instanceName, versionId }) => {
             return { success: false, error: "Installation already in progress" };
         }
 
-        const task = { cancelled: false, downloader: null };
-        activeInstalls.set(projectId, task);
-
         const userData = app.getPath('userData');
         const instancesDir = path.join(userData, 'instances');
 
@@ -328,6 +342,10 @@ const installModpack = async (event, { project, instanceName, versionId }) => {
             instanceDir = path.join(instancesDir, finalName);
             counter++;
         }
+
+        const task = { cancelled: false, downloader: null, instancePath: instanceDir };
+        activeInstalls.set(projectId, task);
+
         fs.mkdirSync(instanceDir);
 
         let bestVersion;
@@ -625,6 +643,7 @@ function setupModrinthHandlers() {
     ipcMain.removeHandler('modrinth-get-versions');
 
     ipcMain.handle('modrinth-cancel-install', cancelInstall);
+    ipcMain.handle('modrinth-cancel-instance-installs', cancelInstanceInstalls);
     ipcMain.handle('modrinth-search', searchModrinth);
     ipcMain.handle('modrinth-get-tags', getTags);
     ipcMain.handle('modrinth-install-mod', installMod);
@@ -635,6 +654,7 @@ function setupModrinthHandlers() {
 
     return {
         'modrinth-cancel-install': cancelInstall,
+        'modrinth-cancel-instance-installs': cancelInstanceInstalls,
         'modrinth-search': searchModrinth,
         'modrinth-get-tags': getTags,
         'modrinth-install-mod': installMod,

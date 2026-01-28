@@ -1,15 +1,21 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
-export const useClientLibrariesInstaller = (selectedInstance, installedMods, onRefreshMods, isLoadingMods, isLoadingInstances) => {
+export const useClientLibrariesInstaller = (selectedInstance, installedMods, onRefreshMods, isLoadingMods, isLoadingInstances, launchStatus) => {
     const { addToast: showToast } = useToast();
     const [isInstallingManifest, setIsInstallingManifest] = useState(false);
     const [installProgress, setInstallProgress] = useState(0);
     const [ignoredMods, setIgnoredMods] = useState([]);
+    const activeInstanceIdRef = useRef(selectedInstance?.id);
+
+    // Track active instance ID to cancel if it changes (deleted or switched)
+    useEffect(() => {
+        activeInstanceIdRef.current = selectedInstance?.id;
+    }, [selectedInstance?.id]);
 
     // Calculate missing mods based on manifest
     const missingManifestMods = useMemo(() => {
-        if (!selectedInstance?.modManifest || !installedMods) return [];
+        if (!selectedInstance?.modManifest || !installedMods || isLoadingMods) return [];
         return selectedInstance.modManifest.filter(m => {
             const isInstalled = installedMods.some(inst =>
                 (inst.modId && inst.modId.toLowerCase() === m.id.toLowerCase()) ||
@@ -17,15 +23,23 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
             );
             return !isInstalled;
         });
-    }, [selectedInstance, installedMods]);
+    }, [selectedInstance, installedMods, isLoadingMods]);
 
     // Cleanup ignored mods if instance changes
     useEffect(() => {
         setIgnoredMods([]);
     }, [selectedInstance?.id]);
 
+    const launchStatusRef = useRef(launchStatus);
+    useEffect(() => {
+        launchStatusRef.current = launchStatus;
+    }, [launchStatus]);
+
     const handleInstallManifest = async () => {
-        if (!window.electronAPI || !selectedInstance || missingManifestMods.length === 0) return;
+        if (!window.electronAPI || !selectedInstance || missingManifestMods.length === 0 || launchStatusRef.current !== 'idle') return;
+
+        // Capture initial ID to check for changes
+        const startingInstanceId = selectedInstance.id;
 
         // Filter out already ignored mods to be sure
         const modsToInstall = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
@@ -41,6 +55,13 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
         const newlyFailed = [];
 
         for (let i = 0; i < modsToInstall.length; i++) {
+            // Safety break: if instance changed or game started launching, stop the loop
+            if (activeInstanceIdRef.current !== startingInstanceId || launchStatusRef.current !== 'idle') {
+                console.log("[Installer] Instance changed or game launching. Aborting mod installation.");
+                setIsInstallingManifest(false);
+                return;
+            }
+
             const mod = modsToInstall[i];
             let attempts = 0;
             let success = false;
@@ -97,9 +118,8 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
     };
 
     // Auto-install trigger
-    // Auto-install trigger
     useEffect(() => {
-        if (isLoadingMods || isLoadingInstances) return; // Wait for all loading to finish
+        if (isLoadingMods || isLoadingInstances || launchStatus !== 'idle') return; // Wait for all loading to finish and idle status
 
         const untriedMods = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
 
@@ -119,7 +139,7 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
             }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [selectedInstance?.id, missingManifestMods.length, isInstallingManifest, ignoredMods, isLoadingMods, isLoadingInstances]);
+    }, [selectedInstance?.id, missingManifestMods.length, isInstallingManifest, ignoredMods, isLoadingMods, isLoadingInstances, launchStatus]);
 
     return {
         missingManifestMods,

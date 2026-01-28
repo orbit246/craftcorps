@@ -38,7 +38,7 @@ const ModsList = ({
                         </div>
                         Installed Mods
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${theme === 'white' ? 'bg-slate-200 text-slate-600' : 'bg-slate-800 text-white'}`}>
-                            {isLoading ? '...' : (installedMods.length > 0 ? installedMods.length : (selectedInstance.mods?.length || 0))}
+                            {isLoading ? '...' : ((installedMods?.length || 0) > 0 ? installedMods.length : (selectedInstance.mods?.length || 0))}
                         </span>
                     </h3>
                     <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ const ModsList = ({
                 ) : (
                     <>
                         {(() => {
-                            const allMods = installedMods.length > 0 ? installedMods : (selectedInstance.mods || []);
+                            const allMods = (installedMods?.length || 0) > 0 ? installedMods : (selectedInstance.mods || []);
 
                             // Search Filter Logic
                             const mods = searchQuery

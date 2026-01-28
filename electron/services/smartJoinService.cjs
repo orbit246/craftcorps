@@ -237,7 +237,7 @@ async function createNewInstance(serverInfo, createInstanceFn) {
         log.info(`[SmartJoin] Creating new instance for server version: ${serverInfo.version}`);
 
         // Extract version from server version string (take first version found)
-        let targetVersion = '1.21.1'; // Default to latest
+        let targetVersion = '1.21.11'; // Default to latest
         if (serverInfo.version) {
             const versionMatch = serverInfo.version.match(/\d+\.\d+(?:\.\d+)?/);
             if (versionMatch) {

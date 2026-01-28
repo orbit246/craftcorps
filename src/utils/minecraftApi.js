@@ -26,7 +26,7 @@ export const fetchMinecraftVersions = async (includeSnapshots = false) => {
         console.error('Error fetching Minecraft versions:', error);
         // Fallback to hardcoded versions if API fails
         return [
-            '1.21.4', '1.21.3', '1.21.1', '1.21',
+            '1.21.11', '1.21.4', '1.21.3', '1.21.1', '1.21',
             '1.20.6', '1.20.5', '1.20.4', '1.20.3', '1.20.2', '1.20.1', '1.20',
             '1.19.4', '1.19.3', '1.19.2', '1.19.1', '1.19',
             '1.18.2', '1.18.1', '1.18',
@@ -49,6 +49,6 @@ export const getLatestVersion = async () => {
         return data.latest.release;
     } catch (error) {
         console.error('Error fetching latest version:', error);
-        return '1.21.1'; // Fallback
+        return '1.21.11'; // Fallback
     }
 };

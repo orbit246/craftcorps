@@ -95,7 +95,7 @@ const HomeView = ({
         isInstallingManifest,
         installProgress,
         handleInstallManifest
-    } = useClientLibrariesInstaller(selectedInstance, installedMods, handleRefreshMods, isLoadingMods, isLoadingInstances);
+    } = useClientLibrariesInstaller(selectedInstance, installedMods, handleRefreshMods, isLoadingMods, isLoadingInstances, launchStatus);
 
     // Persist showAdvanced
     useEffect(() => {
@@ -186,20 +186,6 @@ const HomeView = ({
     // Lazy Load Mods on Scroll
     // In this refactor, lazy loading is triggered by the HomeRightPanel component.
     // The handler handleLazyLoad is passed down via useInstanceContent hook.
-    useEffect(() => {
-        // Reset installed mods on instance switch
-        // The hook (useInstanceContent) doesn't auto-clear on its own 
-        // because it doesn't watch selectedInstance ID for clearing, 
-        // but it does depend on selectedInstance.path for fetching.
-        // We can force a clear here if we want instant feedback on switch
-        setInstalledMods([]);
-        // setResourcePacks([]); // These are not exposed as setters from the hook currently if we want to clear them manually?
-        // Actually, the hook handles state. The component re-renders. 
-        // We might want to expose setters if we heavily rely on clearing them manually for UI feel.
-        // In the hook, I exposed setters.
-        // But for now, let's trust the hook content or just let the panel reload.
-    }, [selectedInstance]);
-
     // Listener for background updates (Lazy Load)
     useEffect(() => {
         if (!selectedInstance || !window.electronAPI) return;

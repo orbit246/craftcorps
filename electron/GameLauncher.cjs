@@ -33,7 +33,7 @@ class GameLauncher extends EventEmitter {
         // 2. Bootstrap & Validation via VersionManager
         if (options.version) {
             try {
-                const manifestPath = await VersionManager.bootstrapManifest(commonRoot, (t, m) => this.emit(t === 'log' ? 'log' : t, m), options.version);
+                const manifestPath = await VersionManager.bootstrapManifest(gameRoot, (t, m) => this.emit(t === 'log' ? 'log' : t, m), options.version);
                 if (this.isCancelled) { this.emit('exit', -1); return; }
                 options.version = VersionManager.validateVersion(options.version, manifestPath, (t, m) => this.emit(t === 'log' ? 'log' : t, m));
             } catch (e) {
@@ -57,10 +57,14 @@ class GameLauncher extends EventEmitter {
                 meta: { type: options.userType === 'Microsoft' ? 'msa' : 'mojang' },
                 xuid: options.xuid
             },
-            root: commonRoot,
+            root: gameRoot,
             version: {
-                number: options.version || '1.16.5',
+                number: options.version || '1.21.11',
                 type: 'release'
+            },
+            downloader: {
+                maxConcurrent: 5,
+                maxConcurrentDownloads: 5
             },
             memory: {
                 max: options.maxMem ? options.maxMem + "M" : "4G",
@@ -208,11 +212,11 @@ class GameLauncher extends EventEmitter {
             // Check loader version (e.g. fabric-loader-...)
             checkIndex(versionId);
 
-            // Check base version (e.g. 1.21.1)
+            // Check base version (e.g. 1.21.11)
             // If ID contains "fabric" or "forge", try to extract the last part which is likely the game ver
             if (versionId.includes('fabric') || versionId.includes('forge')) {
                 const parts = versionId.split('-');
-                const lastPart = parts[parts.length - 1]; // "1.21.1" usually at end
+                const lastPart = parts[parts.length - 1]; // "1.21.11" usually at end
                 if (lastPart.match(/^\d+\.\d+(\.\d+)?$/)) { // Simple semver-ish check
                     checkIndex(lastPart);
                 }
