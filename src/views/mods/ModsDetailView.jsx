@@ -17,8 +17,8 @@ export const ModsDetailView = ({
     setSelectedVersion,
     dependencies,
     isLoadingDetails,
-    activeTab,
-    setActiveTab,
+    detailTab,
+    setDetailTab,
     installingStates,
     installProgress,
     handleInstall,
@@ -167,8 +167,8 @@ export const ModsDetailView = ({
                 {['description', 'versions', ...(isModpack ? ['dependencies'] : [])].map(tab => (
                     <button
                         key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                        onClick={() => setDetailTab(tab)}
+                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${detailTab === tab ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
@@ -185,7 +185,7 @@ export const ModsDetailView = ({
                 ) : (
                     <>
                         {/* Description Tab */}
-                        {activeTab === 'description' && (
+                        {detailTab === 'description' && (
                             <div className="prose prose-invert prose-emerald max-w-none">
                                 <p className="text-lg text-slate-300 leading-relaxed font-light mb-6">
                                     {selectedProject.description}
@@ -208,7 +208,7 @@ export const ModsDetailView = ({
                         )}
 
                         {/* Versions Tab */}
-                        {activeTab === 'versions' && (
+                        {detailTab === 'versions' && (
                             <div className="space-y-2">
                                 <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     <div className="col-span-4">Version Name</div>
@@ -263,7 +263,7 @@ export const ModsDetailView = ({
                         )}
 
                         {/* Dependencies Tab (Modpack only) */}
-                        {activeTab === 'dependencies' && (
+                        {detailTab === 'dependencies' && (
                             <div>
                                 <div className="mb-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-500 text-sm flex items-center gap-2">
                                     <Info size={16} />

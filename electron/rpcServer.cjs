@@ -122,6 +122,7 @@ async function handleModMessage(message) {
             largeImageKey: 'icon',
             largeImageText: DEFAULT_HOVER_TEXT,
             instance: true,
+            priority: 2,
             ...modActivity // Allow overrides (including startTimestamp if provided)
         };
 
@@ -185,13 +186,17 @@ async function handleModMessage(message) {
         }
 
         // Don't clear! Revert to launcher idling status
-        setActivity({
-            details: 'In Launcher',
-            state: 'Idling',
-            startTimestamp: Date.now(),
-            largeImageKey: 'icon',
-            largeImageText: DEFAULT_HOVER_TEXT,
-            instance: false,
+        // But first, we must clear the potential high-priority activity to allow the low-priority one
+        clearActivity().then(() => {
+            setActivity({
+                details: 'In Launcher',
+                state: 'Idling',
+                startTimestamp: Date.now(),
+                largeImageKey: 'icon',
+                largeImageText: DEFAULT_HOVER_TEXT,
+                instance: false,
+                priority: 0
+            });
         });
     }
 }

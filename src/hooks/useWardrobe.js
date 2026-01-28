@@ -197,8 +197,8 @@ export const useWardrobe = (activeAccount) => {
 
             const [allCosmetics, detailed] = await Promise.all([catalogPromise, ownershipPromise]);
 
-            // Use fallback if API is not deployed yet
-            const catalogData = allCosmetics.length > 0 ? allCosmetics : FALLBACK_COSMETICS;
+            // Merge API data with fallback (dev) data to ensure local test items appear
+            const catalogData = [...(allCosmetics || []), ...FALLBACK_COSMETICS.filter(fc => !allCosmetics?.some(ac => ac.cosmeticId === fc.cosmeticId))];
 
             // 2. Extract Owned IDs
             let ownedIds = [];
@@ -248,6 +248,8 @@ export const useWardrobe = (activeAccount) => {
             const enriched = enrich(catalogData);
             console.log('[useWardrobe] Enriched cosmetics:', enriched.length, 'Owned:', ownedIds.length);
             setOwnedCosmetics(enriched);
+
+
 
             // 4. Update Cache
             if (activeAccount) {

@@ -1,6 +1,7 @@
 const log = require('electron-log');
 const telemetryService = require('./telemetryService.cjs');
 const authService = require('./authService.cjs');
+const discordRpc = require('../discordRpc.cjs');
 
 // PlayTime Service - Tracks local and syncs with API backend
 
@@ -289,13 +290,26 @@ async function sendHeartbeat() {
     const token = await authService.getToken();
     if (!token) return; // Not logged in or no token available
 
-    const instances = Object.entries(activeSessions).map(([id, data]) => ({
-        instanceId: id,
-        deltaSeconds: deltaSeconds,
-        playerName: data.playerName,
-        playerUuid: data.playerUuid,
-        isOnline: data.isOnline
-    }));
+    const instances = Object.entries(activeSessions).map(([id, data]) => {
+        let instanceDeltaMs = deltaMs;
+
+        // If session started *after* the last sync, only count from start time
+        if (data.startTime && data.startTime > lastSyncTime) {
+            instanceDeltaMs = now - data.startTime;
+        }
+
+        // Clamp to deltaMs (safety) and ensure non-negative
+        instanceDeltaMs = Math.min(instanceDeltaMs, deltaMs);
+        if (instanceDeltaMs < 0) instanceDeltaMs = 0;
+
+        return {
+            instanceId: id,
+            deltaSeconds: Math.round(instanceDeltaMs / 1000),
+            playerName: data.playerName,
+            playerUuid: data.playerUuid,
+            isOnline: data.isOnline
+        };
+    }).filter(i => i.deltaSeconds > 0);
 
     const payload = {
         launcherDeltaSeconds: deltaSeconds,
@@ -315,13 +329,41 @@ async function sendHeartbeat() {
 
             // Also update local trackers for UI feedback immediately (optional but good)
             if (instances.length > 0) {
-                instances.forEach(i => addPlayTime(i.instanceId, deltaMs));
+                instances.forEach(i => addPlayTime(i.instanceId, i.deltaSeconds * 1000));
             }
         } else {
             log.warn(`[PlayTime] Heartbeat failed: ${res.status}. Delta preserved.`);
         }
     } catch (e) {
         log.error(`[PlayTime] Heartbeat error: ${e.message}`);
+    }
+
+    // --- RPC Confidence Check ---
+    // If we have active sessions (game running) but Discord says "Idling", fix it.
+    if (Object.keys(activeSessions).length > 0) {
+        const currentActivity = discordRpc.getCurrentActivity();
+
+        // If no activity, or state is "Idling", or instance flag is false/missing
+        if (!currentActivity || currentActivity.state === 'Idling' || !currentActivity.instance) {
+
+            // Pick the first active session as the "face" of the activity
+            const firstId = Object.keys(activeSessions)[0];
+            const session = activeSessions[firstId];
+
+            if (session) {
+                log.info(`[PlayTime] Detected RPC mismatch (Game running but RPC says ${currentActivity?.state || 'Nothing'}). correcting...`);
+
+                discordRpc.setActivity({
+                    details: 'In Game',
+                    state: session.version ? `Playing Minecraft ${session.version}` : 'Playing Minecraft',
+                    startTimestamp: session.startTime || Date.now(),
+                    largeImageKey: 'icon',
+                    largeImageText: 'CraftCorps Launcher',
+                    instance: true,
+                    priority: 1
+                });
+            }
+        }
     }
 }
 
@@ -336,7 +378,9 @@ function startSession(instanceIdOrPath, playerData) {
     activeSessions[instanceIdOrPath] = {
         playerName: playerData?.playerName || 'Player',
         playerUuid: playerData?.playerUuid || '0',
-        isOnline: !!playerData?.isOnline // Premium Status
+        isOnline: !!playerData?.isOnline, // Premium Status
+        version: playerData?.version,
+        startTime: playerData?.startTime || Date.now() // Allow passing startTime if needed, else now
     };
     log.info(`[PlayTime] Started session for ${instanceIdOrPath} (Player: ${activeSessions[instanceIdOrPath].playerName}, Premium: ${activeSessions[instanceIdOrPath].isOnline})`);
 }

@@ -9,6 +9,7 @@ const FabricHandler = require('./launcher/FabricHandler.cjs');
 const QuiltHandler = require('./launcher/QuiltHandler.cjs');
 const NeoForgeHandler = require('./launcher/NeoForgeHandler.cjs');
 const { getRpcPort } = require('./rpcServer.cjs');
+const treeKill = require('tree-kill');
 
 class GameLauncher extends EventEmitter {
     constructor() {
@@ -316,7 +317,12 @@ class GameLauncher extends EventEmitter {
 
         this.client.launch(launchOptions).then((process) => {
             if (this.isCancelled) {
-                if (process) process.kill();
+                if (process) {
+                    this.emit('log', { type: 'WARN', message: `Launch Cancelled. Force killing process ${process.pid} via tree-kill.` });
+                    treeKill(process.pid, 'SIGKILL', (err) => {
+                        if (err) this.emit('log', { type: 'ERROR', message: `Failed to kill process tree: ${err.message}` });
+                    });
+                }
                 return;
             }
             if (process) {
@@ -347,8 +353,11 @@ class GameLauncher extends EventEmitter {
     kill() {
         this.isCancelled = true;
         if (this.process) {
-            this.process.kill();
-            this.emit('log', { type: 'WARN', message: "Game killed by user." });
+            this.emit('log', { type: 'WARN', message: `Killing game process ${this.process.pid} via tree-kill.` });
+            treeKill(this.process.pid, 'SIGKILL', (err) => {
+                if (err) this.emit('log', { type: 'ERROR', message: `Failed to kill process tree: ${err.message}` });
+                else this.emit('log', { type: 'INFO', message: "Game process tree killed successfully." });
+            });
         }
     }
 }

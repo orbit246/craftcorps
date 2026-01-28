@@ -43,7 +43,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/icon.png",
+      "icon": "public/images/cc-logo.png",
       "artifactName": "CraftCorps Setup ${version}.exe"
     },
     "mac": {
@@ -55,13 +55,13 @@
         ]
       },
       "category": "public.app-category.games",
-      "icon": "public/icon.png",
+      "icon": "public/images/cc-logo.png",
       "artifactName": "CraftCorps Setup ${version} ${arch}.${ext}"
     },
     "compression": "maximum",
     "linux": {
       "target": "AppImage",
-      "icon": "public/icon.png",
+      "icon": "public/images/cc-logo.png",
       "category": "Game",
       "artifactName": "CraftCorps Setup ${version}.${ext}"
     },

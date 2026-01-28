@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Crown, Zap, Copy, Info, Loader2 } from 'lucide-react';
-import { getGradient, toInt } from './utils';
+import { getGradient, getSolidColor, toInt } from './utils';
 import ServerBadge from './ServerBadge';
 
 const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining = false, isPlaying = false, disabled = false }) => {
-    const gradient = getGradient(server.ip);
+    const solidColor = getSolidColor(server.ip);
     const players = toInt(server.players);
     const isHot = players >= 1500;
 
@@ -21,15 +21,9 @@ const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining
     };
 
     return (
-        <div className="relative w-full h-[400px] rounded-3xl overflow-hidden group shrink-0 mb-8 border border-white/10 shadow-2xl shadow-black/50 bg-slate-950">
+        <div className="relative w-full h-[400px] rounded-3xl overflow-hidden group shrink-0 mb-8 border border-white/10 shadow-2xl shadow-black/50 bg-slate-900 hover:bg-slate-800 transition-colors duration-300">
             {/* Backgrounds */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-25`} />
-            {server.icon && (
-                <img src={server.icon} className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110" alt="" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/40" />
-
-            {/* Status Badges */}
+            <div className="absolute inset-0 bg-slate-900/40" />
             <ServerBadge server={server} isHot={isHot} />
 
             {/* Content */}
@@ -135,7 +129,9 @@ const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining
                         {server.icon ? (
                             <img src={server.icon} alt="" className="w-full h-full object-cover rounded-2xl" />
                         ) : (
-                            <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
+                            <div className={`w-full h-full bg-slate-800 flex items-center justify-center`} >
+                                <div className={`w-full h-full ${solidColor} opacity-20`} />
+                            </div>
                         )}
                     </div>
                 </div>

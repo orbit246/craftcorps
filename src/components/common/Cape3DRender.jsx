@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
+import { applyRendererSettings, resetAndApplyLighting, applyTextureSettings, THREE_CONFIG, createCosmeticMaterial } from '../../utils/threeConfig';
 
 /**
  * Renders a 3D Minecraft cape with slow rotation
@@ -21,7 +22,7 @@ const Cape3DRender = ({ capeUrl, className = '', autoRotate = true }) => {
         sceneRef.current = scene;
 
         // Camera Setup
-        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(THREE_CONFIG.CAMERA_FOV, 1, 0.1, 1000);
         camera.position.set(0, 0, 30);
         camera.lookAt(0, 0, 0);
 
@@ -31,7 +32,7 @@ const Cape3DRender = ({ capeUrl, className = '', autoRotate = true }) => {
             alpha: true,
             antialias: true
         });
-        renderer.outputColorSpace = THREE.SRGBColorSpace; // Critical for correct color vibrancy
+        applyRendererSettings(renderer);
 
         const updateSize = () => {
             if (!mounted || !canvasRef.current) return;
@@ -50,21 +51,8 @@ const Cape3DRender = ({ capeUrl, className = '', autoRotate = true }) => {
 
         updateSize();
 
-        // Lighting Setup - Adjusted to match 2D render brightness
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambientLight);
-
-        const keyLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        keyLight.position.set(-10, 15, 15);
-        scene.add(keyLight);
-
-        const fillLight = new THREE.DirectionalLight(0xffffff, 0.2);
-        fillLight.position.set(10, -5, 10);
-        scene.add(fillLight);
-
-        const rimLight = new THREE.DirectionalLight(0xffffff, 0.15);
-        rimLight.position.set(0, 5, -15);
-        scene.add(rimLight);
+        // Lighting Setup
+        resetAndApplyLighting(scene);
 
         // Load Cape Texture
         const textureLoader = new THREE.TextureLoader();
@@ -79,12 +67,10 @@ const Cape3DRender = ({ capeUrl, className = '', autoRotate = true }) => {
                 }
 
                 // Ensure crisp pixels
-                texture.magFilter = THREE.NearestFilter;
-                texture.minFilter = THREE.NearestFilter;
+                applyTextureSettings(texture, true);
                 texture.wrapS = THREE.ClampToEdgeWrapping;
                 texture.wrapT = THREE.ClampToEdgeWrapping;
                 texture.flipY = false;
-                texture.colorSpace = THREE.SRGBColorSpace;
 
                 // Minecraft cape dimensions
                 const textureWidth = 64;
@@ -126,13 +112,8 @@ const Cape3DRender = ({ capeUrl, className = '', autoRotate = true }) => {
 
                 uvs.needsUpdate = true;
 
-                const material = new THREE.MeshStandardMaterial({
-                    map: texture,
-                    transparent: true,
-                    alphaTest: 0.5,
-                    roughness: 1.0,
-                    metalness: 0.0
-                });
+                const material = createCosmeticMaterial(texture);
+                material.alphaTest = 0.5; // Custom override for capes if needed
 
                 const capeGroup = new THREE.Group();
                 scene.add(capeGroup);

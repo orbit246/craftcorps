@@ -45,7 +45,7 @@ const ShaderDependencyModal = ({ isOpen, onClose, onConfirm, loader }) => {
     );
 };
 
-const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitchInstance, projectType = 'mod', setProjectType }) => {
+const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitchInstance, projectType = 'mod', setProjectType, activeTab: appTab }) => {
     const { t } = useTranslation();
     const { addToast } = useToast();
 
@@ -59,7 +59,7 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [dependencies, setDependencies] = useState([]);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-    const [activeTab, setActiveTab] = useState('description');
+    const [detailTab, setDetailTab] = useState('description');
 
     // -- State: Installation --
     const [installingStates, setInstallingStates] = useState({});
@@ -100,7 +100,8 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
         // Validate cache context (loader match for mods)
         let isValid = !!cached;
         if (isValid && projectType === 'mod' && selectedInstance && selectedInstance.loader && selectedInstance.loader !== 'Vanilla') {
-            if (cached.loader !== selectedInstance.loader.toLowerCase()) isValid = false;
+            const currentLoader = selectedInstance.loader.toLowerCase();
+            if (cached.loader !== currentLoader) isValid = false;
         }
 
         if (isValid) {
@@ -108,9 +109,11 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
             setIsSearching(false);
         } else {
             setResults([]);
-            setIsSearching(true); // Show shimmer while waiting for debounce/fetch
+            // Only set searching to true if we don't have results yet
+            // This prevents a double shimmer if results were already there
+            setIsSearching(true);
         }
-    }, [projectType, selectedInstance?.id]);
+    }, [projectType, selectedInstance?.id, selectedInstance?.loader]); // Stable dependencies
 
     useEffect(() => {
         loadInstalledMods();
@@ -160,9 +163,9 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
             setProjectDetails(null);
             setVersions([]);
             setDependencies([]);
-            // Don't reset activeTab here so user can stay on 'versions' if browsing multiple mods? 
+            // Don't reset detailTab here so user can stay on 'versions' if browsing multiple mods? 
             // Actually usually better to reset to description.
-            setActiveTab('description');
+            setDetailTab('description');
 
             try {
                 const projectId = selectedProject.project_id;
@@ -238,16 +241,27 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
         loadDependencies();
     }, [selectedVersion]);
 
-    // Search Trigger (Debounced)
     useEffect(() => {
+        // Only trigger search if we are on the mods tab or if it's the first load
+        if (appTab && appTab !== 'mods') return;
+
         const timeoutId = setTimeout(() => {
             performSearch(searchQuery);
         }, 500);
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, filterVersion, filterCategory, projectType, selectedInstance]);
+    }, [searchQuery, filterVersion, filterCategory, projectType, selectedInstance?.id, selectedInstance?.loader, appTab]);
+
+    // Track the current search request to avoid race conditions
+    const lastRequestTime = useRef(0);
 
     const performSearch = async (query = searchQuery, append = false) => {
-        if (!window.electronAPI) return;
+        if (!window.electronAPI) {
+            setIsSearching(false);
+            return;
+        }
+
+        const requestTime = Date.now();
+        lastRequestTime.current = requestTime;
 
         // Context check for cache
         const isDefaultSearch = !query && !filterVersion && !filterCategory && !append;
@@ -265,8 +279,7 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
             }
 
             if (isValid) {
-                // Even though effect handles this, debounce timer might still fire. 
-                // Ensure we don't re-fetch or re-render unnecessarily.
+                if (lastRequestTime.current !== requestTime) return;
                 setResults(cached.data);
                 setIsSearching(false);
                 return;
@@ -299,6 +312,9 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
 
             const res = await window.electronAPI.modrinthSearch(params);
 
+            // Abort if a newer request has started
+            if (lastRequestTime.current !== requestTime) return;
+
             if (res.success) {
                 if (append) {
                     setResults(prev => [...prev, ...res.data.hits]);
@@ -317,11 +333,14 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
             }
 
         } catch (e) {
+            if (lastRequestTime.current !== requestTime) return;
             console.error(e);
             setSearchError(e.message || "Search failed");
         } finally {
-            setIsSearching(false);
-            setIsLoadingMore(false);
+            if (lastRequestTime.current === requestTime) {
+                setIsSearching(false);
+                setIsLoadingMore(false);
+            }
         }
     };
 
@@ -631,8 +650,8 @@ const ModsView = ({ selectedInstance, instances = [], onInstanceCreated, onSwitc
                     setSelectedVersion={setSelectedVersion}
                     dependencies={dependencies}
                     isLoadingDetails={isLoadingDetails}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
+                    detailTab={detailTab}
+                    setDetailTab={setDetailTab}
                     installingStates={installingStates}
                     installProgress={installProgress}
                     handleInstall={handleInstall}

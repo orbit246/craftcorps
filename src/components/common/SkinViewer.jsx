@@ -3,6 +3,9 @@ import { SkinViewer as SkinViewer3D, IdleAnimation, WalkingAnimation, RunningAni
 import * as THREE from 'three';
 import { loadBBModel } from '../../utils/BBModelLoader';
 
+import { loadGLTFModel } from '../../utils/GLTFModelLoader';
+import { applyRendererSettings, resetAndApplyLighting, THREE_CONFIG, createCosmeticMaterial } from '../../utils/threeConfig';
+
 // Custom Name Tag Generator
 const createNameTag = (text) => {
     if (!text) return null;
@@ -95,9 +98,11 @@ const SkinViewer = ({
             width: width,
             height: height,
             skin: initialSkin,
+            alpha: true,
+            preserveDrawingBuffer: true, // Matches standard renderer behavior
+            antialias: true,
             cape: capeUrl,
-            model: model,
-            alpha: true // Always transparent for custom background FX
+            model: model
         });
 
         // Set nameTag after constructor
@@ -109,21 +114,12 @@ const SkinViewer = ({
             }
         }
 
+        // Global Renderer Settings (Color Space, Tone Mapping, Exposure)
+        applyRendererSettings(viewer.renderer);
+
         // --- PREMIUM LIGHTING SETUP ---
         if (viewer.scene) {
-            // 1. Scene Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            viewer.scene.add(ambientLight);
-
-            // Spot/Point light from top-left for drama
-            const spotLight = new THREE.PointLight(0xffffff, 1.2);
-            spotLight.position.set(-20, 40, 30);
-            viewer.scene.add(spotLight);
-
-            // Rim light from behind
-            const rimLight = new THREE.PointLight(0xffffff, 0.8);
-            rimLight.position.set(20, 20, -30);
-            viewer.scene.add(rimLight);
+            resetAndApplyLighting(viewer.scene);
 
             // --- GROUND SHADOW ---
             const shadowCanvas = document.createElement('canvas');
@@ -164,6 +160,8 @@ const SkinViewer = ({
         }
 
         // Set Initial Camera
+        viewer.camera.fov = THREE_CONFIG.CAMERA_FOV;
+        viewer.camera.updateProjectionMatrix();
         viewer.camera.position.z = zoom;
         viewer.camera.position.y = 10;
         viewer.camera.lookAt(0, 0, 0);
@@ -200,6 +198,8 @@ const SkinViewer = ({
             resizeObserver.observe(parent);
         }
 
+
+
         return () => {
             resizeObserver.disconnect();
             if (viewerRef.current) {
@@ -234,6 +234,22 @@ const SkinViewer = ({
                     await viewer.loadSkin(effectiveSkinUrl, { model: model });
                     viewer._currentSkinUrl = effectiveSkinUrl;
                     viewer._currentModel = model;
+
+                    // Standardize player skin materials to match cosmetics (Matte, no glare)
+                    if (viewer.playerObject) {
+                        viewer.playerObject.traverse((child) => {
+                            if (child.isMesh && child.material) {
+                                // skinview3d might use arrays or single materials
+                                const materials = Array.isArray(child.material) ? child.material : [child.material];
+                                materials.forEach(m => {
+                                    m.roughness = 1.0;
+                                    m.metalness = 0.0;
+                                    // Ensure color space is correct on existing textures
+                                    if (m.map) m.map.colorSpace = THREE_CONFIG.TEXTURE_COLOR_SPACE;
+                                });
+                            }
+                        });
+                    }
                 } catch (err) {
                     console.warn(`[SkinViewer] Load failed for ${effectiveSkinUrl}, trying total fallback...`, err);
                     const fallback = model === 'slim' ? FALLBACK_ALEX : FALLBACK_STEVE;
@@ -315,14 +331,26 @@ const SkinViewer = ({
         const loadedModels = await Promise.all(modelsToLoad.map(async (item) => {
             if (item.model) {
                 try {
-                    const mesh = await loadBBModel(item.model, item.texture);
+                    let mesh;
+                    const modelPath = item.model || '';
+                    console.log(`[SkinViewer] Loading cosmetic model: ${modelPath}`);
+
+                    if (modelPath.toLowerCase().includes('.gltf') || modelPath.toLowerCase().includes('.glb')) {
+                        console.log("[SkinViewer] Detected GLTF/GLB model");
+                        mesh = await loadGLTFModel(modelPath, item.texture);
+                    } else {
+                        console.log("[SkinViewer] Detected BBModel (JSON)");
+                        mesh = await loadBBModel(modelPath, item.texture);
+                    }
+
                     if (mesh) return { mesh, item };
                 } catch (e) {
-                    console.error("Failed to load cosmetic bbmodel:", e);
+                    console.error("Failed to load cosmetic model:", e);
                 }
             } else if (item.type === 'model') {
                 const geometry = new THREE.BoxGeometry(1, 1, 1);
-                const material = new THREE.MeshBasicMaterial({ color: item.color || 0xFF0000 });
+                const material = createCosmeticMaterial(null);
+                material.color.set(item.color || 0xFF0000);
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.scale.set(4, 4, 4);
                 return { mesh, item };

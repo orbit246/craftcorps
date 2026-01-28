@@ -23,6 +23,9 @@ const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('-
 const isMarketing = process.argv.includes('--marketing-shot');
 const isHidden = process.argv.includes('--hidden');
 
+// Track quitting state
+app.isQuitting = false;
+
 if (profileArg || isDev || isMarketing) {
     let profileSuffix = 'dev';
     if (profileArg) profileSuffix = profileArg.split('=')[1];
@@ -217,7 +220,9 @@ async function createWindow() {
                     // Memory Purge: Signal to Chromium that we are done with initial heavy lifting
                     if (mainWindow && !mainWindow.isDestroyed()) {
                         try {
-                            mainWindow.webContents.forceNextMemoryPurge();
+                            if (typeof mainWindow.webContents.forceNextMemoryPurge === 'function') {
+                                mainWindow.webContents.forceNextMemoryPurge();
+                            }
                         } catch (e) {
                             console.warn('[MAIN] forceNextMemoryPurge failed:', e);
                         }
@@ -260,7 +265,9 @@ async function createWindow() {
         session.clearHostResolverCache().catch(() => { });
 
         try {
-            mainWindow.webContents.forceNextMemoryPurge();
+            if (typeof mainWindow.webContents.forceNextMemoryPurge === 'function') {
+                mainWindow.webContents.forceNextMemoryPurge();
+            }
         } catch (e) { }
     });
 
@@ -300,7 +307,16 @@ async function createWindow() {
 
     // Create Tray if not exists
     if (!tray) {
-        tray = new Tray(iconPath);
+        const { nativeImage } = require('electron');
+        let trayIcon = nativeImage.createFromPath(iconPath);
+
+        // On macOS, the tray icon needs to be small (typically 18x18 or 22x22)
+        if (process.platform === 'darwin') {
+            trayIcon = trayIcon.resize({ width: 22, height: 22 });
+            trayIcon.setTemplateImage(true); // Allows macOS to handle dark/light mode automatically
+        }
+
+        tray = new Tray(trayIcon);
         const contextMenu = Menu.buildFromTemplate([
             { label: 'Show Launcher', click: () => mainWindow.show() },
             { type: 'separator' },
@@ -684,7 +700,13 @@ app.whenReady().then(async () => {
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
+        } else if (mainWindow) {
+            mainWindow.show();
         }
+    });
+
+    app.on('before-quit', () => {
+        app.isQuitting = true;
     });
 });
 

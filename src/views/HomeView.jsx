@@ -495,7 +495,7 @@ const HomeView = ({
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_rgba(30,41,59,0.4),_transparent_70%)] pointer-events-none" />
 
                 {/* Top Right Control Cluster (Account + Actions) */}
-                <div className="absolute top-8 right-8 flex flex-col items-end gap-3 z-50 pointer-events-none">
+                <div className="fixed top-20 right-8 flex flex-col items-end gap-3 z-[100] pointer-events-none">
                     {/* Profile Widget */}
                     <div className="glass-spotlight p-2 rounded-2xl shadow-2xl relative z-[100] pointer-events-auto">
                         <AccountProfile

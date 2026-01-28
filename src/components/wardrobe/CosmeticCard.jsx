@@ -36,8 +36,8 @@ const CosmeticCard = ({
 
     if (!isOwned) {
         cardBgClass = theme === 'white'
-            ? 'bg-slate-100 border-slate-200 opacity-70'
-            : 'bg-slate-900/30 border-white/5 opacity-70';
+            ? 'bg-slate-100 border-slate-200'
+            : 'bg-slate-900/30 border-white/5';
     }
 
     return (
@@ -50,7 +50,7 @@ const CosmeticCard = ({
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.05] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
             {isEquipped && <div className="equipped-pulse-ring rounded-3xl" />}
 
-            <div className={`aspect-square rounded-2xl mb-4 flex items-center justify-center relative overflow-hidden z-10 ${isFounder ? 'bg-gradient-to-br from-black/80 via-purple-950/40 to-amber-950/40' : 'bg-slate-950 shadow-inner'}`}>
+            <div className={`aspect-square rounded-2xl mb-4 flex items-center justify-center relative overflow-hidden z-10 border border-white/5 ${isFounder ? 'bg-gradient-to-br from-black/80 via-purple-950/40 to-amber-950/40' : 'bg-slate-900/40 shadow-inner'}`}>
                 {!isOwned && (
                     <div className="absolute top-2 right-2 z-20 bg-slate-900/90 backdrop-blur-sm p-1.5 rounded-lg border border-white/10 shadow-lg">
                         <Lock size={14} className="text-slate-400" />
@@ -101,7 +101,7 @@ const CosmeticCard = ({
                 )}
             </div>
 
-            <div>
+            <div className={!isOwned ? 'opacity-50' : ''}>
                 <h4 className={`text-sm font-bold truncate ${isFounder ? 'text-amber-400' : (theme === 'white' ? 'text-slate-700' : 'text-slate-200')}`}>
                     {item.name}
                 </h4>

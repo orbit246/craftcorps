@@ -2,6 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { loadBBModel } from '../../utils/BBModelLoader';
 
+import { loadGLTFModel } from '../../utils/GLTFModelLoader';
+import { applyRendererSettings, resetAndApplyLighting, THREE_CONFIG } from '../../utils/threeConfig';
+
 
 /**
  * Renders an arbitrary 3D Model (JSON+UV) with auto-rotation
@@ -23,7 +26,7 @@ const Model3DRender = ({ modelUrl, textureUrl, className = '', autoRotate = true
         sceneRef.current = scene;
 
         // Camera Setup
-        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(THREE_CONFIG.CAMERA_FOV, 1, 0.1, 1000);
         camera.position.set(0, 0, 40); // Start further back
         camera.lookAt(0, 0, 0);
 
@@ -33,7 +36,7 @@ const Model3DRender = ({ modelUrl, textureUrl, className = '', autoRotate = true
             alpha: true,
             antialias: true
         });
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        applyRendererSettings(renderer);
 
         const updateSize = () => {
             if (!mounted || !canvasRef.current) return;
@@ -53,48 +56,47 @@ const Model3DRender = ({ modelUrl, textureUrl, className = '', autoRotate = true
         updateSize();
 
         // Lighting Setup
-        // Stronger, more dramatic lighting for products
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambientLight);
-
-        const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        keyLight.position.set(-10, 20, 20);
-        scene.add(keyLight);
-
-        const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        fillLight.position.set(20, 0, 10);
-        scene.add(fillLight);
-
-        const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        rimLight.position.set(0, 5, -20);
-        scene.add(rimLight);
-
-
+        resetAndApplyLighting(scene);
 
         // Load Model
         const loadModel = async () => {
             try {
-                const group = await loadBBModel(modelUrl, textureUrl);
+                let group;
+                if (modelUrl.toLowerCase().includes('.gltf') || modelUrl.toLowerCase().includes('.glb')) {
+                    group = await loadGLTFModel(modelUrl, null);
+                } else {
+                    group = await loadBBModel(modelUrl, textureUrl);
+                }
+
+                // Note: Loaders now use MeshBasicMaterial for 100% color accuracy.
 
                 if (!mounted) return;
 
                 if (group) {
                     // Center and Scale Model
+                    // 1. Calculate bounding box of the raw model
                     const box = new THREE.Box3().setFromObject(group);
-                    const center = box.getCenter(new THREE.Vector3());
-                    const size = box.getSize(new THREE.Vector3());
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
 
-                    // Recenter geometry
-                    group.position.sub(center);
+                    // 2. Remove any initial position offset from the model itself
+                    // We move the group so its bounding box center is at (0,0,0)
+                    group.position.x = -center.x;
+                    group.position.y = -center.y;
+                    group.position.z = -center.z;
 
-                    // Normalize scale to fit in view
-                    // Max dimension should be around 16 units (like a head)
+                    // 3. Normalize scale to fit in view
+                    // Max dimension should be around 24 units for a good fit in the grid
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const targetSize = 16 * scale;
+                    const targetSize = 24 * scale;
 
                     if (maxDim > 0) {
                         const scaleFactor = targetSize / maxDim;
                         group.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        // IMPORTANT: Scale the position offset too if we want it centered at 0,0,0
+                        group.position.multiplyScalar(scaleFactor);
                     }
 
                     // Rotation Container

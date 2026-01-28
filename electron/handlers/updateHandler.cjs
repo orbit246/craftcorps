@@ -11,6 +11,14 @@ function setupUpdateHandlers(getMainWindow) {
     autoUpdater.logger = log;
     autoUpdater.logger.transports.file.level = 'info';
 
+    // Configure channel based on build type
+    const pkg = require('../../package.json');
+    const isCanary = pkg.isCanary === true;
+    if (isCanary) {
+        autoUpdater.channel = 'canary';
+        log.info('Updater configured for Canary channel');
+    }
+
     // Switch to generic provider to avoid GitHub API limits/errors
     autoUpdater.setFeedURL({
         provider: 'generic',
@@ -18,10 +26,6 @@ function setupUpdateHandlers(getMainWindow) {
     });
 
     // Disable auto-downloading if you want to ask the user first
-    // autoUpdater.autoDownload = false; 
-    // For this implementation, let's keep it true for seamless updates, 
-    // or we can make it false to show a "Update Available" button.
-    // Let's go with autoDownload = false to give user control.
     autoUpdater.autoDownload = false;
 
     const safeSend = (channel, ...args) => {

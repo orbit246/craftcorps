@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { applyTextureSettings, THREE_CONFIG, createCosmeticMaterial } from './threeConfig';
 
 // Three.js BoxGeometry material groups (when using material array):
 // Index 0: Right face (+X) = east
@@ -52,9 +52,7 @@ function createFaceTexture(image, face, texWidth, texHeight, direction) {
     );
 
     const texture = new THREE.CanvasTexture(canvas);
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.colorSpace = THREE.SRGBColorSpace;
+    applyTextureSettings(texture, true);
 
     return texture;
 }
@@ -99,12 +97,7 @@ const createCubeMesh = (cube, texWidth, texHeight, image) => {
             const texture = image ? createFaceTexture(image, mockFace, texWidth, texHeight, f.name) : null;
 
             if (texture) {
-                materials.push(new THREE.MeshStandardMaterial({
-                    map: texture,
-                    transparent: true,
-                    alphaTest: 0.1,
-                    side: THREE.DoubleSide
-                }));
+                materials.push(createCosmeticMaterial(texture));
             } else {
                 materials.push(new THREE.MeshStandardMaterial({
                     color: 0xFFFFFF,
@@ -201,12 +194,11 @@ const createGenericElementMesh = (element, texture, texWidth, texHeight) => {
     const group = new THREE.Group();
 
     // Shared material for all faces if texture exists
-    const material = texture ? new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-        transparent: true,
-        alphaTest: 0.1
-    }) : new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+    const material = createCosmeticMaterial(texture);
+    if (!texture) {
+        material.color.set(0xcccccc);
+    }
+    material.side = THREE.DoubleSide;
 
     // Faces based on user SIZE + OFFSET logic
     const faceConfigs = [
@@ -293,9 +285,7 @@ export const loadBBModel = async (url, textureUrl = null) => {
         let texture = null;
         if (textureUrl) {
             texture = await new THREE.TextureLoader().loadAsync(textureUrl);
-            texture.magFilter = THREE.NearestFilter;
-            texture.minFilter = THREE.NearestFilter;
-            texture.colorSpace = THREE.SRGBColorSpace;
+            applyTextureSettings(texture, true);
         }
 
         const [texWidth, texHeight] = modelData.texture_size || [32, 32];

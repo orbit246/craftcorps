@@ -84,15 +84,33 @@ async function setActivity(activity) {
         activity.startTimestamp = startTimestamp;
     }
 
+    const newPriority = activity.priority || 0;
+    const currentPriority = currentActivity ? (currentActivity.priority || 0) : 0;
+
+    // Reject lower priority updates if previous one is still active/valid
+    // e.g. Don't let "In Launcher" (0) overwrite "Playing Minecraft" (1)
+    if (currentActivity && newPriority < currentPriority) {
+        // Optional: Log debug
+        // log.debug(`[Discord RPC] Ignored priority ${newPriority} update, keeping ${currentPriority}`);
+        return;
+    }
+
     currentActivity = activity;
     if (isSuspended) return;
 
     if (!rpcReady || !rpc) return;
 
-    return rpc.setActivity(activity).catch(err => log.error(`[Discord RPC] Set activity failed: ${err}`));
+    // Filter out priority before sending to Discord as it's not a valid field for them
+    const { priority, ...discordActivity } = activity;
+
+    return rpc.setActivity(discordActivity).catch(err => log.error(`[Discord RPC] Set activity failed: ${err}`));
 }
 
 async function clearActivity() {
+    // Only clear if no higher priority task is running? 
+    // Usually clear is explicit, but let's assume clear is "reset to nothing".
+    // We should probably allow forceful clear or check priority?
+    // For now, clear wipes everything.
     currentActivity = null;
     if (!rpcReady || !rpc) return;
     return rpc.clearActivity().catch(err => log.error(`[Discord RPC] Clear activity failed: ${err}`));
@@ -102,5 +120,6 @@ module.exports = {
     initDiscordRPC,
     setActivity,
     clearActivity,
+    getCurrentActivity: () => currentActivity,
     liftSuspension
 };

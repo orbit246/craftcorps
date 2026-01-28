@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Users, Server, Crown, Wifi, Zap, ArrowRight, Copy, Info, Loader2 } from 'lucide-react';
-import { getGradient, toInt } from './utils';
+import { getGradient, getSolidColor, toInt } from './utils';
 import ServerBadge from './ServerBadge';
 import Pill from './Pill';
 
@@ -14,7 +14,7 @@ const ServerCard = React.memo(({
     isPlaying = false,
     disabled = false
 }) => {
-    const gradient = getGradient(server.ip);
+    const solidColor = getSolidColor(server.ip);
     const players = toInt(server.players);
 
     const base =
@@ -54,17 +54,6 @@ const ServerCard = React.memo(({
         >
             {/* Banner */}
             <div className={`${bannerH} bg-slate-900 relative overflow-hidden`}>
-                <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-20`} />
-                {!imgError && (
-                    <img
-                        src={iconSrc}
-                        loading="lazy"
-                        decoding="async"
-                        className={`absolute inset-0 w-full h-full object-cover blur-xl scale-150 transition-opacity duration-700 ${imgLoaded ? 'opacity-35' : 'opacity-0'}`}
-                        alt=""
-                        onError={() => setImgError(true)}
-                    />
-                )}
 
                 {/* Status Banners */}
                 <ServerBadge server={server} isHot={isHot} />
@@ -87,7 +76,7 @@ const ServerCard = React.memo(({
                     {!imgError ? (
                         <div className="w-full h-full relative rounded-xl overflow-hidden bg-slate-800">
                             {/* Optional Placeholder */}
-                            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 transition-opacity duration-500 ${imgLoaded ? 'opacity-0' : 'opacity-100'}`} />
+                            <div className={`absolute inset-0 ${solidColor} opacity-20 transition-opacity duration-500 ${imgLoaded ? 'opacity-0' : 'opacity-100'}`} />
 
                             <img
                                 src={iconSrc}
@@ -101,7 +90,7 @@ const ServerCard = React.memo(({
                         </div>
                     ) : (
                         <div
-                            className={`w-full h-full rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                            className={`w-full h-full rounded-xl ${solidColor} flex items-center justify-center`}
                         >
                             <Server className="text-white/50" />
                         </div>

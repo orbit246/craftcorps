@@ -166,6 +166,7 @@ const AppContent = ({
                         onSwitchInstance={() => setActiveTab('instances')}
                         projectType={modsProjectType}
                         setProjectType={setModsProjectType}
+                        activeTab={activeTab}
                     />
                 </div>
             )}

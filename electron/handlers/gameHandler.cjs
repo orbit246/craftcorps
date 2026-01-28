@@ -18,7 +18,7 @@ function isGameRunning(gameDir) {
 const playTimeService = require('../services/playTimeService.cjs');
 
 function setupGameHandlers(getMainWindow) {
-    const { setActivity } = require('../discordRpc.cjs');
+    const { setActivity, clearActivity } = require('../discordRpc.cjs');
     const JavaManager = require('../JavaManager.cjs');
 
     const safeSend = (channel, ...args) => {
@@ -75,7 +75,8 @@ function setupGameHandlers(getMainWindow) {
         playTimeService.startSession(options.id || '0', {
             playerName: options.username,
             playerUuid: options.uuid,
-            isOnline: options.userType !== 'offline'
+            isOnline: options.userType !== 'offline',
+            version: options.version
         });
 
         // --- Instance Listeners ---
@@ -136,13 +137,16 @@ function setupGameHandlers(getMainWindow) {
 
             // Update Discord RPC if no other games are running
             if (activeLaunchers.size === 0) {
-                setActivity({
-                    details: 'In Launcher',
-                    state: 'Idling',
-                    startTimestamp: Date.now(),
-                    largeImageKey: 'icon',
-                    largeImageText: 'CraftCorps Launcher',
-                    instance: false,
+                clearActivity().then(() => {
+                    setActivity({
+                        details: 'In Launcher',
+                        state: 'Idling',
+                        startTimestamp: Date.now(),
+                        largeImageKey: 'icon',
+                        largeImageText: 'CraftCorps Launcher',
+                        instance: false,
+                        priority: 0
+                    });
                 });
             }
 
@@ -238,6 +242,7 @@ function setupGameHandlers(getMainWindow) {
             largeImageKey: 'icon',
             largeImageText: 'CraftCorps Launcher',
             instance: true,
+            priority: 1
         });
 
         // GO!
