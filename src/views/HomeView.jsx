@@ -14,7 +14,7 @@ import HomeSkeleton from '../components/home/HomeSkeleton';
 import HomeCosmeticsWidget from '../components/home/HomeCosmeticsWidget';
 import HomeModsWidget from '../components/home/HomeModsWidget';
 import { useWardrobe } from '../hooks/useWardrobe';
-import { useToolkitInstaller } from '../hooks/useToolkitInstaller';
+import { useClientLibrariesInstaller } from '../hooks/useClientLibrariesInstaller';
 import { useInstanceContent } from '../hooks/useInstanceContent';
 
 const HomeView = ({
@@ -94,7 +94,7 @@ const HomeView = ({
         missingManifestMods,
         isInstallingManifest,
         handleInstallManifest
-    } = useToolkitInstaller(selectedInstance, installedMods, handleRefreshMods, isLoadingMods);
+    } = useClientLibrariesInstaller(selectedInstance, installedMods, handleRefreshMods, isLoadingMods, isLoadingInstances);
 
     // Persist showAdvanced
     useEffect(() => {

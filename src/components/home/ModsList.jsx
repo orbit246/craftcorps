@@ -92,7 +92,7 @@ const ModsList = ({
                     )}
                 </div>
 
-                {/* PVP Toolkit Banner (If Manifest Has Missing Mods) */}
+                {/* CraftCorps Client's Libraries Banner (If Manifest Has Missing Mods) */}
                 {missingManifestMods && missingManifestMods.length > 0 && (
                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center justify-between gap-4">
@@ -101,7 +101,7 @@ const ModsList = ({
                                     <PlusCircle size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-emerald-400">Toolkit Recommendations</h4>
+                                    <h4 className="text-sm font-bold text-emerald-400">CraftCorps Client's Libraries</h4>
                                     <p className="text-[10px] text-emerald-500/80 font-medium">Download {missingManifestMods.length} essential PvP & Performance mods</p>
                                 </div>
                             </div>
@@ -116,7 +116,7 @@ const ModsList = ({
                                         Installing...
                                     </>
                                 ) : (
-                                    <>Install Toolkit</>
+                                    <>Install Client's Libraries</>
                                 )}
                             </button>
                         </div>

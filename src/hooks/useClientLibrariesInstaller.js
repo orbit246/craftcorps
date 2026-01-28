@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
-export const useToolkitInstaller = (selectedInstance, installedMods, onRefreshMods, isLoadingMods) => {
+export const useClientLibrariesInstaller = (selectedInstance, installedMods, onRefreshMods, isLoadingMods, isLoadingInstances) => {
     const { addToast: showToast } = useToast();
     const [isInstallingManifest, setIsInstallingManifest] = useState(false);
     const [ignoredMods, setIgnoredMods] = useState([]);
@@ -31,7 +31,7 @@ export const useToolkitInstaller = (selectedInstance, installedMods, onRefreshMo
         if (modsToInstall.length === 0) return;
 
         setIsInstallingManifest(true);
-        const startMessage = `Installing toolkit (${modsToInstall.length} mods)...`;
+        const startMessage = `Installing Client's Libraries (${modsToInstall.length} mods)...`;
         showToast(startMessage, 'info');
 
         let successCount = 0;
@@ -81,7 +81,7 @@ export const useToolkitInstaller = (selectedInstance, installedMods, onRefreshMo
         } else if (successCount > 0 && failCount > 0) {
             showToast(`Installed ${successCount} mods, but ${failCount} failed to download.`, 'warning');
         } else if (failCount > 0) {
-            showToast(`Failed to download ${failCount} toolkit mods after retries.`, 'error');
+            showToast(`Failed to download ${failCount} Client's Libraries mods after retries.`, 'error');
         }
 
         if (successCount > 0) {
@@ -90,8 +90,9 @@ export const useToolkitInstaller = (selectedInstance, installedMods, onRefreshMo
     };
 
     // Auto-install trigger
+    // Auto-install trigger
     useEffect(() => {
-        if (isLoadingMods) return; // Wait for loading to finish
+        if (isLoadingMods || isLoadingInstances) return; // Wait for all loading to finish
 
         const untriedMods = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
 
@@ -102,16 +103,16 @@ export const useToolkitInstaller = (selectedInstance, installedMods, onRefreshMo
             untriedMods.length > 0 &&
             !isInstallingManifest) {
 
-            // We depend on external loading states passed in, but strictly we can just wait a bit
-            // The HomeView logic checked isLoadingMods/isLoadingInstances. 
-            // We can simplify: if we see missing mods, we try to install them after a delay.
+            // We depend on external loading states passed in.
+            // Increased delay to 5000ms to ensure the window is completely open and animations finished
+            // before starting the download.
 
             const timer = setTimeout(() => {
                 handleInstallManifest();
-            }, 1500);
+            }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [selectedInstance?.id, missingManifestMods.length, isInstallingManifest, ignoredMods, isLoadingMods]);
+    }, [selectedInstance?.id, missingManifestMods.length, isInstallingManifest, ignoredMods, isLoadingMods, isLoadingInstances]);
 
     return {
         missingManifestMods,

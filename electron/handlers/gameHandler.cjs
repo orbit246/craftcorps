@@ -531,6 +531,21 @@ const getNewInstancePath = async (event, name) => {
 
         // Uniquify
         let finalName = sanitized;
+
+        // Special check: If we are creating the default client, try to reclaim the default folder if it lacks instance.json
+        // This fixes the issue where a missing/corrupt instance.json causes a new folder (e.g. _1) to be created, 
+        // losing access to previously downloaded mods.
+        if (name === 'CraftCorps Client') {
+            const potentialPath = path.join(instancesDir, finalName);
+            if (fs.existsSync(potentialPath)) {
+                const jsonPath = path.join(potentialPath, 'instance.json');
+                if (!fs.existsSync(jsonPath)) {
+                    log.info(`[Instance] Reclaiming existing ${finalName} folder (missing instance.json)`);
+                    return potentialPath;
+                }
+            }
+        }
+
         let counter = 1;
         while (fs.existsSync(path.join(instancesDir, finalName))) {
             finalName = `${sanitized}_${counter}`;
