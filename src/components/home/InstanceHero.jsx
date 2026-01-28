@@ -353,6 +353,9 @@ const InstanceHero = React.memo(({
                                     title="Launch As..."
                                 >
                                     <Zap size={24} />
+                                    <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-none">
+                                        Start<br />More
+                                    </span>
                                 </button>
 
                                 {showLaunchAsPopover && (
@@ -492,6 +495,9 @@ const InstanceHero = React.memo(({
                                 title="Open Folder"
                             >
                                 <Folder size={24} />
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-none">
+                                    Open<br />Folder
+                                </span>
                             </button>
                         </div>
                     </div>
