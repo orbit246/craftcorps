@@ -17,6 +17,11 @@ class AuthService {
         this.userId = null;
         this.token = null;
         this.refreshToken = null;
+
+        // Caching
+        this.profileCache = null;
+        this.profileCacheExpiry = 0;
+        this.PROFILE_CACHE_TTL = 30000; // 30 seconds
     }
 
     init(store) {
@@ -295,10 +300,24 @@ class AuthService {
     async getUserId() { return this.userId; } // Existing
 
     async getUserProfile() {
+        const now = Date.now();
+        if (this.profileCache && now < this.profileCacheExpiry) {
+            return this.profileCache;
+        }
+
         log.info('[AuthService] Fetching user profile...');
         const res = await this.fetchAuthenticated(`${AUTH_BASE}/auth/me`);
         if (!res.ok) throw new Error('Failed to fetch profile');
-        return await res.json();
+
+        const profile = await res.json();
+        this.profileCache = profile;
+        this.profileCacheExpiry = now + this.PROFILE_CACHE_TTL;
+        return profile;
+    }
+
+    invalidateProfileCache() {
+        this.profileCache = null;
+        this.profileCacheExpiry = 0;
     }
 
     async getPlayerCosmetics(uuid) {
@@ -416,6 +435,7 @@ class AuthService {
         this.token = null;
         this.refreshToken = null;
         this.userId = null;
+        this.invalidateProfileCache();
         if (this.store) {
             this.store.delete(STORE_KEY_AUTH_TOKEN);
             this.store.delete(STORE_KEY_REFRESH_TOKEN);
