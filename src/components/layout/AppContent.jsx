@@ -16,7 +16,7 @@ const AppContent = ({
     activeTab, setActiveTab,
     activeAccount, setShowLoginModal, disableAnimations,
     selectedInstance, launchStatus, launchStep, launchProgress, launchFeedback, handlePlay, handleStop, isRefreshing,
-    instances, setSelectedInstance, handleNewCrop, handleEditCrop,
+    instances, setSelectedInstance, handleNewCrop, handleEditCrop, showCropModal,
     accounts, onAccountSwitchWithToast, showProfileMenu, setShowProfileMenu, onLogoutWithToast, onLogoutAllWithToast,
     onDeleteCropWithToast, reorderInstances,
     ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHideOnLaunch, setDisableAnimations, availableJavas, enableDiscordRPC, setEnableDiscordRPC,
@@ -108,6 +108,7 @@ const AppContent = ({
                         onBrowseShaders={handleBrowseShaders}
                         onSaveCrop={onSaveCropWithToast}
                         setActiveTab={setActiveTab}
+                        showCropModal={showCropModal}
                         // Account System Props
                         accounts={accounts}
                         onSwitchAccount={onAccountSwitchWithToast}

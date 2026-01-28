@@ -45,7 +45,8 @@ const HomeView = ({
     runningInstances,
     launchCooldown,
     onSaveCrop,
-    setActiveTab
+    setActiveTab,
+    showCropModal
 }) => {
     const { t } = useTranslation();
     const { addToast: showToast } = useToast();
@@ -692,7 +693,7 @@ const HomeView = ({
             </div>
 
             {/* Baked Quick Switch at Bottom - Persistent Footer */}
-            {selectedInstance && !showAdvanced && (
+            {selectedInstance && !showAdvanced && !showCropModal && (
                 <div className="flex-none z-[100]">
                     <QuickSwitchPanel
                         instances={instances}
