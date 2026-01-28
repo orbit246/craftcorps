@@ -99,7 +99,7 @@ const CropModal = ({ isOpen, onClose, onSave, editingCrop, onDelete, instanceCou
             } else {
                 setName('');
                 setLoader(LOADERS[0]);
-                setVersion(versions[0] || '1.21.4');
+                setVersion(versions[0] || '1.21.11');
                 setAutoConnect(false);
                 setServerAddress('');
                 setRamOverride(false);

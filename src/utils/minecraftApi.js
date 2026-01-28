@@ -49,6 +49,6 @@ export const getLatestVersion = async () => {
         return data.latest.release;
     } catch (error) {
         console.error('Error fetching latest version:', error);
-        return '1.21.4'; // Fallback
+        return '1.21.1'; // Fallback
     }
 };

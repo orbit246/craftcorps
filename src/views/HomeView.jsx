@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Paintbrush, Box, Layers, Settings, Aperture, Globe, Pencil } from 'lucide-react';
+import { Paintbrush, Layers, Settings, Aperture, Globe } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
 
 // Imported Sub-components
 import AccountProfile from '../components/home/AccountProfile';
 import InstanceHero from '../components/home/InstanceHero';
-import ModsList from '../components/home/ModsList';
-import ResourcePacksList from '../components/home/ResourcePacksList';
-import ShadersList from '../components/home/ShadersList';
+import HomeRightPanel from '../components/home/HomeRightPanel';
 import EmptyState from '../components/home/EmptyState';
 import QuickSwitchPanel from '../components/home/QuickSwitchPanel';
 import ServerSwitchPanel from '../components/home/ServerSwitchPanel';
 import HomeSkeleton from '../components/home/HomeSkeleton';
+import HomeCosmeticsWidget from '../components/home/HomeCosmeticsWidget';
+import HomeModsWidget from '../components/home/HomeModsWidget';
 import { useWardrobe } from '../hooks/useWardrobe';
-import Cape2DRender from '../components/common/Cape2DRender';
+import { useToolkitInstaller } from '../hooks/useToolkitInstaller';
+import { useInstanceContent } from '../hooks/useInstanceContent';
 
 const HomeView = ({
     selectedInstance,
@@ -63,221 +64,44 @@ const HomeView = ({
         return () => clearTimeout(timer);
     }, [activeAccount]);
 
-    const [installedMods, setInstalledMods] = useState([]);
-    const [isLoadingMods, setIsLoadingMods] = useState(false);
-    const [resourcePacks, setResourcePacks] = useState(null);
-    const [isLoadingResourcePacks, setIsLoadingResourcePacks] = useState(false);
-    const [installedShaders, setInstalledShaders] = useState(null);
-    const [isLoadingShaders, setIsLoadingShaders] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [activeSubTab, setActiveSubTab] = useState('mods');
     const [showQuickSwitch, setShowQuickSwitch] = useState(true);
     const [showAdvanced, setShowAdvanced] = useState(() => {
         const saved = localStorage.getItem('home_showAdvanced');
         return saved === 'true';
     });
     const lastScrollY = React.useRef(0);
+    const contentScrollRef = React.useRef(null);
 
-    const [isInstallingManifest, setIsInstallingManifest] = useState(false);
+    // -- Content Management Hook --
+    const {
+        // State
+        installedMods, setInstalledMods, isLoadingMods,
+        resourcePacks, isLoadingResourcePacks,
+        installedShaders, isLoadingShaders,
 
-    // Manifest Logic
-    const missingManifestMods = React.useMemo(() => {
-        if (!selectedInstance?.modManifest) return [];
-        return selectedInstance.modManifest.filter(m => {
-            const isInstalled = installedMods.some(inst =>
-                (inst.modId && inst.modId.toLowerCase() === m.id.toLowerCase()) ||
-                (inst.fileName && inst.fileName.toLowerCase().includes(m.id.toLowerCase()))
-            );
-            return !isInstalled;
-        });
-    }, [selectedInstance, installedMods]);
+        // Methods
+        handleRefreshMods, handleAddMods, handleDeleteMod,
+        handleRefreshResourcePacks, handleAddResourcePacks, handleDeleteResourcePack,
+        handleRefreshShaders, handleAddShaders, handleDeleteShader,
+
+        // Global
+        handleLazyLoad
+    } = useInstanceContent(selectedInstance);
+
+    // Manifest Logic (via hook)
+    const {
+        missingManifestMods,
+        isInstallingManifest,
+        handleInstallManifest
+    } = useToolkitInstaller(selectedInstance, installedMods, handleRefreshMods, isLoadingMods);
 
     // Persist showAdvanced
     useEffect(() => {
         localStorage.setItem('home_showAdvanced', showAdvanced);
     }, [showAdvanced]);
 
-    const [ignoredMods, setIgnoredMods] = useState([]);
-
-    // Auto-install Manifest Mods for Default Client
-    useEffect(() => {
-        // Filter out mods we've already tried and failed (to avoid infinite loops)
-        const untriedMods = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
-
-        if (selectedInstance?.name === 'CraftCorps Client' &&
-            untriedMods.length > 0 &&
-            !isInstallingManifest &&
-            !isLoadingMods &&
-            !isLoadingInstances) {
-
-            const timer = setTimeout(() => {
-                handleInstallManifest();
-            }, 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [selectedInstance?.id, missingManifestMods.length, isInstallingManifest, isLoadingMods, isLoadingInstances, ignoredMods]);
-
-    const handleInstallManifest = async () => {
-        if (!window.electronAPI || !selectedInstance || missingManifestMods.length === 0) return;
-
-        // Filter out already ignored mods to be sure
-        const modsToInstall = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
-        if (modsToInstall.length === 0) return;
-
-        setIsInstallingManifest(true);
-        // Only show start toast if we are actually installing something new
-        const startMessage = `Installing toolkit (${modsToInstall.length} mods)...`;
-        showToast(startMessage, 'info');
-
-        let successCount = 0;
-        let failCount = 0;
-        const newlyFailed = [];
-
-        for (const mod of modsToInstall) {
-            let attempts = 0;
-            let success = false;
-
-            while (attempts < 2 && !success) {
-                attempts++;
-                try {
-                    const res = await window.electronAPI.modrinthInstallMod({
-                        project: { project_id: mod.id, title: mod.name, directUrl: mod.directUrl },
-                        gameVersion: selectedInstance.version,
-                        loader: selectedInstance.loader?.toLowerCase() || 'fabric',
-                        instancePath: selectedInstance.path
-                    });
-
-                    if (res.success) {
-                        success = true;
-                        successCount++;
-                    } else if (attempts === 2) {
-                        // Truly failed after 2 tries
-                        failCount++;
-                        newlyFailed.push(mod.id);
-                        console.error(`Failed to install ${mod.name} after 2 tries:`, res.error);
-                    }
-                } catch (e) {
-                    if (attempts === 2) {
-                        failCount++;
-                        newlyFailed.push(mod.id);
-                        console.error(`Error installing ${mod.name} after 2 tries:`, e);
-                    }
-                }
-            }
-        }
-
-        // Update list of ignored mods so we don't try them again this session
-        if (newlyFailed.length > 0) {
-            setIgnoredMods(prev => [...prev, ...newlyFailed]);
-        }
-
-        setIsInstallingManifest(false);
-
-        // Summarized Notifications
-        if (successCount > 0 && failCount === 0) {
-            showToast(`Installed ${successCount} mods successfully!`, 'success');
-        } else if (successCount > 0 && failCount > 0) {
-            showToast(`Installed ${successCount} mods, but ${failCount} failed to download.`, 'warning');
-        } else if (failCount > 0) {
-            showToast(`Failed to download ${failCount} toolkit mods after retries.`, 'error');
-        }
-
-        if (successCount > 0) {
-            handleRefreshMods(); // Reload mods list to reflect changes
-        }
-    };
-
     // Handlers
-    const handleAddMods = async (filePaths = null) => {
-        if (!selectedInstance?.path || !window.electronAPI) {
-            showToast(t('Error: Configuration missing'), 'error');
-            return;
-        }
-
-        let files = filePaths;
-        if (!files) {
-            try {
-                files = await window.electronAPI.selectModFiles();
-            } catch (err) {
-                console.error(err);
-                return;
-            }
-        }
-
-        if (files && Array.isArray(files) && files.length > 0) {
-            showToast(t('Adding mods...'), 'info');
-
-            try {
-                const result = await window.electronAPI.addInstanceMods(selectedInstance.path, files);
-
-                if (result.success) {
-                    if (result.added > 0) {
-                        showToast(t('Successfully added {{count}} mods', { count: result.added }), 'success');
-                    }
-
-                    // Optimistic update
-                    if (result.addedMods && Array.isArray(result.addedMods)) {
-                        setInstalledMods(prev => {
-                            if (!Array.isArray(prev)) return result.addedMods;
-                            const prevPaths = new Set(prev.map(m => m.path));
-                            const newMods = result.addedMods.filter(m => !prevPaths.has(m.path));
-                            return [...newMods, ...prev];
-                        });
-                    }
-                } else {
-                    showToast(result.error || t('Failed to add mods'), 'error');
-                }
-
-                if (result.errors && result.errors.length > 0) {
-                    result.errors.slice(0, 3).forEach(err => showToast(`Skipped: ${err}`, 'warning'));
-                    if (result.errors.length > 3) {
-                        showToast(`${result.errors.length} files skipped (check console)`, 'warning');
-                    }
-                }
-
-            } catch (e) {
-                console.error(e);
-                showToast(e.message || t('Error adding mods'), 'error');
-            }
-        }
-    };
-
-    const handleRefreshMods = async () => {
-        if (!selectedInstance?.path || !window.electronAPI) return;
-        setIsLoadingMods(true);
-        try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Refresh timed out')), 5000));
-            const mods = await Promise.race([
-                window.electronAPI.getInstanceMods(selectedInstance.path),
-                timeoutPromise
-            ]);
-            setInstalledMods(mods);
-        } catch (e) {
-            console.error(e);
-            showToast(t('Failed to refresh mods'), 'error');
-        } finally {
-            setIsLoadingMods(false);
-        }
-    };
-
-    const handleRefreshResourcePacks = async () => {
-        if (!selectedInstance?.path || !window.electronAPI) return;
-        setIsLoadingResourcePacks(true);
-        try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Refresh timed out')), 5000));
-            const packs = await Promise.race([
-                window.electronAPI.getInstanceResourcePacks(selectedInstance.path),
-                timeoutPromise
-            ]);
-            setResourcePacks(packs);
-        } catch (e) {
-            console.error(e);
-            showToast(t('Failed to refresh resource packs'), 'error');
-        } finally {
-            setIsLoadingResourcePacks(false);
-        }
-    };
-
     const handleDragOver = (e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -307,60 +131,6 @@ const HomeView = ({
         }
     };
 
-    const handleAddResourcePacks = async (filePaths = null) => {
-        if (!selectedInstance?.path || !window.electronAPI) {
-            showToast(t('Error: Configuration missing'), 'error');
-            return;
-        }
-
-        let files = filePaths;
-        if (!files) {
-            try {
-                files = await window.electronAPI.selectResourcePackFiles();
-            } catch (err) {
-                console.error(err);
-                return;
-            }
-        }
-
-        if (files && Array.isArray(files) && files.length > 0) {
-            showToast('Adding resource packs...', 'info');
-
-            try {
-                const result = await window.electronAPI.addInstanceResourcePacks(selectedInstance.path, files);
-
-                if (result.success) {
-                    if (result.added > 0) {
-                        showToast(`Successfully added ${result.added} resource packs`, 'success');
-                    }
-
-                    // Optimistic update
-                    if (result.addedPacks && Array.isArray(result.addedPacks)) {
-                        setResourcePacks(prev => {
-                            if (!Array.isArray(prev)) return result.addedPacks;
-                            const prevPaths = new Set(prev.map(p => p.path));
-                            const newPacks = result.addedPacks.filter(p => !prevPaths.has(p.path));
-                            return [...newPacks, ...prev];
-                        });
-                    }
-                } else {
-                    showToast(result.error || 'Failed to add resource packs', 'error');
-                }
-
-                if (result.errors && result.errors.length > 0) {
-                    result.errors.slice(0, 3).forEach(err => showToast(err, 'warning'));
-                    if (result.errors.length > 3) {
-                        showToast(`${result.errors.length} file skipped (check console)`, 'warning');
-                    }
-                }
-
-            } catch (e) {
-                console.error(e);
-                showToast(e.message || 'Error adding resource packs', 'error');
-            }
-        }
-    };
-
     const handleResourcePackDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
@@ -376,119 +146,6 @@ const HomeView = ({
             } else {
                 showToast('Please drop .zip files for resource packs', 'warning');
             }
-        }
-    };
-
-    const handleDeleteMod = async (mod) => {
-        if (!mod.path || !window.electronAPI) return;
-
-        try {
-            const result = await window.electronAPI.deleteMod(mod.path);
-            if (result.success) {
-                setInstalledMods(prev => prev.filter(m => m.path !== mod.path));
-                showToast(t('Mod deleted'), 'success');
-            } else {
-                showToast(result.error || t('Failed to delete mod'), 'error');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const handleDeleteResourcePack = async (pack) => {
-        if (!pack.path || !window.electronAPI) return;
-
-        try {
-            const result = await window.electronAPI.deleteResourcePack(pack.path);
-            if (result.success) {
-                setResourcePacks(prev => (prev || []).filter(p => p.path !== pack.path));
-                showToast('Resource pack deleted', 'success');
-            } else {
-                showToast(result.error || 'Failed to delete resource pack', 'error');
-            }
-        } catch (e) {
-            console.error(e);
-            showToast('Error deleting resource pack', 'error');
-        }
-    };
-
-    // Shaders Handlers
-    const handleAddShaders = async (filePaths = null) => {
-        if (!selectedInstance?.path || !window.electronAPI) {
-            showToast(t('Error: Configuration missing'), 'error');
-            return;
-        }
-
-        let files = filePaths;
-        if (!files) {
-            try {
-                files = await window.electronAPI.selectShaderFiles();
-            } catch (err) {
-                console.error(err);
-                return;
-            }
-        }
-
-        if (files && Array.isArray(files) && files.length > 0) {
-            showToast('Adding shaders...', 'info');
-
-            try {
-                const result = await window.electronAPI.addInstanceShaders(selectedInstance.path, files);
-
-                if (result.success) {
-                    if (result.added > 0) {
-                        showToast(`Successfully added ${result.added} shaders`, 'success');
-                    }
-                    // Optimistic update
-                    if (result.addedShaders && Array.isArray(result.addedShaders)) {
-                        setInstalledShaders(prev => {
-                            if (!Array.isArray(prev)) return result.addedShaders;
-                            const prevPaths = new Set(prev.map(p => p.path));
-                            const newShaders = result.addedShaders.filter(p => !prevPaths.has(p.path));
-                            return [...newShaders, ...prev];
-                        });
-                    }
-                } else {
-                    showToast(result.error || 'Failed to add shaders', 'error');
-                }
-            } catch (e) {
-                console.error(e);
-                showToast(e.message || 'Error adding shaders', 'error');
-            }
-        }
-    };
-
-    const handleRefreshShaders = async () => {
-        if (!selectedInstance?.path || !window.electronAPI) return;
-        setIsLoadingShaders(true);
-        try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Refresh timed out')), 5000));
-            const shaders = await Promise.race([
-                window.electronAPI.getInstanceShaders(selectedInstance.path),
-                timeoutPromise
-            ]);
-            setInstalledShaders(shaders);
-        } catch (e) {
-            console.error(e);
-            showToast('Failed to refresh shaders', 'error');
-        } finally {
-            setIsLoadingShaders(false);
-        }
-    };
-
-    const handleDeleteShader = async (shader) => {
-        if (!shader.path || !window.electronAPI) return;
-        try {
-            const result = await window.electronAPI.deleteShader(shader.path);
-            if (result.success) {
-                setInstalledShaders(prev => (prev || []).filter(p => p.path !== shader.path));
-                showToast('Shader deleted', 'success');
-            } else {
-                showToast(result.error || 'Failed to delete shader', 'error');
-            }
-        } catch (e) {
-            console.error(e);
-            showToast('Error deleting shader', 'error');
         }
     };
 
@@ -525,45 +182,22 @@ const HomeView = ({
     };
 
     // Lazy Load Mods on Scroll
-    const modsSectionRef = React.useRef(null);
-    const [hasLoadedMods, setHasLoadedMods] = useState(false);
-
+    // Lazy Load Mods on Scroll
+    // In this refactor, lazy loading is triggered by the HomeRightPanel component.
+    // The handler handleLazyLoad is passed down via useInstanceContent hook.
     useEffect(() => {
+        // Reset installed mods on instance switch
+        // The hook (useInstanceContent) doesn't auto-clear on its own 
+        // because it doesn't watch selectedInstance ID for clearing, 
+        // but it does depend on selectedInstance.path for fetching.
+        // We can force a clear here if we want instant feedback on switch
         setInstalledMods([]);
-        setResourcePacks([]);
-        setInstalledShaders([]);
-        setHasLoadedMods(false);
-
-        // Immediately trigger metadata load for modded instances to avoid "0 mods" text
-        if (selectedInstance && selectedInstance.loader !== 'Vanilla') {
-            handleRefreshMods();
-            // We can keep these lazy or trigger them too
-            handleRefreshResourcePacks();
-            handleRefreshShaders();
-            setHasLoadedMods(true);
-        }
-    }, [selectedInstance]); // No need to add handleRefresh... because they are stable or we want them fresh
-
-    useEffect(() => {
-        if (!selectedInstance || selectedInstance.loader === 'Vanilla' || hasLoadedMods) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                // Trigger load
-                setHasLoadedMods(true);
-                handleRefreshMods();
-                handleRefreshResourcePacks();
-                handleRefreshShaders();
-                observer.disconnect();
-            }
-        }, { threshold: 0.1 });
-
-        if (modsSectionRef.current) {
-            observer.observe(modsSectionRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, [selectedInstance, hasLoadedMods]);
+        // setResourcePacks([]); // These are not exposed as setters from the hook currently if we want to clear them manually?
+        // Actually, the hook handles state. The component re-renders. 
+        // We might want to expose setters if we heavily rely on clearing them manually for UI feel.
+        // In the hook, I exposed setters.
+        // But for now, let's trust the hook content or just let the panel reload.
+    }, [selectedInstance]);
 
     // Listener for background updates (Lazy Load)
     useEffect(() => {
@@ -617,10 +251,12 @@ const HomeView = ({
                 </div>
 
                 {/* Main Content Area - Split View */}
-                <div className="flex-1 flex overflow-hidden relative z-10 pt-12 pl-8">
+                <div className={`flex-1 flex overflow-hidden relative z-10 ${selectedInstance ? 'pt-12 pl-8' : ''}`}>
                     {/* Left Column: Hero & Greetings */}
-                    <div className="flex-1 flex flex-col items-start gap-6 min-w-0 pr-12 overflow-y-auto custom-scrollbar pb-12">
-                        {selectedInstance ? (
+                    <div ref={contentScrollRef} className={`flex-1 flex flex-col ${selectedInstance ? 'items-start pr-12' : 'items-center justify-center'} gap-6 min-w-0 overflow-y-auto custom-scrollbar pb-12`}>
+                        {isLoadingInstances ? (
+                            <HomeSkeleton theme={theme} />
+                        ) : selectedInstance ? (
                             <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
                                 <div className="flex flex-col gap-2 w-full">
                                     <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -680,137 +316,88 @@ const HomeView = ({
 
                                 {/* Section: Active Cosmetics */}
                                 {!showAdvanced && selectedInstance && (
-                                    <div className="flex flex-col gap-4 w-full mt-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <div className="flex items-center justify-between w-full pr-4">
-                                            <div className="flex flex-col gap-0.5">
-                                                <h4 className="text-xl font-bold text-white tracking-tight">Active Cosmetics</h4>
-                                                <p className="text-sm text-slate-500 font-medium">Customize how others see you!</p>
-                                            </div>
-                                            <button
-                                                onClick={() => setActiveTab('wardrobe')}
-                                                className="flex items-center gap-2 px-4 h-10 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-white/10 transition-all group"
-                                            >
-                                                <span className="text-xs font-bold uppercase tracking-wider">Customize in Wardrobe</span>
-                                                <Pencil size={14} className="group-hover:scale-110 transition-transform" />
-                                            </button>
-                                        </div>
+                                    <HomeCosmeticsWidget
+                                        activeCosmetics={activeCosmetics}
+                                        isLoadingCosmetics={isLoadingCosmetics}
+                                        onOpenWardrobe={() => setActiveTab('wardrobe')}
+                                    />
+                                )}
 
-                                        {/* The Widget Card */}
-                                        <div className="bg-slate-900/30 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-xl flex flex-col gap-3">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
-                                                {isLoadingCosmetics ? (
-                                                    // Loading Skeletons
-                                                    [...Array(4)].map((_, i) => (
-                                                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-900/20 border border-white/5 animate-pulse">
-                                                            <div className="w-12 h-12 rounded-xl bg-slate-800/50 shrink-0" />
-                                                            <div className="flex flex-col gap-2 flex-1">
-                                                                <div className="h-4 w-24 bg-slate-800/50 rounded" />
-                                                                <div className="h-3 w-16 bg-slate-800/30 rounded" />
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                ) : (activeCosmetics && activeCosmetics.length > 0 ? (
-                                                    activeCosmetics.map(cosmetic => (
-                                                        <div
-                                                            key={cosmetic.id}
-                                                            className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/40 border border-white/5 hover:border-emerald-500/30 transition-all group relative overflow-hidden"
-                                                        >
-                                                            <div className="w-12 h-12 rounded-xl bg-slate-950/60 flex items-center justify-center overflow-hidden shrink-0 shadow-inner p-1">
-                                                                {cosmetic.texture ? (
-                                                                    (cosmetic.type || '').toLowerCase() === 'cape' ? (
-                                                                        <Cape2DRender
-                                                                            capeUrl={cosmetic.texture}
-                                                                            scale={3}
-                                                                            className="w-auto h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-                                                                        />
-                                                                    ) : (
-                                                                        <img src={cosmetic.texture} alt={cosmetic.name} className="w-full h-full object-contain" />
-                                                                    )
-                                                                ) : (
-                                                                    <Box size={24} className="text-slate-600" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex flex-col min-w-0">
-                                                                <span className="text-sm font-bold text-white truncate leading-tight mb-0.5">{cosmetic.name}</span>
-                                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{cosmetic.type || 'Cosmetic'}</span>
-                                                            </div>
-                                                            <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
+                                {/* Section: Mods Widget */}
+                                {!showAdvanced && selectedInstance && (
+                                    <HomeModsWidget
+                                        mods={installedMods}
+                                        isLoading={isLoadingMods}
+                                        onToggleEdit={() => {
+                                            setShowAdvanced(true);
+                                            // Custom slow smooth scroll (1000ms)
+                                            if (contentScrollRef.current) {
+                                                const element = contentScrollRef.current;
+                                                const start = element.scrollTop;
+                                                const duration = 1000;
+                                                const startTime = performance.now();
 
-                                                            {/* Subtle Background Glow on Hover */}
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div
-                                                        className="col-span-full flex items-center gap-6 p-10 rounded-3xl bg-white/5 border border-dashed border-white/10 group hover:border-white/20 transition-all cursor-pointer"
-                                                        onClick={() => setActiveTab('wardrobe')}
-                                                    >
-                                                        <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-600 group-hover:text-emerald-400 group-hover:bg-emerald-500/10 transition-all">
-                                                            <Box size={28} />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <p className="text-lg font-bold text-slate-400 group-hover:text-slate-200 transition-colors">No active cosmetics</p>
-                                                            <p className="text-sm text-slate-500">Equip items in the wardrobe to see them here.</p>
-                                                        </div>
-                                                        <div className="ml-auto text-xs font-bold text-emerald-500/60 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                                                            Open Wardrobe →
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
+                                                const animateScroll = (currentTime) => {
+                                                    const elapsed = currentTime - startTime;
+                                                    const progress = Math.min(elapsed / duration, 1);
+
+                                                    // Ease out cubic function
+                                                    const ease = 1 - Math.pow(1 - progress, 3);
+
+                                                    element.scrollTop = start * (1 - ease);
+
+                                                    if (progress < 1) {
+                                                        requestAnimationFrame(animateScroll);
+                                                    }
+                                                };
+                                                requestAnimationFrame(animateScroll);
+                                            }
+                                        }}
+                                    />
                                 )}
 
                                 {/* Modded Details Section */}
-                                <div className={`w-full transition-all duration-700 ease-in-out ${isModded && showAdvanced ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 translate-y-20 overflow-hidden'}`}>
-                                    {isModded && (
-                                        <div ref={modsSectionRef} className="w-full mt-4">
-                                            <div className="flex flex-col h-[750px] overflow-hidden relative bg-slate-900/50 border border-white/5 shadow-xl rounded-3xl">
-                                                <div className="flex items-center justify-start px-6 pt-6 pb-4 border-b border-white/5">
-                                                    <div className="flex gap-4">
-                                                        {['mods', 'resourcepacks', 'shaders'].map(tab => (
-                                                            <button
-                                                                key={tab}
-                                                                onClick={() => setActiveSubTab(tab)}
-                                                                className={`text-sm font-bold uppercase tracking-wider pb-1 border-b-2 transition-colors ${activeSubTab === tab ? 'text-white border-white' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
-                                                            >
-                                                                {tab}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1 overflow-hidden relative">
-                                                    {activeSubTab === 'mods' && (
-                                                        <ModsList
-                                                            installedMods={installedMods}
-                                                            selectedInstance={selectedInstance}
-                                                            isLoading={isLoadingMods}
-                                                            onRefresh={handleRefreshMods}
-                                                            onAdd={handleAddMods}
-                                                            onBrowse={onBrowseMods}
-                                                            onDelete={handleDeleteMod}
-                                                            isDraggingGlobal={isDragging}
-                                                            onDragOver={handleDragOver}
-                                                            onDragLeave={handleDragLeave}
-                                                            onDrop={handleDrop}
-                                                            missingManifestMods={missingManifestMods}
-                                                            onInstallManifest={handleInstallManifest}
-                                                            isInstallingManifest={isInstallingManifest}
-                                                            theme={theme}
-                                                            className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6"
-                                                        />
-                                                    )}
-                                                    {activeSubTab === 'resourcepacks' && <ResourcePacksList resourcePacks={resourcePacks} selectedInstance={selectedInstance} isLoading={isLoadingResourcePacks} onRefresh={handleRefreshResourcePacks} onAdd={handleAddResourcePacks} onDelete={handleDeleteResourcePack} isDraggingGlobal={isDragging} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleResourcePackDrop} theme={theme} className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6" />}
-                                                    {activeSubTab === 'shaders' && <ShadersList shaders={installedShaders} selectedInstance={selectedInstance} isLoading={isLoadingShaders} onRefresh={handleRefreshShaders} onAdd={handleAddShaders} onBrowse={onBrowseShaders} onDelete={handleDeleteShader} isDraggingGlobal={isDragging} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleShaderDrop} theme={theme} className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6" />}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                <HomeRightPanel
+                                    selectedInstance={selectedInstance}
+                                    isModded={isModded}
+                                    showAdvanced={showAdvanced}
+                                    theme={theme}
+                                    // Mods
+                                    installedMods={installedMods}
+                                    isLoadingMods={isLoadingMods}
+                                    onRefreshMods={handleRefreshMods}
+                                    onAddMods={handleAddMods}
+                                    onBrowseMods={onBrowseMods}
+                                    onDeleteMod={handleDeleteMod}
+                                    missingManifestMods={missingManifestMods}
+                                    onInstallManifest={handleInstallManifest}
+                                    isInstallingManifest={isInstallingManifest}
+                                    // Resource Packs
+                                    resourcePacks={resourcePacks}
+                                    isLoadingResourcePacks={isLoadingResourcePacks}
+                                    onRefreshResourcePacks={handleRefreshResourcePacks}
+                                    onAddResourcePacks={handleAddResourcePacks}
+                                    onDeleteResourcePack={handleDeleteResourcePack}
+                                    // Shaders
+                                    installedShaders={installedShaders}
+                                    isLoadingShaders={isLoadingShaders}
+                                    onRefreshShaders={handleRefreshShaders}
+                                    onAddShaders={handleAddShaders}
+                                    onBrowseShaders={onBrowseShaders}
+                                    onDeleteShader={handleDeleteShader}
+                                    // Drag and Drop
+                                    isDraggingGlobal={isDragging}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDropMod={handleDrop}
+                                    onDropResourcePack={handleResourcePackDrop}
+                                    onDropShader={handleShaderDrop}
+                                    // Lazy Load
+                                    onLazyLoad={handleLazyLoad}
+                                />
                             </div>
                         ) : (
-                            isLoadingInstances ? null : <EmptyState onNewCrop={onNewCrop} onRestoreDefault={onRestoreDefault} />
+                            <EmptyState onNewCrop={onNewCrop} onRestoreDefault={onRestoreDefault} />
                         )}
                     </div>
                 </div>

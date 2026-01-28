@@ -2,7 +2,7 @@ export const INITIAL_INSTANCES = [
     {
         id: 'inst_1',
         name: 'Latest Version',
-        version: '1.21.1',
+        version: '1.21.11',
         loader: 'Vanilla',
         status: 'Ready',
         lastPlayed: null,

@@ -46,6 +46,7 @@ export const useInstances = () => {
                             }
 
                             if (inst.name === 'CraftCorps Client' && !inst.modManifest) {
+                                patched.version = '1.21.11';
                                 patched.modManifest = [
                                     { id: 'sodium', name: 'Sodium (FPS)' },
                                     { id: 'lithium', name: 'Lithium (Logic Fixes)' },
@@ -88,9 +89,9 @@ export const useInstances = () => {
                         }
 
                         const defaultInstance = {
-                            id: `inst_${Date.now()}`,
+                            id: `cc_client_${Date.now()}`,
                             name: 'CraftCorps Client',
-                            version: '1.21.4',
+                            version: '1.21.11',
                             loader: 'Fabric',
                             status: 'Ready',
                             lastPlayed: null,
@@ -163,6 +164,7 @@ export const useInstances = () => {
     }, [instances, selectedInstance]);
 
     const handleSaveCrop = async (cropData) => {
+        setIsLoading(true);
         // Save to Backend
         if (window.electronAPI && window.electronAPI.saveInstance) {
             await window.electronAPI.saveInstance(cropData);
@@ -177,6 +179,7 @@ export const useInstances = () => {
             // Always set the newly created instance as active per user request
             setSelectedInstance(cropData);
         }
+        setIsLoading(false);
     };
 
     const handleDeleteCrop = async (id) => {
@@ -265,9 +268,9 @@ export const useInstances = () => {
         }
 
         const defaultInstance = {
-            id: `inst_${Date.now()}`,
+            id: `cc_client_${Date.now()}`,
             name: 'CraftCorps Client',
-            version: '1.21.4',
+            version: '1.21.11',
             loader: 'Fabric',
             status: 'Ready',
             lastPlayed: null,
