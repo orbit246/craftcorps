@@ -7,6 +7,7 @@ import JavaInstallModal from '../modals/JavaInstallModal';
 import ErrorModal from '../modals/ErrorModal';
 import CrashReportModal from '../modals/CrashReportModal';
 import UpdateModal from '../modals/UpdateModal';
+import SpecialDeleteModal from '../modals/SpecialDeleteModal';
 
 const AppOverlays = ({
     // Console
@@ -25,7 +26,8 @@ const AppOverlays = ({
     crashModal, setCrashModal,
     // Update
     showUpdateModal, setShowUpdateModal, updateStatus, updateInfo, downloadProgress, onDownloadUpdate, onInstallUpdate,
-    instanceCount
+    instanceCount,
+    showSpecialDeleteModal, setShowSpecialDeleteModal, onConfirmSpecialDelete, onNewCrop
 }) => {
     return (
         <>
@@ -92,6 +94,13 @@ const AppOverlays = ({
                 downloadProgress={downloadProgress}
                 onDownload={onDownloadUpdate}
                 onInstall={onInstallUpdate}
+            />
+
+            <SpecialDeleteModal
+                isOpen={showSpecialDeleteModal}
+                onClose={() => setShowSpecialDeleteModal(false)}
+                onConfirm={onConfirmSpecialDelete}
+                onNewInstance={onNewCrop}
             />
         </>
     );

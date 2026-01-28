@@ -25,6 +25,8 @@ function App() {
     const [isPending, startTransition] = React.useTransition();
     const [backgroundLoaded, setBackgroundLoaded] = useState(false);
     const [isDeepSleep, setIsDeepSleep] = useState(false);
+    const [showSpecialDeleteModal, setShowSpecialDeleteModal] = useState(false);
+    const [idPendingDelete, setIdPendingDelete] = useState(null);
 
     // Visibility & Deep Sleep Logic
     useEffect(() => {
@@ -158,6 +160,7 @@ function App() {
         handleDeleteCrop,
         handleNewCrop,
         handleEditCrop,
+        handleRestoreDefault,
         updateLastPlayed,
         reorderInstances,
         isLoading: isLoadingInstances
@@ -191,8 +194,24 @@ function App() {
     };
 
     const onDeleteCropWithToast = (id) => {
-        handleDeleteCrop(id);
-        addToast(t('toast_crop_deleted'), 'info');
+        const inst = instances.find(i => i.id === id);
+        if (inst && inst.name === 'CraftCorps Client') {
+            setIdPendingDelete(id);
+            setShowSpecialDeleteModal(true);
+            setShowCropModal(false); // Close crop modal if open
+        } else {
+            handleDeleteCrop(id);
+            addToast(t('toast_crop_deleted'), 'info');
+        }
+    };
+
+    const confirmSpecialDelete = () => {
+        if (idPendingDelete) {
+            handleDeleteCrop(idPendingDelete);
+            addToast(t('toast_crop_deleted'), 'info');
+            setIdPendingDelete(null);
+        }
+        setShowSpecialDeleteModal(false);
     };
 
     const onAddAccountWithToast = (account) => {
@@ -368,7 +387,7 @@ function App() {
                             activeTab={activeTab} setActiveTab={setActiveTab}
                             activeAccount={activeAccount} setShowLoginModal={setShowLoginModal} disableAnimations={disableAnimations}
                             selectedInstance={selectedInstance} launchStatus={launchStatus} launchStep={launchStep} launchProgress={launchProgress} launchFeedback={launchFeedback} handlePlay={handlePlay} handleStop={handleStop} isRefreshing={isRefreshing}
-                            instances={instances} setSelectedInstance={setSelectedInstance} handleNewCrop={handleNewCrop} handleEditCrop={handleEditCrop}
+                            instances={instances} setSelectedInstance={setSelectedInstance} handleNewCrop={handleNewCrop} handleEditCrop={handleEditCrop} onRestoreDefault={handleRestoreDefault}
                             showCropModal={showCropModal}
                             accounts={accounts} onAccountSwitchWithToast={onAccountSwitchWithToast} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} onLogoutWithToast={onLogoutWithToast} onLogoutAllWithToast={onLogoutAllWithToast}
                             onDeleteCropWithToast={onDeleteCropWithToast} reorderInstances={reorderInstances}
@@ -399,6 +418,10 @@ function App() {
                             updateStatus={updateStatus} updateInfo={updateInfo} downloadProgress={downloadProgress}
                             onDownloadUpdate={downloadUpdate}
                             onInstallUpdate={quitAndInstall}
+                            showSpecialDeleteModal={showSpecialDeleteModal}
+                            setShowSpecialDeleteModal={setShowSpecialDeleteModal}
+                            onConfirmSpecialDelete={confirmSpecialDelete}
+                            onNewCrop={handleNewCrop}
                         />
                     </React.Suspense>
                 </>

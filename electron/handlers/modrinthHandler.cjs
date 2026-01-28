@@ -220,39 +220,49 @@ const installMod = async (event, { project, instancePath, gameVersion, loader, v
             fs.mkdirSync(installDir, { recursive: true });
         }
 
-        let bestVersion;
+        let downloadUrl = null;
+        let filename = null;
+        let bestVersion = null;
 
-        if (versionId) {
-            const versions = await client.getProjectVersionsById([versionId]);
-            bestVersion = versions[0];
+        if (project.directUrl) {
+            downloadUrl = project.directUrl;
+            filename = path.basename(downloadUrl);
+            log.info(`[Modrinth] Using direct URL for download: ${downloadUrl}`);
         } else {
-            // detailed version query
-            const searchOptions = {
-                gameVersions: [gameVersion]
-            };
+            if (versionId) {
+                const versions = await client.getProjectVersionsById([versionId]);
+                bestVersion = versions[0];
+            } else {
+                // detailed version query
+                const searchOptions = {
+                    gameVersions: [gameVersion]
+                };
 
-            if (!isShader) {
-                searchOptions.loaders = [loader || 'fabric'];
+                if (!isShader) {
+                    searchOptions.loaders = [loader || 'fabric'];
+                }
+
+                const versions = await client.getProjectVersions(projectId, searchOptions);
+
+                if (!versions || versions.length === 0) {
+                    const loaderMsg = isShader ? "any" : (loader || 'fabric');
+                    throw new Error(`No compatible version found for ${gameVersion} (${loaderMsg})`);
+                }
+                bestVersion = versions[0];
             }
 
-            const versions = await client.getProjectVersions(projectId, searchOptions);
+            const primaryFile = bestVersion.files.find(f => f.primary) || bestVersion.files[0];
 
-            if (!versions || versions.length === 0) {
-                const loaderMsg = isShader ? "any" : (loader || 'fabric');
-                throw new Error(`No compatible version found for ${gameVersion} (${loaderMsg})`);
+            if (!primaryFile) {
+                throw new Error("No file found for this version");
             }
-            bestVersion = versions[0];
+            downloadUrl = primaryFile.url;
+            filename = primaryFile.filename;
         }
 
-        const primaryFile = bestVersion.files.find(f => f.primary) || bestVersion.files[0];
+        log.info(`[Modrinth] Downloading ${filename} to ${installDir}`);
 
-        if (!primaryFile) {
-            throw new Error("No file found for this version");
-        }
-
-        log.info(`[Modrinth] Downloading ${primaryFile.filename} to ${installDir}`);
-
-        await downloadModFile(primaryFile.url, installDir, primaryFile.filename, task, (stats) => {
+        await downloadModFile(downloadUrl, installDir, filename, task, (stats) => {
             event.sender.send('install-progress', {
                 projectId,
                 step: 'Downloading Mod',
@@ -265,7 +275,7 @@ const installMod = async (event, { project, instancePath, gameVersion, loader, v
         });
 
         // --- DEPENDENCY RESOLUTION ---
-        if (!isShader && bestVersion.dependencies && bestVersion.dependencies.length > 0) {
+        if (!project.directUrl && !isShader && bestVersion && bestVersion.dependencies && bestVersion.dependencies.length > 0) {
             const requiredDeps = bestVersion.dependencies.filter(d => d.dependency_type === "required");
             if (requiredDeps.length > 0) {
                 log.info(`[Modrinth] Resolving ${requiredDeps.length} dependencies for ${projectId}...`);
@@ -277,7 +287,7 @@ const installMod = async (event, { project, instancePath, gameVersion, loader, v
         }
 
         activeInstalls.delete(projectId);
-        return { success: true, file: primaryFile.filename };
+        return { success: true, file: filename };
 
     } catch (error) {
         activeInstalls.delete(projectId);

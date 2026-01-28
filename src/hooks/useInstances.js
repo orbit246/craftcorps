@@ -35,8 +35,41 @@ export const useInstances = () => {
                     const loaded = await window.electronAPI.getInstances();
 
                     if (loaded && loaded.length > 0) {
+                        // Patch default instance (retroactive fix)
+                        const patchedInstances = loaded.map(inst => {
+                            let changed = false;
+                            const patched = { ...inst };
+
+                            if (inst.name === 'CraftCorps Client' && !inst.icon) {
+                                patched.icon = '/images/cc-logo.png';
+                                changed = true;
+                            }
+
+                            if (inst.name === 'CraftCorps Client' && !inst.modManifest) {
+                                patched.modManifest = [
+                                    { id: 'sodium', name: 'Sodium (FPS)' },
+                                    { id: 'lithium', name: 'Lithium (Logic Fixes)' },
+                                    { id: 'iris', name: 'Iris (Shaders)' },
+                                    { id: 'fabric-api', name: 'Fabric API' },
+                                    { id: 'sodium-extra', name: 'Sodium Extra' },
+                                    { id: 'reeses-sodium-options', name: "Reese's Sodium Options" },
+                                    { id: 'appleskin', name: 'AppleSkin' },
+                                    { id: 'zoomify', name: 'Zoomify' },
+                                    { id: 'continuity', name: 'Continuity' },
+                                    { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-core.jar' }
+                                ];
+                                changed = true;
+                            }
+
+                            if (changed && window.electronAPI?.saveInstance) {
+                                window.electronAPI.saveInstance(patched).catch(err => console.error("Failed to patch instance:", err));
+                                return patched;
+                            }
+                            return inst;
+                        });
+
                         // Sort by lastPlayed descending (newest first)
-                        const sorted = loaded.sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0));
+                        const sorted = patchedInstances.sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0));
                         setInstances(sorted);
 
                         // Select first if we haven't set one yet
@@ -44,8 +77,53 @@ export const useInstances = () => {
                             setSelectedInstance(sorted[0]);
                         }
                     } else {
-                        // Fallback to empty or initial
-                        setInstances([]);
+                        // Create default 'CraftCorps Client' instance if none exist
+                        let defaultPath = null;
+                        try {
+                            if (window.electronAPI?.getNewInstancePath) {
+                                defaultPath = await window.electronAPI.getNewInstancePath('CraftCorps Client');
+                            }
+                        } catch (e) {
+                            console.error("Failed to generate default path:", e);
+                        }
+
+                        const defaultInstance = {
+                            id: `inst_${Date.now()}`,
+                            name: 'CraftCorps Client',
+                            version: '1.21.4',
+                            loader: 'Fabric',
+                            status: 'Ready',
+                            lastPlayed: null,
+                            iconColor: 'bg-emerald-500',
+                            bgGradient: 'from-emerald-600/30 to-slate-900',
+                            created: Date.now(),
+                            path: defaultPath,
+                            icon: '/images/cc-logo.png',
+                            modManifest: [
+                                { id: 'sodium', name: 'Sodium (FPS)' },
+                                { id: 'lithium', name: 'Lithium (Logic Fixes)' },
+                                { id: 'iris', name: 'Iris (Shaders)' },
+                                { id: 'fabric-api', name: 'Fabric API' },
+                                { id: 'sodium-extra', name: 'Sodium Extra' },
+                                { id: 'reeses-sodium-options', name: "Reese's Sodium Options" },
+                                { id: 'appleskin', name: 'AppleSkin' },
+                                { id: 'zoomify', name: 'Zoomify' },
+                                { id: 'continuity', name: 'Continuity' },
+                                { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-core.jar' }
+                            ]
+                        };
+
+                        // Auto-save to persistence so it exists
+                        try {
+                            if (window.electronAPI?.saveInstance) {
+                                await window.electronAPI.saveInstance(defaultInstance);
+                            }
+                        } catch (err) {
+                            console.error("Failed to save default instance:", err);
+                        }
+
+                        setInstances([defaultInstance]);
+                        setSelectedInstance(defaultInstance);
                     }
                 } else {
                     // Fallback to localStorage or mock (dev mode)
@@ -175,6 +253,56 @@ export const useInstances = () => {
         });
     };
 
+    const handleRestoreDefault = async () => {
+        setIsLoading(true);
+        let defaultPath = null;
+        try {
+            if (window.electronAPI?.getNewInstancePath) {
+                defaultPath = await window.electronAPI.getNewInstancePath('CraftCorps Client');
+            }
+        } catch (e) {
+            console.error("Failed to generate default path:", e);
+        }
+
+        const defaultInstance = {
+            id: `inst_${Date.now()}`,
+            name: 'CraftCorps Client',
+            version: '1.21.4',
+            loader: 'Fabric',
+            status: 'Ready',
+            lastPlayed: null,
+            iconColor: 'bg-emerald-500',
+            bgGradient: 'from-emerald-600/30 to-slate-900',
+            created: Date.now(),
+            path: defaultPath,
+            icon: '/images/cc-logo.png',
+            modManifest: [
+                { id: 'sodium', name: 'Sodium (FPS)' },
+                { id: 'lithium', name: 'Lithium (Logic Fixes)' },
+                { id: 'iris', name: 'Iris (Shaders)' },
+                { id: 'fabric-api', name: 'Fabric API' },
+                { id: 'sodium-extra', name: 'Sodium Extra' },
+                { id: 'reeses-sodium-options', name: "Reese's Sodium Options" },
+                { id: 'appleskin', name: 'AppleSkin' },
+                { id: 'zoomify', name: 'Zoomify' },
+                { id: 'continuity', name: 'Continuity' },
+                { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-core.jar' }
+            ]
+        };
+
+        try {
+            if (window.electronAPI?.saveInstance) {
+                await window.electronAPI.saveInstance(defaultInstance);
+            }
+        } catch (err) {
+            console.error("Failed to save default instance:", err);
+        }
+
+        setInstances([defaultInstance]);
+        setSelectedInstance(defaultInstance);
+        setIsLoading(false);
+    };
+
     return {
         instances,
         setInstances,
@@ -188,6 +316,7 @@ export const useInstances = () => {
         handleDeleteCrop,
         handleNewCrop,
         handleEditCrop,
+        handleRestoreDefault,
         updateLastPlayed,
         reorderInstances,
         isLoading

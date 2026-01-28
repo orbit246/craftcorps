@@ -46,7 +46,8 @@ const HomeView = ({
     launchCooldown,
     onSaveCrop,
     setActiveTab,
-    showCropModal
+    showCropModal,
+    onRestoreDefault
 }) => {
     const { t } = useTranslation();
     const { addToast: showToast } = useToast();
@@ -77,10 +78,114 @@ const HomeView = ({
     });
     const lastScrollY = React.useRef(0);
 
+    const [isInstallingManifest, setIsInstallingManifest] = useState(false);
+
+    // Manifest Logic
+    const missingManifestMods = React.useMemo(() => {
+        if (!selectedInstance?.modManifest) return [];
+        return selectedInstance.modManifest.filter(m => {
+            const isInstalled = installedMods.some(inst =>
+                (inst.modId && inst.modId.toLowerCase() === m.id.toLowerCase()) ||
+                (inst.fileName && inst.fileName.toLowerCase().includes(m.id.toLowerCase()))
+            );
+            return !isInstalled;
+        });
+    }, [selectedInstance, installedMods]);
+
     // Persist showAdvanced
     useEffect(() => {
         localStorage.setItem('home_showAdvanced', showAdvanced);
     }, [showAdvanced]);
+
+    const [ignoredMods, setIgnoredMods] = useState([]);
+
+    // Auto-install Manifest Mods for Default Client
+    useEffect(() => {
+        // Filter out mods we've already tried and failed (to avoid infinite loops)
+        const untriedMods = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
+
+        if (selectedInstance?.name === 'CraftCorps Client' &&
+            untriedMods.length > 0 &&
+            !isInstallingManifest &&
+            !isLoadingMods &&
+            !isLoadingInstances) {
+
+            const timer = setTimeout(() => {
+                handleInstallManifest();
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [selectedInstance?.id, missingManifestMods.length, isInstallingManifest, isLoadingMods, isLoadingInstances, ignoredMods]);
+
+    const handleInstallManifest = async () => {
+        if (!window.electronAPI || !selectedInstance || missingManifestMods.length === 0) return;
+
+        // Filter out already ignored mods to be sure
+        const modsToInstall = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
+        if (modsToInstall.length === 0) return;
+
+        setIsInstallingManifest(true);
+        // Only show start toast if we are actually installing something new
+        const startMessage = `Installing toolkit (${modsToInstall.length} mods)...`;
+        showToast(startMessage, 'info');
+
+        let successCount = 0;
+        let failCount = 0;
+        const newlyFailed = [];
+
+        for (const mod of modsToInstall) {
+            let attempts = 0;
+            let success = false;
+
+            while (attempts < 2 && !success) {
+                attempts++;
+                try {
+                    const res = await window.electronAPI.modrinthInstallMod({
+                        project: { project_id: mod.id, title: mod.name, directUrl: mod.directUrl },
+                        gameVersion: selectedInstance.version,
+                        loader: selectedInstance.loader?.toLowerCase() || 'fabric',
+                        instancePath: selectedInstance.path
+                    });
+
+                    if (res.success) {
+                        success = true;
+                        successCount++;
+                    } else if (attempts === 2) {
+                        // Truly failed after 2 tries
+                        failCount++;
+                        newlyFailed.push(mod.id);
+                        console.error(`Failed to install ${mod.name} after 2 tries:`, res.error);
+                    }
+                } catch (e) {
+                    if (attempts === 2) {
+                        failCount++;
+                        newlyFailed.push(mod.id);
+                        console.error(`Error installing ${mod.name} after 2 tries:`, e);
+                    }
+                }
+            }
+        }
+
+        // Update list of ignored mods so we don't try them again this session
+        if (newlyFailed.length > 0) {
+            setIgnoredMods(prev => [...prev, ...newlyFailed]);
+        }
+
+        setIsInstallingManifest(false);
+
+        // Summarized Notifications
+        if (successCount > 0 && failCount === 0) {
+            showToast(`Installed ${successCount} mods successfully!`, 'success');
+        } else if (successCount > 0 && failCount > 0) {
+            showToast(`Installed ${successCount} mods, but ${failCount} failed to download.`, 'warning');
+        } else if (failCount > 0) {
+            showToast(`Failed to download ${failCount} toolkit mods after retries.`, 'error');
+        }
+
+        if (successCount > 0) {
+            handleRefreshMods(); // Reload mods list to reflect changes
+        }
+    };
 
     // Handlers
     const handleAddMods = async (filePaths = null) => {
@@ -676,7 +781,26 @@ const HomeView = ({
                                                     </div>
                                                 </div>
                                                 <div className="flex-1 overflow-hidden relative">
-                                                    {activeSubTab === 'mods' && <ModsList installedMods={installedMods} selectedInstance={selectedInstance} isLoading={isLoadingMods} onRefresh={handleRefreshMods} onAdd={handleAddMods} onBrowse={onBrowseMods} onDelete={handleDeleteMod} isDraggingGlobal={isDragging} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} theme={theme} className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6" />}
+                                                    {activeSubTab === 'mods' && (
+                                                        <ModsList
+                                                            installedMods={installedMods}
+                                                            selectedInstance={selectedInstance}
+                                                            isLoading={isLoadingMods}
+                                                            onRefresh={handleRefreshMods}
+                                                            onAdd={handleAddMods}
+                                                            onBrowse={onBrowseMods}
+                                                            onDelete={handleDeleteMod}
+                                                            isDraggingGlobal={isDragging}
+                                                            onDragOver={handleDragOver}
+                                                            onDragLeave={handleDragLeave}
+                                                            onDrop={handleDrop}
+                                                            missingManifestMods={missingManifestMods}
+                                                            onInstallManifest={handleInstallManifest}
+                                                            isInstallingManifest={isInstallingManifest}
+                                                            theme={theme}
+                                                            className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6"
+                                                        />
+                                                    )}
                                                     {activeSubTab === 'resourcepacks' && <ResourcePacksList resourcePacks={resourcePacks} selectedInstance={selectedInstance} isLoading={isLoadingResourcePacks} onRefresh={handleRefreshResourcePacks} onAdd={handleAddResourcePacks} onDelete={handleDeleteResourcePack} isDraggingGlobal={isDragging} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleResourcePackDrop} theme={theme} className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6" />}
                                                     {activeSubTab === 'shaders' && <ShadersList shaders={installedShaders} selectedInstance={selectedInstance} isLoading={isLoadingShaders} onRefresh={handleRefreshShaders} onAdd={handleAddShaders} onBrowse={onBrowseShaders} onDelete={handleDeleteShader} isDraggingGlobal={isDragging} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleShaderDrop} theme={theme} className="!bg-transparent !border-none !rounded-none !shadow-none !h-full !p-6" />}
                                                 </div>
@@ -686,7 +810,7 @@ const HomeView = ({
                                 </div>
                             </div>
                         ) : (
-                            isLoadingInstances ? null : <EmptyState onNewCrop={onNewCrop} />
+                            isLoadingInstances ? null : <EmptyState onNewCrop={onNewCrop} onRestoreDefault={onRestoreDefault} />
                         )}
                     </div>
                 </div>
@@ -701,7 +825,7 @@ const HomeView = ({
                         setSelectedInstance={setSelectedInstance}
                         onManageAll={onManageAll}
                         onNewCrop={onNewCrop}
-                        className="w-full bg-slate-900/40 backdrop-blur-2xl shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.5)] border-t border-white/20 rounded-t-[2.5rem] rounded-b-none pt-8 pb-6 px-12 ring-1 ring-inset ring-white/5"
+                        className="w-full bg-slate-900/40 backdrop-blur-2xl shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.5)] border-t border-white/20 rounded-t-[2.5rem] rounded-b-none pt-5 pb-4 px-8 ring-1 ring-inset ring-white/5"
                     />
                 </div>
             )}

@@ -2,6 +2,7 @@ const appBootTime = Date.now();
 console.time('[MAIN] boot');
 const { app, BrowserWindow, ipcMain, dialog, Tray, Menu } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const log = require('electron-log');
 const telemetryService = require('./services/telemetryService.cjs');
 const authService = require('./services/authService.cjs');
@@ -11,17 +12,20 @@ const playTimeService = require('./services/playTimeService.cjs');
 const pkg = require('../package.json');
 const isCanary = pkg.isCanary === true;
 
+const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
+const isMarketing = process.argv.includes('--marketing-shot');
+const isHidden = process.argv.includes('--hidden');
+
+// Set AppUserModelID for Windows Taskbar
 if (process.platform === 'win32') {
-    app.setAppUserModelId(isCanary ? 'com.craftcorps.launcher.canary' : 'com.craftcorps.launcher');
+    const baseId = isCanary ? 'com.craftcorps.launcher.canary' : 'com.craftcorps.launcher';
+    app.setAppUserModelId(isDev ? `${baseId}.dev` : baseId);
 }
 app.setName(isCanary ? 'CraftCorps Canary' : 'CraftCorps Launcher');
 
 // --- Instance Isolation & Profile Support ---
 // This ensures that development, marketing shots, or different user profiles don't collide.
 const profileArg = process.argv.find(arg => arg.startsWith('--profile='));
-const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
-const isMarketing = process.argv.includes('--marketing-shot');
-const isHidden = process.argv.includes('--hidden');
 
 // Track quitting state
 app.isQuitting = false;
@@ -77,8 +81,25 @@ let tray;
 let mainWindow;
 let splashWindow;
 
+// --- Global Helpers ---
+const getIconPath = () => {
+    const locations = isDev ? [
+        path.join(__dirname, '../public/images/cc-logo.png'),
+        path.join(__dirname, '../public/icon.png')
+    ] : [
+        path.join(__dirname, '../dist/images/cc-logo.png'),
+        path.join(__dirname, '../dist/icon.png')
+    ];
+
+    for (const loc of locations) {
+        if (fs.existsSync(loc)) return loc;
+    }
+    return locations[0]; // Fallback
+};
+
 function createSplashWindow() {
     splashWindow = new BrowserWindow({
+        icon: getIconPath(),
         width: 340,
         height: 380,
         transparent: false,
@@ -121,9 +142,7 @@ let store;
 
 async function createWindow() {
     console.time('[MAIN] createWindow');
-    const iconPath = process.env.NODE_ENV === 'development'
-        ? path.join(__dirname, '../public/images/cc-logo.png')
-        : path.join(__dirname, '../dist/images/cc-logo.png');
+    const iconPath = getIconPath();
 
     // Dynamic import for ESM module support
     // (Store initialization moved to app.whenReady)

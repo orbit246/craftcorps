@@ -190,8 +190,8 @@ async function authenticateMicrosoft(mainWindow) {
             show: true,
             title: "Microsoft Login",
             icon: process.env.NODE_ENV === 'development'
-                ? path.join(__dirname, '../public/icon.png')
-                : path.join(__dirname, '../dist/icon.png'),
+                ? path.join(__dirname, '../public/images/cc-logo.png')
+                : path.join(__dirname, '../dist/images/cc-logo.png'),
             parent: mainWindow,
             modal: true,
             webPreferences: {

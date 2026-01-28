@@ -45,7 +45,7 @@ const QuickSwitchPanel = React.memo(({
 
     return (
         <div className={`flex items-center gap-2 bg-black/5 backdrop-blur-md ${className}`}>
-            <div className="flex flex-col gap-0.5 pr-8 shrink-0">
+            <div className="flex flex-col gap-0.5 pr-4 shrink-0">
                 <h4 className="text-xl font-bold text-white tracking-tight">{t('home_quick_switch')}</h4>
                 <p className="text-sm text-slate-500 font-medium">Switch between your instances easily</p>
             </div>

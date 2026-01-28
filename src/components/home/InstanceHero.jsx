@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, X, Play, Clock, Activity, Paintbrush, Settings, Folder, ExternalLink, Power, Plus, Pencil, Zap
+    Box, X, Play, Clock, Activity, Paintbrush, Settings, Folder, ExternalLink, Power, Plus, Pencil, Zap, ShieldCheck
 } from 'lucide-react';
 import { formatLastPlayed } from '../../utils/dateUtils';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +43,7 @@ const InstanceHero = React.memo(({
     const popoverRef = React.useRef(null);
     const launchAsRef = React.useRef(null);
 
-    const heroBg = '/images/hero-bg.png';
+    const heroBg = selectedInstance?.name === 'CraftCorps Client' ? '/images/hero-bg-cc.png' : '/images/hero-bg.png';
 
     // Close popover on click outside
     useEffect(() => {
@@ -139,6 +139,12 @@ const InstanceHero = React.memo(({
                     <div className="flex justify-between items-start">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2">
+                                {selectedInstance.name === 'CraftCorps Client' && (
+                                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                                        <ShieldCheck size={10} className="fill-emerald-500/20" />
+                                        CraftCorps Verified
+                                    </span>
+                                )}
                                 {isModdedContent && (
                                     <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider border border-amber-500/10">
                                         {selectedInstance.loader}

@@ -68,7 +68,7 @@ class GameLauncher extends EventEmitter {
                 // Platform specific
                 ...(process.platform === 'darwin' ? [
                     '-Xdock:name=CraftCorps',
-                    '-Xdock:icon=' + path.join(__dirname, '..', 'public', 'icon.png')
+                    '-Xdock:icon=' + path.join(__dirname, '..', 'public', 'images', 'cc-logo.png')
                 ] : []),
                 `-Duser.dir=${gameRoot}`, // Force working directory for old mods (ContentTweaker)
                 // Aikar's Optimization Flags (Client Tuned)
