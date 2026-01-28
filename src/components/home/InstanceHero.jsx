@@ -32,7 +32,9 @@ const InstanceHero = React.memo(({
     accounts = [],
     activeAccount = null,
     onSaveCrop,
-    setShowProfileMenu
+    setShowProfileMenu,
+    isInstallingManifest = false,
+    installProgress = 0
 }) => {
     const { t } = useTranslation();
     const [playTime, setPlayTime] = useState(0);
@@ -289,11 +291,13 @@ const InstanceHero = React.memo(({
                                     </div>
                                 ) : (
                                     <button
-                                        disabled={launchCooldown}
+                                        disabled={launchCooldown || isInstallingManifest}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             if (launchStatus === 'running') {
                                                 onStop();
+                                            } else if (isInstallingManifest) {
+                                                // Do nothing, let it download
                                             } else {
                                                 telemetry.track('CLICK_PLAY', { instanceId: selectedInstance.id });
                                                 onPlay(selectedInstance);
@@ -301,7 +305,7 @@ const InstanceHero = React.memo(({
                                         }}
                                         className={`w-full h-[71px] rounded-2xl font-extrabold text-xl flex items-center justify-center gap-4 transition-all duration-500 shadow-xl overflow-hidden group ${launchStatus === 'running'
                                             ? 'btn-premium-red'
-                                            : (launchCooldown ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'btn-premium-emerald text-white')
+                                            : ((launchCooldown || isInstallingManifest) ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'btn-premium-emerald text-white')
                                             }`}
                                     >
                                         <div className="flex items-center gap-4 z-10 relative">
@@ -311,6 +315,16 @@ const InstanceHero = React.memo(({
                                                     <span className="flex flex-col items-start leading-none tracking-wider">
                                                         <span>STOP</span>
                                                         <span className="text-[10px] font-bold text-red-100/70 font-sans tracking-[0.1em] mt-1 uppercase">Running Now</span>
+                                                    </span>
+                                                </>
+                                            ) : isInstallingManifest ? (
+                                                <>
+                                                    <Clock size={28} className="animate-spin text-emerald-400" />
+                                                    <span className="flex flex-col items-start leading-none tracking-wider">
+                                                        <span className="text-emerald-400">DOWNLOADING...</span>
+                                                        <span className="text-[10px] font-bold text-emerald-400/70 font-sans tracking-[0.1em] mt-1 uppercase">
+                                                            Progress: {installProgress}%
+                                                        </span>
                                                     </span>
                                                 </>
                                             ) : (

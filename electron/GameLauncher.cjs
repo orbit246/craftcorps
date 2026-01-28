@@ -14,11 +14,12 @@ const treeKill = require('tree-kill');
 class GameLauncher extends EventEmitter {
     constructor() {
         super();
-        this.isCancelled = false;
-        this.lastError = null;
     }
 
     async launch(options) {
+        this.isCancelled = false;
+        this.lastError = null;
+
         // 1. Determine Paths
         const os = process.platform;
         const home = process.env.HOME || process.env.USERPROFILE;
@@ -33,6 +34,7 @@ class GameLauncher extends EventEmitter {
         if (options.version) {
             try {
                 const manifestPath = await VersionManager.bootstrapManifest(commonRoot, (t, m) => this.emit(t === 'log' ? 'log' : t, m), options.version);
+                if (this.isCancelled) { this.emit('exit', -1); return; }
                 options.version = VersionManager.validateVersion(options.version, manifestPath, (t, m) => this.emit(t === 'log' ? 'log' : t, m));
             } catch (e) {
                 if (e.summary) {
@@ -42,6 +44,7 @@ class GameLauncher extends EventEmitter {
                 }
             }
         }
+        if (this.isCancelled) { this.emit('exit', -1); return; }
 
         const launchOptions = {
             clientPackage: null, // Let MCLC handle it
@@ -127,6 +130,8 @@ class GameLauncher extends EventEmitter {
             }
         });
 
+        if (this.isCancelled) { this.emit('exit', -1); return; }
+
         // 3. Mod Loader Handlers
         const emitShim = (type, message) => {
             // Handle 'log' {type, message} vs directly type, message
@@ -163,6 +168,8 @@ class GameLauncher extends EventEmitter {
             this.emit('exit', 1);
             return;
         }
+
+        if (this.isCancelled) { this.emit('exit', -1); return; }
 
         // 4. Server Auto-Connect
         if (options.server) {
@@ -215,8 +222,8 @@ class GameLauncher extends EventEmitter {
             this.emit('log', { type: 'WARN', message: `Asset index cleanup check failed: ${e.message}` });
         }
 
-        this.isCancelled = false;
-        this.lastError = null;
+        if (this.isCancelled) { this.emit('exit', -1); return; }
+
         this.client = new Client();
 
         // Attach Listeners
@@ -236,7 +243,7 @@ class GameLauncher extends EventEmitter {
 
             // Analysis
             if (raw.includes('SyntaxError') && raw.includes('JSON')) {
-                this.lastError = { summary: 'Asset index corruption detected.', advice: 'The game asset index is corrupted. The launcher will attempt to fix this automatically on the next launch.' };
+                this.lastError = { summary: 'Asset index corruption detected.', advice: 'The launcher will attempt to fix this automatically on the next launch.' };
 
                 // Enhanced Debugging: Inspect the suspicious asset index file
                 try {
@@ -255,8 +262,8 @@ class GameLauncher extends EventEmitter {
                     // If versionId has hyphens (fabric-loader-...), try to guess base version
                     if (versionId.includes('-')) {
                         const parts = versionId.split('-');
-                        const last = parts[parts.length - 1]; // 1.21.1
-                        possibleFiles.push(path.join(launchOptions.root, 'assets', 'indexes', `${last}.json`));
+                        const lastPart = parts[parts.length - 1]; // 1.21.1
+                        possibleFiles.push(path.join(launchOptions.root, 'assets', 'indexes', `${lastPart}.json`));
                     }
 
                     possibleFiles.forEach(f => {
@@ -323,6 +330,7 @@ class GameLauncher extends EventEmitter {
                         if (err) this.emit('log', { type: 'ERROR', message: `Failed to kill process tree: ${err.message}` });
                     });
                 }
+                this.emit('exit', -1);
                 return;
             }
             if (process) {

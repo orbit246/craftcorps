@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
 
@@ -7,7 +7,7 @@ export const useInstanceContent = (selectedInstance) => {
     const { addToast: showToast } = useToast();
 
     // -- State --
-    const [installedMods, setInstalledMods] = useState([]);
+    const [installedMods, setInstalledMods] = useState(null);
     const [isLoadingMods, setIsLoadingMods] = useState(false);
 
     const [resourcePacks, setResourcePacks] = useState(null);
@@ -18,6 +18,16 @@ export const useInstanceContent = (selectedInstance) => {
 
     // -- Handler Helpers --
     const getElectron = () => window.electronAPI;
+
+    // -- Content Logic --
+    // Automatically refresh content when instance changes
+    useEffect(() => {
+        if (selectedInstance && selectedInstance.path) {
+            handleRefreshMods();
+            handleRefreshResourcePacks();
+            handleRefreshShaders();
+        }
+    }, [selectedInstance?.path]);
 
     // -- Mods Methods --
     const handleRefreshMods = useCallback(async () => {

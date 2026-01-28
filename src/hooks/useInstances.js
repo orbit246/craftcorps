@@ -88,6 +88,7 @@ export const useInstances = () => {
                             console.error("Failed to generate default path:", e);
                         }
 
+                        console.log("[Instances] No instances found. Creating default 'CraftCorps Client'...");
                         const defaultInstance = {
                             id: `cc_client_${Date.now()}`,
                             name: 'CraftCorps Client',

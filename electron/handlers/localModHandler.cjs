@@ -115,8 +115,8 @@ const scanModsDirectory = async (instancePath, modsDir) => {
         const chunk = jarFiles.slice(i, i + chunkSize);
         const chunkResults = await Promise.all(chunk.map(async (fullPath) => {
             try {
-                const buffer = await fs.promises.readFile(fullPath);
-                return getModMetadata(fullPath, buffer);
+                // Optimized: AdmZip can read metadata without loading the whole file if we pass the path
+                return getModMetadata(fullPath);
             } catch (e) {
                 return null;
             }
@@ -181,6 +181,7 @@ const verifyInstanceMods = async (event, instancePath) => {
  */
 const getInstanceMods = async (event, instancePath, force = false) => {
     if (!instancePath) return [];
+    log.info(`[Mods] getInstanceMods for: ${instancePath} (exists: ${fs.existsSync(instancePath)})`);
 
     // 1. Return Cache Immediately if available (unless forced)
     if (modCache[instancePath] && !force) {

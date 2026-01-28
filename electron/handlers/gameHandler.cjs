@@ -228,7 +228,7 @@ function setupGameHandlers(getMainWindow) {
                     summary: `Java ${v} is missing.`,
                     advice: `Please install Java ${v} (JDK ${v}) to play this version.`
                 });
-                playTimeService.stopSession(gameDir);
+                playTimeService.stopSession(options.id || '0');
                 activeLaunchers.delete(launchId);
                 return;
             }

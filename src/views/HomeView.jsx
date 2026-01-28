@@ -93,6 +93,7 @@ const HomeView = ({
     const {
         missingManifestMods,
         isInstallingManifest,
+        installProgress,
         handleInstallManifest
     } = useClientLibrariesInstaller(selectedInstance, installedMods, handleRefreshMods, isLoadingMods, isLoadingInstances);
 
@@ -282,6 +283,8 @@ const HomeView = ({
                                         modCount={installedMods?.length || 0}
                                         onSaveCrop={onSaveCrop}
                                         setShowProfileMenu={setShowProfileMenu}
+                                        isInstallingManifest={isInstallingManifest}
+                                        installProgress={installProgress}
                                     />
                                 </div>
 

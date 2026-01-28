@@ -4,6 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 export const useClientLibrariesInstaller = (selectedInstance, installedMods, onRefreshMods, isLoadingMods, isLoadingInstances) => {
     const { addToast: showToast } = useToast();
     const [isInstallingManifest, setIsInstallingManifest] = useState(false);
+    const [installProgress, setInstallProgress] = useState(0);
     const [ignoredMods, setIgnoredMods] = useState([]);
 
     // Calculate missing mods based on manifest
@@ -31,6 +32,7 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
         if (modsToInstall.length === 0) return;
 
         setIsInstallingManifest(true);
+        setInstallProgress(0);
         const startMessage = `Installing Client's Libraries (${modsToInstall.length} mods)...`;
         showToast(startMessage, 'info');
 
@@ -38,7 +40,8 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
         let failCount = 0;
         const newlyFailed = [];
 
-        for (const mod of modsToInstall) {
+        for (let i = 0; i < modsToInstall.length; i++) {
+            const mod = modsToInstall[i];
             let attempts = 0;
             let success = false;
 
@@ -68,6 +71,9 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
                     }
                 }
             }
+            // Update progress
+            const currentProgress = Math.round(((i + 1) / modsToInstall.length) * 100);
+            setInstallProgress(currentProgress);
         }
 
         if (newlyFailed.length > 0) {
@@ -75,6 +81,7 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
         }
 
         setIsInstallingManifest(false);
+        setInstallProgress(0);
 
         if (successCount > 0 && failCount === 0) {
             showToast(`Installed ${successCount} mods successfully!`, 'success');
@@ -117,6 +124,7 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
     return {
         missingManifestMods,
         isInstallingManifest,
+        installProgress,
         handleInstallManifest
     };
 };
