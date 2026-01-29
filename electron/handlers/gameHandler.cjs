@@ -10,6 +10,14 @@ const nbt = require('prismarine-nbt');
 // Key: launchId (string), Value: { gameDir, launcher, options }
 const activeLaunchers = new Map();
 
+// Calculate standard Minecraft path for global cache
+const osPlatform = process.platform;
+const homeDir = process.env.HOME || process.env.USERPROFILE;
+let commonRoot;
+if (osPlatform === 'win32') commonRoot = path.join(process.env.APPDATA, '.minecraft');
+else if (osPlatform === 'darwin') commonRoot = path.join(homeDir, 'Library', 'Application Support', 'minecraft');
+else commonRoot = path.join(homeDir, '.minecraft');
+
 function isGameRunning(gameDir) {
     if (gameDir) return Array.from(activeLaunchers.values()).some(d => d.gameDir === gameDir);
     return activeLaunchers.size > 0;
@@ -68,7 +76,7 @@ function setupGameHandlers(getMainWindow) {
             return;
         }
 
-        const launchId = crypto.randomUUID();
+        const launchId = options.launchId || crypto.randomUUID();
         const launcher = new GameLauncher();
         activeLaunchers.set(launchId, { gameDir, launcher, options, status: 'launching', sessionStarted: false });
         // Don't emitRunningInstances yet, it's not 'running'
@@ -473,7 +481,7 @@ const ensureLoaderInstalled = async (instanceData) => {
         };
 
         const launchOptions = {
-            root: instanceRoot, // Changed from commonRoot
+            root: commonRoot,
             version: { number: instanceData.version }
         };
 

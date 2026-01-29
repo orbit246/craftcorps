@@ -91,8 +91,8 @@ const UpdateModal = ({ isOpen, onClose, updateInfo, updateStatus, downloadProgre
                                 onClick={isReadyToInstall ? onInstall : onDownload}
                                 disabled={isProcessing}
                                 className={`w-full py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2 group ${isProcessing
-                                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                                        : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                                     }`}
                             >
                                 {getButtonContent()}
@@ -102,8 +102,8 @@ const UpdateModal = ({ isOpen, onClose, updateInfo, updateStatus, downloadProgre
                                     onClick={onClose}
                                     disabled={isProcessing}
                                     className={`w-full py-3 rounded-lg font-medium transition-colors ${isProcessing
-                                            ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                                         }`}
                                 >
                                     Remind Me Later

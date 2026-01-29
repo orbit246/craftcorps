@@ -33,7 +33,7 @@ class GameLauncher extends EventEmitter {
         // 2. Bootstrap & Validation via VersionManager
         if (options.version) {
             try {
-                const manifestPath = await VersionManager.bootstrapManifest(gameRoot, (t, m) => this.emit(t === 'log' ? 'log' : t, m), options.version);
+                const manifestPath = await VersionManager.bootstrapManifest(commonRoot, (t, m) => this.emit(t === 'log' ? 'log' : t, m), options.version);
                 if (this.isCancelled) { this.emit('exit', -1); return; }
                 options.version = VersionManager.validateVersion(options.version, manifestPath, (t, m) => this.emit(t === 'log' ? 'log' : t, m));
             } catch (e) {
@@ -57,7 +57,7 @@ class GameLauncher extends EventEmitter {
                 meta: { type: options.userType === 'Microsoft' ? 'msa' : 'mojang' },
                 xuid: options.xuid
             },
-            root: gameRoot,
+            root: commonRoot,
             version: {
                 number: options.version || '1.21.11',
                 type: 'release'

@@ -51,9 +51,9 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
             // Only auto-switch to 'running' if we aren't currently in the middle of a 'launching' sequence
             setLaunchStatus(prev => (prev === 'launching' || prev === 'loading_window') ? prev : 'running');
         } else {
-            // If we were 'running' but now it's not in the list, go to idle.
+            // If we were 'running' or 'loading_window' but now it's not in the list, go to idle.
             // If we are 'launching', DO NOT reset to idle, wait for event failure or success.
-            setLaunchStatus(prev => prev === 'running' ? 'idle' : prev);
+            setLaunchStatus(prev => (prev === 'running' || prev === 'loading_window') ? 'idle' : prev);
         }
     }, [selectedInstance, runningInstances]);
 
@@ -90,6 +90,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
     // Use ref to track status inside callbacks safely without dependency issues
     const launchStatusRef = React.useRef(launchStatus);
     const launchStartTimeRef = React.useRef(0); // [TELEMETRY] Track start time
+    const currentLaunchIdRef = React.useRef(null);
 
     useEffect(() => {
         launchStatusRef.current = launchStatus;
@@ -105,6 +106,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
         const handleLaunchError = (err) => {
             if (err.gameDir && err.gameDir !== selectedInstance.path) return;
+            if (err.launchId && currentLaunchIdRef.current && err.launchId !== currentLaunchIdRef.current) return;
 
             console.error("Launch Error received:", err);
             // setLaunchStatus('idle'); // Force idle on error even if other instances might be running? 
@@ -140,6 +142,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
         const handleGameLog = (log) => {
             if (log.gameDir && log.gameDir !== selectedInstance.path) return;
+            if (log.launchId && currentLaunchIdRef.current && log.launchId !== currentLaunchIdRef.current) return;
 
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} `;
@@ -196,6 +199,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
         const handleGameProgress = (data) => {
             if (data.gameDir && data.gameDir !== selectedInstance.path) return;
+            if (data.launchId && currentLaunchIdRef.current && data.launchId !== currentLaunchIdRef.current) return;
             setLaunchProgress(data.percent);
 
             let typeName = data.type;
@@ -205,20 +209,28 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
             else if (t.includes('class') || t.includes('jar')) typeName = 'Game Libraries';
             else if (t.includes('version')) typeName = 'Version Manifest';
 
-            setLaunchStep(`Downloading ${typeName} (${data.percent}%)`);
+            setLaunchStep(`Downloading ${typeName}`);
         };
 
         const handleGameExit = (data) => {
             let code = data;
             let gameDir = null;
+            let eventLaunchId = null;
+
             if (typeof data === 'object' && data !== null) {
                 code = data.code;
                 gameDir = data.gameDir;
+                eventLaunchId = data.launchId;
             }
 
             if (gameDir && gameDir !== selectedInstance.path) return;
+            if (eventLaunchId && currentLaunchIdRef.current && eventLaunchId !== currentLaunchIdRef.current) {
+                console.log(`[Launch] Ignoring exit event for old launchId: ${eventLaunchId}`);
+                return;
+            }
 
             setLaunchStep("Game exited.");
+            setLaunchStatus('idle');
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} `;
 
@@ -244,6 +256,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
         const handleCrash = (data) => {
             if (data.gameDir && data.gameDir !== selectedInstance.path) return;
+            if (data.launchId && currentLaunchIdRef.current && data.launchId !== currentLaunchIdRef.current) return;
             setCrashModal(data);
             telemetry.track('GAME_CRASH', {
                 code: data.code,
@@ -284,6 +297,9 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
 
         setLaunchCooldown(true);
         setTimeout(() => setLaunchCooldown(false), 5000);
+
+        const launchId = crypto.randomUUID();
+        currentLaunchIdRef.current = launchId;
 
         setLaunchStatus('launching');
         launchStatusRef.current = 'launching';
@@ -335,6 +351,7 @@ export const useGameLaunch = (selectedInstance, ram, activeAccount, updateLastPl
                 // Attach gameDir and ID for backend identification
                 launchOptions.gameDir = instance.path;
                 launchOptions.id = instance.id;
+                launchOptions.launchId = currentLaunchIdRef.current;
 
                 window.electronAPI.launchGame(launchOptions);
                 window.electronAPI.log('info', `[UI] Launch command sent to backend. RAM: ${effectiveRam} GB (Override: ${!!instance?.ramOverride}), User: ${launchOptions.username}, Java: ${javaPath}`);

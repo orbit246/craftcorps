@@ -157,9 +157,9 @@ export const useInstances = () => {
     useEffect(() => {
         if (isLoading || instances.length === 0) return;
 
-        const ccClient = instances.find(inst => inst.name === 'CraftCorps Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'craftcorps-core')));
+        const ccClient = instances.find(inst => inst.name === 'CraftCorps Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'craftcorps-core') || !inst.modManifest.some(m => m.id === 'geckolib')));
         if (ccClient) {
-            console.log("[Instances] CraftCorps Client detected with no manifest. Scheduling hydration...");
+            console.log("[Instances] CraftCorps Client detected with no manifest or missing core mods. Scheduling hydration...");
             const timer = setTimeout(async () => {
                 const hydratedManifest = [
                     { id: 'sodium', name: 'Sodium (FPS)' },
@@ -171,6 +171,7 @@ export const useInstances = () => {
                     { id: 'appleskin', name: 'AppleSkin' },
                     { id: 'zoomify', name: 'Zoomify' },
                     { id: 'continuity', name: 'Continuity' },
+                    { id: 'geckolib', name: 'Geckolib' },
                     { id: 'craftcorps', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-cosmetics-0.1.3.jar' }
                 ];
 
