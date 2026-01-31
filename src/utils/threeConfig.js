@@ -1,7 +1,7 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 
 /**
- * Global Three.js Configuration for CraftCorps
+ * Global Three.js Configuration for Nortix
  * Ensures visual consistency across character previews, thumbnails, and loaders.
  */
 export const THREE_CONFIG = {

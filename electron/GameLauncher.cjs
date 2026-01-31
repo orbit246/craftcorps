@@ -1,4 +1,4 @@
-const { Client } = require('minecraft-launcher-core');
+﻿const { Client } = require('minecraft-launcher-core');
 const path = require('path');
 const fs = require('fs');
 const EventEmitter = require('events');
@@ -74,7 +74,7 @@ class GameLauncher extends EventEmitter {
             customArgs: [
                 // Platform specific
                 ...(process.platform === 'darwin' ? [
-                    '-Xdock:name=CraftCorps',
+                    '-Xdock:name=Nortix',
                     '-Xdock:icon=' + path.join(__dirname, '..', 'public', 'images', 'cc-logo.png')
                 ] : []),
                 `-Duser.dir=${gameRoot}`, // Force working directory for old mods (ContentTweaker)
@@ -100,7 +100,7 @@ class GameLauncher extends EventEmitter {
                 '-XX:MaxTenuringThreshold=1',
                 '-Dsun.rmi.dgc.server.gcInterval=2147483646',
                 '-Djava.net.preferIPv4Stack=true',
-                `-Dcraftcorps.rpc.port=${getRpcPort()}`
+                `-DNortix.rpc.port=${getRpcPort()}`
             ].filter((v, i, a) => a.indexOf(v) === i), // Dedupe just in case
             overrides: {
                 detached: true,

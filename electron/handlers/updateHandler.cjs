@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron');
+﻿const { ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
@@ -22,7 +22,7 @@ function setupUpdateHandlers(getMainWindow) {
     // Switch to generic provider to avoid GitHub API limits/errors
     autoUpdater.setFeedURL({
         provider: 'generic',
-        url: 'https://download.craftcorps.net/'
+        url: 'https://download.nortixlauncher.com/'
     });
 
     // Disable auto-downloading if you want to ask the user first

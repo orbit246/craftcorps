@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     User, Sparkles, Shirt,
     Shield, Box, Star, Users,
@@ -84,7 +84,7 @@ const CosmeticCard = ({ item }) => {
 
 
 
-const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLogoutAll, setActiveTab, setShowProfileMenu }) => {
+const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLogoutAll, setActiveTab, setShowProfileMenu, onManageAccounts }) => {
     const { addToast } = useToast();
 
     // Data States
@@ -173,7 +173,7 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                 const owned = catalogData.filter(c => ownedIds.includes(c.cosmeticId)).map(c => {
                     let textureUrl = c.textureUrl;
                     if (textureUrl && textureUrl.startsWith('/')) {
-                        textureUrl = `https://api.craftcorps.net${textureUrl}`;
+                        textureUrl = `https://api.nortixlauncher.com${textureUrl}`;
                     } else if (!textureUrl) {
                         textureUrl = getCosmeticTextureUrl(c.cosmeticId);
                     }
@@ -200,7 +200,7 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
 
 
     // Connections Logic
-    const hasCredentials = linkedAccounts.some(a => a.provider === 'credentials' || a.provider === 'local') || activeAccount?.type === 'CraftCorps';
+    const hasCredentials = linkedAccounts.some(a => a.provider === 'credentials' || a.provider === 'local') || activeAccount?.type === 'Nortix';
     const microsoftLink = linkedAccounts.find(a => a.provider === 'microsoft');
     const discordLink = linkedAccounts.find(a => a.provider === 'discord');
 
@@ -370,9 +370,17 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
 
                             {/* Game Accounts Card */}
                             <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl border border-white/5 p-6 space-y-4">
-                                <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-                                    <Users className="text-blue-400" size={20} /> Game Accounts
-                                </h2>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
+                                        <Users className="text-blue-400" size={20} /> Game Accounts
+                                    </h2>
+                                    <button
+                                        onClick={onManageAccounts}
+                                        className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20 transition-all"
+                                    >
+                                        Manage
+                                    </button>
+                                </div>
                                 <div className="space-y-3">
                                     {accounts?.map((acc) => (
                                         <div
@@ -599,7 +607,7 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                             <div className="space-y-2">
                                 <h3 className="text-xl font-bold text-white">Confirm Logout</h3>
                                 <p className="text-sm text-slate-400 leading-relaxed">
-                                    You will be logged out of all Minecraft accounts and your CraftCorps account.
+                                    You will be logged out of all Minecraft accounts and your Nortix account.
                                     Progress and instances will be saved, but you will need to log in again.
                                 </p>
                                 <p className="text-xs text-amber-500/70 pt-2 italic">

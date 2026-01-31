@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Package, Box, Search, Loader2, Download, Layers, AlertTriangle, Aperture, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -222,7 +222,7 @@ export const ModsGridView = ({
                     <div className="text-center pb-0 mt-4 border-t border-slate-800/50 pt-4">
                         <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity">
                             <Layers size={12} className="text-emerald-500" />
-                            <span><span className="font-bold text-slate-400">CraftCorps</span> leverages the <span className="font-bold text-slate-400">Modrinth</span> ecosystem to provide a secure and verified modding experience</span>
+                            <span><span className="font-bold text-slate-400">Nortix</span> leverages the <span className="font-bold text-slate-400">Modrinth</span> ecosystem to provide a secure and verified modding experience</span>
                         </p>
                     </div>
                 </div>

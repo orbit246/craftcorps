@@ -1,15 +1,15 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Configuration
-SERVICE_NAME="craftcorps-crash"
-INSTALL_DIR="/opt/craftcorps-crash"
+SERVICE_NAME="Nortix-crash"
+INSTALL_DIR="/opt/Nortix-crash"
 SCRIPT_NAME="crash_server.py"
 
 # Colors
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}== CraftCorps Crash Server Setup ==${NC}"
+echo -e "${GREEN}== Nortix Crash Server Setup ==${NC}"
 
 # Check for root
 if [ "$EUID" -ne 0 ]; then
@@ -34,7 +34,7 @@ fi
 echo "Creating systemd service..."
 cat > /etc/systemd/system/$SERVICE_NAME.service <<EOL
 [Unit]
-Description=CraftCorps Crash Report Server
+Description=Nortix Crash Report Server
 After=network.target
 
 [Service]

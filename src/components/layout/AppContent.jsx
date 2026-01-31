@@ -19,6 +19,7 @@ const AppContent = ({
     instances, setSelectedInstance, handleNewCrop, handleEditCrop, onRestoreDefault, showCropModal,
     accounts, onAccountSwitchWithToast, showProfileMenu, setShowProfileMenu, onLogoutWithToast, onLogoutAllWithToast,
     onDeleteCropWithToast, reorderInstances,
+    showAccountModal, setShowAccountModal,
     ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHideOnLaunch, setDisableAnimations, availableJavas, enableDiscordRPC, setEnableDiscordRPC,
     startOnStartup, setStartOnStartup,
     theme, setTheme,
@@ -115,6 +116,7 @@ const AppContent = ({
                         onSwitchAccount={onAccountSwitchWithToast}
                         onAddAccount={() => { setShowLoginModal(true); setShowProfileMenu(false); }}
                         onLogout={onLogoutWithToast}
+                        onManageAccounts={() => setShowAccountModal(true)}
                         showProfileMenu={showProfileMenu}
                         setShowProfileMenu={setShowProfileMenu}
                         disableAnimations={disableAnimations}
@@ -178,7 +180,7 @@ const AppContent = ({
                     <DiscoverView selectedInstance={selectedInstance} activeAccount={activeAccount} />
                 </div>
             )}
-            {activeTab === 'profile' && <ProfileView activeAccount={activeAccount} accounts={accounts} instances={instances} theme={theme} onLogout={onLogoutWithToast} onLogoutAll={onLogoutAllWithToast} setActiveTab={setActiveTab} setShowProfileMenu={setShowProfileMenu} />}
+            {activeTab === 'profile' && <ProfileView activeAccount={activeAccount} accounts={accounts} instances={instances} theme={theme} onLogout={onLogoutWithToast} onLogoutAll={onLogoutAllWithToast} setActiveTab={setActiveTab} setShowProfileMenu={setShowProfileMenu} onManageAccounts={() => setShowAccountModal(true)} />}
             {/* Market View - Keep Alive */}
             {(activeTab === 'market' || hasOpenedMarket) && (
                 <div className={`flex-1 flex-col h-full overflow-hidden ${activeTab === 'market' ? 'flex' : 'hidden'}`}>

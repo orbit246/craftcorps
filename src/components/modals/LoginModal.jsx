@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-import { User, X, Loader2, ShieldCheck, ChevronRight, WifiOff, Info, Check } from 'lucide-react';
+import { User, X, Loader2, ShieldCheck, ChevronRight, WifiOff, Info, Check, Gamepad2 } from 'lucide-react';
 import { telemetry } from '../../services/TelemetryService';
 
 import { getOfflineUUID } from '../../utils/uuid';
@@ -59,7 +59,7 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
                 const result = await window.electronAPI.microsoftLogin(consent);
                 if (result.success) {
                     console.log(`[LoginModal] Microsoft Auth Success: ${result.account.name}`);
-                    console.log(`[LoginModal] CraftCorps Token: ${result.data.accessToken ? 'RECEIVED' : 'MISSING'}`);
+                    console.log(`[LoginModal] Nortix Token: ${result.data.accessToken ? 'RECEIVED' : 'MISSING'}`);
 
                     onAddAccount({
                         ...result.account,
@@ -175,8 +175,12 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 relative z-10">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <User size={20} className="text-emerald-500" /> {t('auth_modal_title')}
+                    <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                        <div className="relative flex items-center justify-center">
+                            <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-150" />
+                            <Gamepad2 size={24} className="text-emerald-500 relative z-10" />
+                        </div>
+                        {t('auth_modal_title')}
                     </h3>
                     <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
                         <X size={20} />
@@ -244,25 +248,26 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
                                 </div>
                             )}
 
-                            <div className="relative group w-full">
+                            <div className="relative group w-full py-2">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                                 <button
                                     onClick={handleMicrosoftLogin}
                                     disabled={!tosAgreed}
-                                    className={`w-full p-4 rounded-xl flex items-center justify-between group/btn transition-all ${tosAgreed ? 'bg-[#0078D4] hover:bg-[#006cbd] text-white' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 pointer-events-none'}`}
+                                    className={`relative w-full p-4 rounded-xl flex items-center justify-between group/btn transition-all shadow-2xl ${tosAgreed ? 'bg-[#0078D4] hover:bg-[#006cbd] text-white' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 pointer-events-none'}`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-white/10 p-2 rounded-lg">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-white/20 p-2 rounded-lg shadow-inner">
                                             <ShieldCheck size={20} />
                                         </div>
                                         <div className="text-left">
-                                            <div className="font-bold text-sm">{t('auth_microsoft')}</div>
-                                            <div className="text-xs text-white/70">{t('auth_recommended')}</div>
+                                            <div className="font-black text-[15px] tracking-tight leading-none mb-1">{t('auth_microsoft')}</div>
+                                            <div className="text-[10px] text-white/60 font-medium uppercase tracking-widest">{t('auth_recommended')}</div>
                                         </div>
                                     </div>
-                                    <ChevronRight size={16} className={`transition-opacity ${tosAgreed ? 'opacity-0 group-hover/btn:opacity-100' : 'opacity-0'}`} />
+                                    <ChevronRight size={18} className={`transition-all duration-300 ${tosAgreed ? 'opacity-40 group-hover/btn:opacity-100 group-hover/btn:translate-x-1' : 'opacity-0'}`} />
                                 </button>
                                 {!tosAgreed && (
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
                                         {t('auth_tos_hover_hint')}
                                     </div>
                                 )}
@@ -277,21 +282,21 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
                                 </div>
                             </div>
 
-                            <div className="bg-slate-950/50 rounded-xl p-4 border border-slate-800 relative">
-                                <div className="absolute top-2 right-2 z-10 group">
-                                    <Info size={16} className="text-slate-600 hover:text-slate-400 cursor-help transition-colors" />
-                                    <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-black text-xs text-slate-300 rounded border border-slate-700 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50">
+                            <div className="bg-slate-950/30 rounded-xl p-3 border border-white/5 relative opacity-60 hover:opacity-100 transition-opacity duration-500">
+                                <div className="absolute top-1.5 right-1.5 z-10 group/info">
+                                    <Info size={14} className="text-slate-700 hover:text-slate-500 cursor-help transition-colors" />
+                                    <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-black text-[10px] text-slate-400 rounded border border-slate-800 shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 pointer-events-none z-50">
                                         {t('auth_offline_warning')}
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="bg-slate-800 p-2 rounded-lg text-slate-400">
-                                        <WifiOff size={20} />
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="bg-slate-900 p-1.5 rounded-lg text-slate-600">
+                                        <WifiOff size={16} />
                                     </div>
-                                    <div className="text-left flex-1 pr-6">
-                                        <div className="font-bold text-sm text-slate-300">{t('auth_offline')}</div>
-                                        <div className="text-xs text-slate-500">{t('auth_singleplayer_only')}</div>
+                                    <div className="text-left flex-1">
+                                        <div className="font-bold text-xs text-slate-500">{t('auth_offline')}</div>
+                                        <div className="text-[10px] text-slate-600 font-medium">{t('auth_singleplayer_only')}</div>
                                     </div>
                                 </div>
 
@@ -317,21 +322,21 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
                                                 const val = raw.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 16);
                                                 setOfflineName(val);
                                             }}
-                                            className={`flex-1 bg-slate-900 border rounded-lg px-3 py-2 text-sm text-white focus:outline-none placeholder:text-slate-600 ${validationMsg ? 'border-red-500/50 focus:border-red-500' : 'border-slate-700 focus:border-emerald-500/50'}`}
+                                            className={`flex-1 bg-slate-900/50 border rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none placeholder:text-slate-700 transition-all ${validationMsg ? 'border-red-500/30 focus:border-red-500' : 'border-slate-800 focus:border-white/10'}`}
                                             onKeyDown={(e) => e.key === 'Enter' && offlineName.length >= 3 && handleOfflineLogin()}
                                         />
-                                        <div className="relative group">
+                                        <div className="relative group/offbtn">
                                             <button
                                                 onClick={handleOfflineLogin}
                                                 disabled={offlineName.length < 3 || !tosAgreed || (isLoading && loginType === 'offline')}
-                                                className={`bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors min-w-[64px] flex items-center justify-center ${!tosAgreed ? 'pointer-events-none' : ''}`}
+                                                className={`bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors border border-white/5 ${!tosAgreed ? 'pointer-events-none' : ''}`}
                                             >
                                                 {isLoading && loginType === 'offline' ? (
-                                                    <Loader2 size={16} className="animate-spin" />
+                                                    <Loader2 size={12} className="animate-spin" />
                                                 ) : t('auth_btn_add')}
                                             </button>
                                             {!tosAgreed && (
-                                                <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-slate-900 border border-slate-800 text-slate-500 text-[9px] font-black uppercase tracking-tighter rounded shadow-xl opacity-0 group-hover/offbtn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
                                                     {t('auth_tos_hover_hint')}
                                                 </div>
                                             )}
@@ -365,8 +370,8 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
                                     <Trans
                                         i18nKey="auth_tos_agreement"
                                         components={{
-                                            1: <a href="https://craftcorps.net/legal/terms" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>ToS</a>,
-                                            2: <a href="https://craftcorps.net/legal/privacy" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>
+                                            1: <a href="https://nortixlauncher.com/legal/terms" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>ToS</a>,
+                                            2: <a href="https://nortixlauncher.com/legal/privacy" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>
                                         }}
                                     />
                                 </div>

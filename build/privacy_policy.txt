@@ -1,4 +1,4 @@
-END USER LICENSE AGREEMENT (EULA) AND TERMS OF SERVICE for CraftCorps Launcher
+﻿END USER LICENSE AGREEMENT (EULA) AND TERMS OF SERVICE for Nortix Launcher
 
 Last Updated: January 18, 2026
 
@@ -7,12 +7,12 @@ IMPORTANT: PLEASE READ THIS AGREEMENT CAREFULLY. BY INSTALLING, COPYING, OR USIN
 ================================================================================
 1. ACCEPTANCE OF TERMS
 ================================================================================
-By installing or using CraftCorps Launcher ("the Software"), you agree to be bound by this End User License Agreement ("EULA"), our Privacy Policy, and our Terms of Service. If you do not agree to these terms, you must immediately cease using the Software and uninstall it.
+By installing or using Nortix Launcher ("the Software"), you agree to be bound by this End User License Agreement ("EULA"), our Privacy Policy, and our Terms of Service. If you do not agree to these terms, you must immediately cease using the Software and uninstall it.
 
 ================================================================================
 2. LICENSE GRANT
 ================================================================================
-Subject to your compliance with these terms, CraftCorps grants you a personal, non-exclusive, non-transferable, revocable license to use the Software for personal, non-commercial purposes.
+Subject to your compliance with these terms, Nortix grants you a personal, non-exclusive, non-transferable, revocable license to use the Software for personal, non-commercial purposes.
 
 2.1. PERMITTED USES
 - Install and use the Software on devices you own or control.
@@ -31,7 +31,7 @@ You may NOT:
 ================================================================================
 3. INTELLECTUAL PROPERTY
 ================================================================================
-The Software is licensed, not sold. CraftCorps and its licensors retain all rights, title, and interest in and to the Software, including all intellectual property rights. This license does not grant you any rights to trademarks, service marks, or logos.
+The Software is licensed, not sold. Nortix and its licensors retain all rights, title, and interest in and to the Software, including all intellectual property rights. This license does not grant you any rights to trademarks, service marks, or logos.
 
 ================================================================================
 4. THIRD-PARTY SERVICES
@@ -43,7 +43,7 @@ This Software is not affiliated with, endorsed by, or sponsored by Mojang Studio
 The Software integrates with third-party services including Modrinth for mod downloads. Your use of these services is subject to their respective terms of service and privacy policies.
 
 4.3. COMMUNITY SERVERS
-CraftCorps is not responsible for the content, availability, security, or practices of third-party Minecraft servers. You access community servers at your own risk.
+Nortix is not responsible for the content, availability, security, or practices of third-party Minecraft servers. You access community servers at your own risk.
 
 ================================================================================
 5. PRIVACY POLICY
@@ -85,7 +85,7 @@ You have the right to:
 - Opt-out: Disable telemetry collection at any time via Application Settings
 - Data portability: Request your data in a machine-readable format
 
-To exercise these rights, contact us at: support@craftcorps.net
+To exercise these rights, contact us at: support@nortixlauncher.com
 
 ================================================================================
 6. USER CONDUCT
@@ -120,7 +120,7 @@ WE DO NOT WARRANT THAT:
 ================================================================================
 9. LIMITATION OF LIABILITY
 ================================================================================
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, CRAFTCORPS AND ITS AFFILIATES, OFFICERS, EMPLOYEES, AND LICENSORS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SOFTWARE.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, Nortix AND ITS AFFILIATES, OFFICERS, EMPLOYEES, AND LICENSORS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SOFTWARE.
 
 IN NO EVENT SHALL OUR TOTAL LIABILITY EXCEED THE AMOUNT YOU PAID FOR THE SOFTWARE (WHICH IS ZERO FOR FREE SOFTWARE).
 
@@ -129,7 +129,7 @@ Some jurisdictions do not allow the exclusion of certain warranties or limitatio
 ================================================================================
 10. INDEMNIFICATION
 ================================================================================
-You agree to indemnify, defend, and hold harmless CraftCorps and its affiliates from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from your use of the Software or violation of these terms.
+You agree to indemnify, defend, and hold harmless Nortix and its affiliates from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from your use of the Software or violation of these terms.
 
 ================================================================================
 11. TERMINATION
@@ -149,7 +149,7 @@ Any disputes arising from this Agreement shall be resolved through binding arbit
 13. MISCELLANEOUS
 ================================================================================
 13.1. ENTIRE AGREEMENT
-This Agreement constitutes the entire agreement between you and CraftCorps regarding the Software and supersedes all prior agreements.
+This Agreement constitutes the entire agreement between you and Nortix regarding the Software and supersedes all prior agreements.
 
 13.2. SEVERABILITY
 If any provision of this Agreement is found to be unenforceable, the remaining provisions will remain in full force and effect.
@@ -162,8 +162,8 @@ You may not assign or transfer this Agreement without our prior written consent.
 
 13.5. CONTACT INFORMATION
 For questions about this Agreement, contact us at:
-Email: support@craftcorps.net
-Website: https://craftcorps.net
+Email: support@nortixlauncher.com
+Website: https://nortixlauncher.com
 
 ================================================================================
 14. ACKNOWLEDGMENT

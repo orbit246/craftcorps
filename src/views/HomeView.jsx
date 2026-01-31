@@ -38,6 +38,7 @@ const HomeView = ({
     onSwitchAccount,
     onAddAccount,
     onLogout,
+    onManageAccounts,
     showProfileMenu,
     setShowProfileMenu,
     disableAnimations,
@@ -233,6 +234,7 @@ const HomeView = ({
                             onSwitchAccount={onSwitchAccount}
                             onAddAccount={onAddAccount}
                             onLogout={onLogout}
+                            onManageAccounts={onManageAccounts}
                         />
                     </div>
                 </div>

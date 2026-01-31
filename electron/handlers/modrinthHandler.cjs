@@ -1,4 +1,4 @@
-const { ipcMain, app } = require('electron');
+﻿const { ipcMain, app } = require('electron');
 const { ModrinthV2Client } = require('@xmcl/modrinth');
 const log = require('electron-log');
 const path = require('path');
@@ -8,7 +8,7 @@ const AdmZip = require('adm-zip');
 
 // Initialize Modrinth Client
 const client = new ModrinthV2Client({
-    userAgent: 'CraftCorps/1.0.0 (contact@craftcorps.com)',
+    userAgent: 'Nortix/1.0.0 (contact@nortixlauncher.com)',
 });
 
 // Track active installations at module level

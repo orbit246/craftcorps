@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Download, Rocket, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -58,7 +58,7 @@ const UpdateModal = ({ isOpen, onClose, updateInfo, updateStatus, downloadProgre
                             </span>
                         </div>
                         <div className="prose prose-sm prose-invert max-w-none text-slate-300 max-h-48 overflow-y-auto custom-scrollbar">
-                            <p>A new version of CraftCorps Launcher is available!</p>
+                            <p>A new version of Nortix Launcher is available!</p>
                             {/* We could render release notes here if updateInfo.releaseNotes was passed */}
                         </div>
                     </div>

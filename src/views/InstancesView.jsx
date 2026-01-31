@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Sprout, Edit3, Trash2, Plus, GripVertical, Server, X, Play, ShieldCheck
@@ -183,8 +183,8 @@ const InstancesView = ({ instances, onEditCrop, onDeleteCrop, onSelectInstance, 
 
                                     {/* Badges */}
                                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                                        {inst.name === 'CraftCorps Client' && (
-                                            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20" title="CraftCorps Verified">
+                                        {inst.name === 'Nortix Client' && (
+                                            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20" title="Nortix Verified">
                                                 <ShieldCheck size={10} />
                                                 <span>Verified</span>
                                             </div>

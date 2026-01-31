@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron');
+﻿const { ipcMain } = require('electron');
 const { authenticateMicrosoft, refreshMicrosoftAuth } = require('../microsoftAuth.cjs');
 const authService = require('../services/authService.cjs');
 
@@ -59,12 +59,21 @@ function setupAuthHandlers(getMainWindow) {
             } catch (ignore) { }
 
             // 3. Login with Backend using Minecraft Token (New Backend Flow)
-            console.log('[AuthHandler] Exchange Minecraft token for CraftCorps session...');
-            const data = await authService.loginMicrosoft(msAccount.accessToken);
-            // 4. Fetch and Cache Cosmetics (Pre-warm for UI)
+
+            console.log('[AuthHandler] Exchange Minecraft token for Nortix session...');
+
+            let data = { accessToken: null, refreshToken: null, user: { id: 'offline' } };
             let cosmetics = null;
-            try { cosmetics = await authService.getPlayerCosmetics(); } catch (e) { }
-            console.log('[AuthHandler] Backend cosmetics fetch complete:', !!cosmetics);
+
+            try {
+                data = await authService.loginMicrosoft(msAccount.accessToken);
+                // 4. Fetch and Cache Cosmetics (Pre-warm for UI)
+                try { cosmetics = await authService.getPlayerCosmetics(); } catch (e) { }
+                console.log('[AuthHandler] Backend cosmetics fetch complete:', !!cosmetics);
+            } catch (err) {
+                console.warn('[AuthHandler] Backend login failed (Offline Mode?):', err.message);
+                // Proceed with offline data
+            }
 
             return {
                 success: true,
@@ -115,10 +124,18 @@ function setupAuthHandlers(getMainWindow) {
         try {
             const consentToRecord = consent || DEFAULT_CONSENT;
             if (consentToRecord) {
-                await authService.recordConsent(consentToRecord);
+                try {
+                    await authService.recordConsent(consentToRecord);
+                } catch (ignore) { }
             }
-            const result = await authService.linkProfile(profile);
-            return { success: result };
+
+            try {
+                const result = await authService.linkProfile(profile);
+                return { success: result };
+            } catch (err) {
+                console.warn('[AuthHandler] Link profile failed (Backend offline?), allowing offline use:', err.message);
+                return { success: true };
+            }
         } catch (error) {
             console.error('[AuthHandler] Link profile failed:', error);
             return { success: false, error: error.message || error };
@@ -197,6 +214,11 @@ function setupAuthHandlers(getMainWindow) {
             return { success: false, error: error.message };
         }
     });
+
+    ipcMain.handle('check-server-status', async () => {
+        return await authService.checkConnection();
+    });
+
     // --- Advanced Profile ---
 
     ipcMain.handle('get-user-profile', async () => {
@@ -227,7 +249,7 @@ function setupAuthHandlers(getMainWindow) {
 
             // Backend endpoint that starts the Discord OAuth flow for a logged-in user
             // We append a custom param to signal the backend to redirect to a launcher-friendly success page
-            const authUrl = `https://api.craftcorps.net/auth/link/discord?client=launcher`;
+            const authUrl = `https://api.nortixlauncher.com/auth/link/discord?client=launcher`;
 
             return new Promise((resolve) => {
                 const authWindow = new BrowserWindow({
@@ -296,7 +318,7 @@ function setupAuthHandlers(getMainWindow) {
 
     ipcMain.handle('equip-cosmetic', async (event, { cosmeticId, playerUuid }) => {
         try {
-            const url = 'https://api.craftcorps.net/cosmetics/equip';
+            const url = 'https://api.nortixlauncher.com/cosmetics/equip';
             const res = await authService.fetchAuthenticated(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

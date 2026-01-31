@@ -1,4 +1,4 @@
-const { ipcMain, app } = require('electron');
+﻿const { ipcMain, app } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const log = require('electron-log');
 
@@ -7,7 +7,7 @@ const STORE_KEY_INSTALL_ID = 'install_id'; // New UUID for anonymous account
 const STORE_KEY_AUTH_TOKEN = 'auth_token';
 const STORE_KEY_REFRESH_TOKEN = 'refresh_token';
 const STORE_KEY_USER_ID = 'user_id';
-const AUTH_BASE = 'https://auth.craftcorps.net';
+const AUTH_BASE = 'https://auth.nortixlauncher.com';
 
 class AuthService {
     constructor() {
@@ -63,6 +63,23 @@ class AuthService {
             this.store.set(STORE_KEY_DEVICE_ID, this.deviceId);
         }
         return this.deviceId;
+    }
+
+    async checkConnection() {
+        try {
+            // Quick timeout to detect offline fast
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            const res = await fetch(`${AUTH_BASE}/`, {
+                method: 'HEAD',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     // --- Public Auth Endpoints ---
@@ -323,7 +340,7 @@ class AuthService {
     async getPlayerCosmetics(uuid) {
         log.info(`[AuthService] Fetching player cosmetics${uuid ? ` for ${uuid}` : ''}...`);
         try {
-            const url = `https://api.craftcorps.net/cosmetics/player${uuid ? `?uuid=${uuid}` : ''}`;
+            const url = `https://api.nortixlauncher.com/cosmetics/player${uuid ? `?uuid=${uuid}` : ''}`;
             const res = await this.fetchAuthenticated(url);
             log.info("Response: " + res.ok);
             if (res.ok) {

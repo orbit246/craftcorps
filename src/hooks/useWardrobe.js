@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchPlayerCosmetics, equipCosmetic, getCosmeticTextureUrl, fetchAllCosmetics, fetchDetailedCosmetics } from '../utils/cosmeticsApi';
 import { FALLBACK_COSMETICS } from '../data/fallbackCosmetics';
@@ -12,14 +12,14 @@ export const useWardrobe = (activeAccount) => {
     // Saved Skins Library (Local Storage)
     const [savedSkins, setSavedSkins] = useState(() => {
         try {
-            const saved = localStorage.getItem('craftcorps_saved_skins');
+            const saved = localStorage.getItem('Nortix_saved_skins');
             return saved ? JSON.parse(saved) : [];
         } catch (e) { return []; }
     });
 
     // Update localStorage
     useEffect(() => {
-        localStorage.setItem('craftcorps_saved_skins', JSON.stringify(savedSkins));
+        localStorage.setItem('Nortix_saved_skins', JSON.stringify(savedSkins));
     }, [savedSkins]);
 
     // Current Equipped Skin on Mojang
@@ -39,7 +39,7 @@ export const useWardrobe = (activeAccount) => {
         if (!activeAccount) return [];
         try {
             const accountId = activeAccount.uuid || activeAccount.id;
-            const saved = localStorage.getItem(`craftcorps_active_cosmetics_${accountId}`);
+            const saved = localStorage.getItem(`Nortix_active_cosmetics_${accountId}`);
             return saved ? JSON.parse(saved) : [];
         } catch (e) { return []; }
     });
@@ -48,7 +48,7 @@ export const useWardrobe = (activeAccount) => {
     useEffect(() => {
         if (activeAccount && activeCosmetics) {
             const accountId = activeAccount.uuid || activeAccount.id;
-            localStorage.setItem(`craftcorps_active_cosmetics_${accountId}`, JSON.stringify(activeCosmetics));
+            localStorage.setItem(`Nortix_active_cosmetics_${accountId}`, JSON.stringify(activeCosmetics));
         }
     }, [activeCosmetics, activeAccount]);
 
@@ -59,11 +59,11 @@ export const useWardrobe = (activeAccount) => {
             const accountId = activeAccount.uuid || activeAccount.id;
 
             // 1. Try account-specific cache (Best: includes full enriched data + ownership)
-            const saved = localStorage.getItem(`craftcorps_owned_cosmetics_${accountId}`);
+            const saved = localStorage.getItem(`Nortix_owned_cosmetics_${accountId}`);
             if (saved) return JSON.parse(saved);
 
             // 2. Try global catalog + account's pre-fetched ownership (Good fallback)
-            const catalog = localStorage.getItem('craftcorps_cosmetic_catalog');
+            const catalog = localStorage.getItem('Nortix_cosmetic_catalog');
             if (catalog) {
                 const parsed = JSON.parse(catalog);
 
@@ -179,7 +179,7 @@ export const useWardrobe = (activeAccount) => {
 
             // 15s Caching Check
             if (!forceRefresh && uuid) {
-                const lastFetch = localStorage.getItem(`craftcorps_cosmetics_last_fetch_${uuid}`);
+                const lastFetch = localStorage.getItem(`Nortix_cosmetics_last_fetch_${uuid}`);
                 if (lastFetch && (Date.now() - parseInt(lastFetch) < 15000)) {
                     console.log('[useWardrobe] Using 15s cached cosmetics');
                     setIsLoadingCosmetics(false);
@@ -230,7 +230,7 @@ export const useWardrobe = (activeAccount) => {
             const enrich = (catalog) => catalog.map(c => {
                 let textureUrl = c.textureUrl;
                 if (textureUrl && textureUrl.startsWith('/')) {
-                    textureUrl = `https://api.craftcorps.net${textureUrl}`;
+                    textureUrl = `https://api.nortixlauncher.com${textureUrl}`;
                 } else if (!textureUrl) {
                     textureUrl = getCosmeticTextureUrl(c.cosmeticId);
                 }
@@ -254,16 +254,16 @@ export const useWardrobe = (activeAccount) => {
             // 4. Update Cache
             if (activeAccount) {
                 const accountId = activeAccount.uuid || activeAccount.id;
-                localStorage.setItem(`craftcorps_owned_cosmetics_${accountId}`, JSON.stringify(enriched));
+                localStorage.setItem(`Nortix_owned_cosmetics_${accountId}`, JSON.stringify(enriched));
             }
-            localStorage.setItem('craftcorps_cosmetic_catalog', JSON.stringify(enriched.map(c => ({
+            localStorage.setItem('Nortix_cosmetic_catalog', JSON.stringify(enriched.map(c => ({
                 ...c,
                 isOwned: false
             }))));
 
             // Update timestamp
             if (activeAccount) {
-                localStorage.setItem(`craftcorps_cosmetics_last_fetch_${activeAccount.uuid || activeAccount.id}`, Date.now().toString());
+                localStorage.setItem(`Nortix_cosmetics_last_fetch_${activeAccount.uuid || activeAccount.id}`, Date.now().toString());
             }
 
             // 5. Sync Active Cosmetics
@@ -292,7 +292,7 @@ export const useWardrobe = (activeAccount) => {
             const accountId = activeAccount.uuid || activeAccount.id;
             try {
                 // 1. Sync Active (Equipped) items
-                const savedActive = localStorage.getItem(`craftcorps_active_cosmetics_${accountId}`);
+                const savedActive = localStorage.getItem(`Nortix_active_cosmetics_${accountId}`);
                 if (savedActive) {
                     setActiveCosmetics(JSON.parse(savedActive));
                 } else {
@@ -300,7 +300,7 @@ export const useWardrobe = (activeAccount) => {
                 }
 
                 // 2. Sync Owned list (to avoid "locked" look)
-                const savedOwned = localStorage.getItem(`craftcorps_owned_cosmetics_${accountId}`);
+                const savedOwned = localStorage.getItem(`Nortix_owned_cosmetics_${accountId}`);
                 if (savedOwned) {
                     setOwnedCosmetics(JSON.parse(savedOwned));
                 } else {
@@ -351,7 +351,7 @@ export const useWardrobe = (activeAccount) => {
 
                     // Update fetch timestamp to prevent stale server data from overriding local state immediately
                     if (activeAccount) {
-                        localStorage.setItem(`craftcorps_cosmetics_last_fetch_${activeAccount.uuid || activeAccount.id}`, Date.now().toString());
+                        localStorage.setItem(`Nortix_cosmetics_last_fetch_${activeAccount.uuid || activeAccount.id}`, Date.now().toString());
                     }
                 } else {
                     addToast(`Previewing ${cosmetic.name} (Offline Mode)`, 'info');
@@ -497,7 +497,7 @@ export const useWardrobe = (activeAccount) => {
 
                 // Update fetch timestamp to preserve local changes
                 if (activeAccount) {
-                    localStorage.setItem(`craftcorps_cosmetics_last_fetch_${activeAccount.uuid || activeAccount.id}`, Date.now().toString());
+                    localStorage.setItem(`Nortix_cosmetics_last_fetch_${activeAccount.uuid || activeAccount.id}`, Date.now().toString());
                 }
             } else {
                 addToast(`Upload failed: ${uploadRes.error}`, "error");

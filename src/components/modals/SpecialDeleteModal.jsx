@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ShieldAlert, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,7 +16,7 @@ const SpecialDeleteModal = ({ isOpen, onClose, onConfirm, onNewInstance }) => {
 
                     <h3 className="text-2xl font-bold text-white text-center mb-3">Wait! That's a Special Instance</h3>
                     <p className="text-slate-400 text-center text-sm leading-relaxed mb-8">
-                        The <strong>CraftCorps Client</strong> is specifically pre-configured with performance mods and launcher optimizations.
+                        The <strong>Nortix Client</strong> is specifically pre-configured with performance mods and launcher optimizations.
                         If you want a fresh start, we recommend <strong>creating a new instance</strong> instead of deleting this one.
                     </p>
 

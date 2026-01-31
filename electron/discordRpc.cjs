@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron');
+﻿const { ipcMain } = require('electron');
 // const DiscordRPC = require('discord-rpc'); // Lazy loaded
 const log = require('electron-log');
 
@@ -35,7 +35,7 @@ function initDiscordRPC(startSuspended = false) {
                         state: 'Idling',
                         startTimestamp: Date.now(),
                         largeImageKey: 'icon',
-                        largeImageText: 'CraftCorps Launcher',
+                        largeImageText: 'Nortix Launcher',
                         instance: false,
                     });
                 }

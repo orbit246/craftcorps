@@ -1,11 +1,11 @@
-const { ipcMain } = require('electron');
+﻿const { ipcMain } = require('electron');
 const authService = require('../services/authService.cjs');
 const { handleSmartJoin, pingServer, findCompatibleInstance } = require('../services/smartJoinService.cjs');
 const log = require('electron-log');
 const fs = require('fs');
 const path = require('path');
 
-const API_BASE = 'https://api.craftcorps.net';
+const API_BASE = 'https://api.nortixlauncher.com';
 
 /**
  * Fetch discover servers from the backend

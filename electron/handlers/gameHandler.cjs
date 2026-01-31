@@ -1,4 +1,4 @@
-const { ipcMain, app } = require('electron');
+﻿const { ipcMain, app } = require('electron');
 const log = require('electron-log');
 const fs = require('fs');
 const path = require('path');
@@ -137,7 +137,7 @@ function setupGameHandlers(getMainWindow) {
                         state: options.version ? `Playing Minecraft ${options.version}` : 'Playing Minecraft',
                         startTimestamp: Date.now(),
                         largeImageKey: 'icon',
-                        largeImageText: 'CraftCorps Launcher',
+                        largeImageText: 'Nortix Launcher',
                         instance: true,
                         priority: 1
                     });
@@ -179,7 +179,7 @@ function setupGameHandlers(getMainWindow) {
                         state: 'Idling',
                         startTimestamp: Date.now(),
                         largeImageKey: 'icon',
-                        largeImageText: 'CraftCorps Launcher',
+                        largeImageText: 'Nortix Launcher',
                         instance: false,
                         priority: 0
                     });
@@ -436,7 +436,7 @@ const deleteInstanceFolder = async (event, folderPath) => {
 
     if (norm === root) return { success: false, error: 'Cannot delete root directory' };
     if (norm === appData) return { success: false, error: 'Cannot delete AppData/Home' };
-    if (!norm.includes('craftcorps') && !norm.includes('.minecraft')) {
+    if (!norm.includes('Nortix') && !norm.includes('.minecraft')) {
         // Extra paranoid check, though user might have custom paths.
         // Let's at least check it exists.
     }
@@ -560,7 +560,7 @@ const getNewInstancePath = async (event, name) => {
         // Special check: If we are creating the default client, try to reclaim the default folder if it lacks instance.json
         // This fixes the issue where a missing/corrupt instance.json causes a new folder (e.g. _1) to be created, 
         // losing access to previously downloaded mods.
-        if (name === 'CraftCorps Client') {
+        if (name === 'Nortix Client') {
             const potentialPath = path.join(instancesDir, finalName);
             if (fs.existsSync(potentialPath)) {
                 const jsonPath = path.join(potentialPath, 'instance.json');

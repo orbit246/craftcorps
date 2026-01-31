@@ -1,11 +1,11 @@
-const { ipcMain } = require('electron');
+﻿const { ipcMain } = require('electron');
 const authService = require('../services/authService.cjs');
 const log = require('electron-log');
 const { execFile } = require('child_process');
 const path = require('path');
 const os = require('os');
 
-const API_BASE = 'https://api.craftcorps.net';
+const API_BASE = 'https://api.nortixlauncher.com';
 
 /**
  * Smart Server Join Handler
@@ -115,15 +115,15 @@ async function checkInstanceCompatibility(instance, serverInfo) {
                 compareVersions(instanceVersion, maxVersion) <= 0;
 
             if (inRange || isCompatible) {
-                log.info(`[SmartJoin] ✓ Instance ${instance.name} is compatible`);
+                log.info(`[SmartJoin] âœ“ Instance ${instance.name} is compatible`);
                 return { compatible: true, instance };
             }
         } else if (isCompatible) {
-            log.info(`[SmartJoin] ✓ Instance ${instance.name} is compatible`);
+            log.info(`[SmartJoin] âœ“ Instance ${instance.name} is compatible`);
             return { compatible: true, instance };
         }
 
-        log.warn(`[SmartJoin] ✗ Version mismatch: Instance ${instanceVersion} not compatible with server ${serverVersionString}`);
+        log.warn(`[SmartJoin] âœ— Version mismatch: Instance ${instanceVersion} not compatible with server ${serverVersionString}`);
         return {
             compatible: false,
             reason: `Version mismatch: Instance is ${instanceVersion}, server needs ${serverVersionString}`
@@ -131,7 +131,7 @@ async function checkInstanceCompatibility(instance, serverInfo) {
     }
 
     // If no version info, assume compatible (let user try)
-    log.info(`[SmartJoin] ✓ No version constraints, assuming compatible`);
+    log.info(`[SmartJoin] âœ“ No version constraints, assuming compatible`);
     return { compatible: true, instance };
 }
 
@@ -155,7 +155,7 @@ async function findCompatibleInstance(serverInfo, getInstancesFn, lastUsedInstan
         if (lastUsedInstancePath) {
             const lastUsed = instances.find(i => i.path === lastUsedInstancePath);
             if (lastUsed) {
-                log.info(`[SmartJoin] ━━━ Checking SELECTED/LAST USED instance ━━━`);
+                log.info(`[SmartJoin] â”â”â” Checking SELECTED/LAST USED instance â”â”â”`);
                 log.info(`[SmartJoin]   Name: "${lastUsed.name}"`);
                 log.info(`[SmartJoin]   Version: ${lastUsed.version}`);
                 log.info(`[SmartJoin]   Loader: ${lastUsed.loader || 'vanilla'}`);
@@ -163,16 +163,16 @@ async function findCompatibleInstance(serverInfo, getInstancesFn, lastUsedInstan
                 const check = await checkInstanceCompatibility(lastUsed, serverInfo);
 
                 if (check.compatible) {
-                    log.info(`[SmartJoin] ✅ MATCH! Using selected/last used instance "${lastUsed.name}"`);
+                    log.info(`[SmartJoin] âœ… MATCH! Using selected/last used instance "${lastUsed.name}"`);
                     return { found: true, instance: lastUsed, reason: 'Selected/Last used instance' };
                 } else {
-                    log.warn(`[SmartJoin] ❌ Selected/last used instance not compatible: ${check.reason}`);
+                    log.warn(`[SmartJoin] âŒ Selected/last used instance not compatible: ${check.reason}`);
                 }
             }
         }
 
         // 2. Scan vanilla instances first (fastest to launch)
-        log.info('[SmartJoin] ━━━ Scanning VANILLA instances ━━━');
+        log.info('[SmartJoin] â”â”â” Scanning VANILLA instances â”â”â”');
         const vanillaInstances = instances.filter(i =>
             !i.loader || i.loader === 'vanilla' || i.loader === 'Vanilla'
         );
@@ -188,15 +188,15 @@ async function findCompatibleInstance(serverInfo, getInstancesFn, lastUsedInstan
             const check = await checkInstanceCompatibility(instance, serverInfo);
 
             if (check.compatible) {
-                log.info(`[SmartJoin] ✅ MATCH! Using vanilla instance "${instance.name}"`);
+                log.info(`[SmartJoin] âœ… MATCH! Using vanilla instance "${instance.name}"`);
                 return { found: true, instance, reason: 'Vanilla instance match' };
             } else {
-                log.warn(`[SmartJoin] ❌ Not compatible: ${check.reason}`);
+                log.warn(`[SmartJoin] âŒ Not compatible: ${check.reason}`);
             }
         }
 
         // 3. Scan modded instances
-        log.info('[SmartJoin] ━━━ Scanning MODDED instances ━━━');
+        log.info('[SmartJoin] â”â”â” Scanning MODDED instances â”â”â”');
         const moddedInstances = instances.filter(i =>
             i.loader && i.loader !== 'vanilla' && i.loader !== 'Vanilla'
         );
@@ -213,14 +213,14 @@ async function findCompatibleInstance(serverInfo, getInstancesFn, lastUsedInstan
             const check = await checkInstanceCompatibility(instance, serverInfo);
 
             if (check.compatible) {
-                log.info(`[SmartJoin] ✅ MATCH! Using modded instance "${instance.name}"`);
+                log.info(`[SmartJoin] âœ… MATCH! Using modded instance "${instance.name}"`);
                 return { found: true, instance, reason: 'Modded instance match' };
             } else {
-                log.warn(`[SmartJoin] ❌ Not compatible: ${check.reason}`);
+                log.warn(`[SmartJoin] âŒ Not compatible: ${check.reason}`);
             }
         }
 
-        log.warn('[SmartJoin] ⚠️ No compatible instance found - will create new one');
+        log.warn('[SmartJoin] âš ï¸ No compatible instance found - will create new one');
         return { found: false, reason: 'No compatible instance found' };
 
     } catch (error) {

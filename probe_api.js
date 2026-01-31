@@ -1,6 +1,6 @@
-// Native fetch assumed
+﻿// Native fetch assumed
 
-const BASE_URL = 'https://api.craftcorps.net';
+const BASE_URL = 'https://api.nortixlauncher.com';
 
 async function probe() {
     const endpoints = [

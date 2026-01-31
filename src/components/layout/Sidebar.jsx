@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+﻿import React, { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sprout, Play, FolderMinus, Box, Settings, Shirt, Store, Gift, PanelLeftClose, PanelLeftOpen, Star, User } from 'lucide-react';
 import SidebarItem from './SidebarItem';
@@ -99,12 +99,12 @@ const Sidebar = ({ activeTab, onTabChange, theme, onSelectRunningInstance }) => 
                         {/* <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-110 animate-pulse" /> */}
                         <img
                             src="images/cc-logo.png"
-                            alt="CraftCorps"
+                            alt="Nortix"
                             className="w-full h-full object-contain scale-[0.8] transform-gpu drop-shadow-[0_0_12px_rgba(16,185,129,0.4)] z-10"
                         />
                     </div>
                     <h1 className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-200 transition-all duration-500 ease-out overflow-hidden ${width < 180 || isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[200px] ml-3'}`}>
-                        CraftCorps
+                        Nortix
                     </h1>
                 </div>
 

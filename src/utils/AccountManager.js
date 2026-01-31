@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Centralized account management utility
  * Provides consistent access to active account data across the app
  */
@@ -11,11 +11,11 @@ class AccountManager {
     static async getActiveAccount() {
         // Get from localStorage (where useAccounts hook stores it!)
         try {
-            const saved = localStorage.getItem('craftcorps_active_account');
+            const saved = localStorage.getItem('Nortix_active_account');
             if (saved) {
                 const activeAccount = JSON.parse(saved);
                 if (activeAccount && activeAccount.uuid) {
-                    console.log('[AccountManager] ✅ Using active account from localStorage:', {
+                    console.log('[AccountManager] âœ… Using active account from localStorage:', {
                         name: activeAccount.name,
                         type: activeAccount.type,
                         uuid: activeAccount.uuid?.substring(0, 8) + '...'

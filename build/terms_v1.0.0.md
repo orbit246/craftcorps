@@ -1,26 +1,26 @@
-# TERMS OF SERVICE
+﻿# TERMS OF SERVICE
 
-**CraftCorps Launcher & Server Discovery**
+**Nortix Launcher & Server Discovery**
 
 *Last updated: 2026-01-18*
 
-## 1. About CraftCorps
+## 1. About Nortix
 
-CraftCorps (“CraftCorps”, “we”, “us”, “our”) provides a desktop launcher and server discovery platform that allows users to browse, discover, and connect to multiplayer game servers operated by third parties.
+Nortix (â€œNortixâ€, â€œweâ€, â€œusâ€, â€œourâ€) provides a desktop launcher and server discovery platform that allows users to browse, discover, and connect to multiplayer game servers operated by third parties.
 
-CraftCorps does **not** own, operate, or control most servers, games, or services accessed through the platform. We act solely as a launcher, facilitator, and discovery layer.
+Nortix does **not** own, operate, or control most servers, games, or services accessed through the platform. We act solely as a launcher, facilitator, and discovery layer.
 
 ## 2. Eligibility & Minimum Age
 
-You must be **at least 13 years old** to use CraftCorps.
+You must be **at least 13 years old** to use Nortix.
 
 If you are under the age of majority in your jurisdiction, you represent that you have permission from a parent or legal guardian.
 
-CraftCorps does not knowingly provide services to children under 13.
+Nortix does not knowingly provide services to children under 13.
 
 ## 3. Acceptance of Terms
 
-By installing, accessing, or using the CraftCorps launcher or any related features, you agree to these Terms of Service and the Privacy Policy.
+By installing, accessing, or using the Nortix launcher or any related features, you agree to these Terms of Service and the Privacy Policy.
 
 If you do not agree, you may not use the service.
 
@@ -35,19 +35,19 @@ You are responsible for all activity performed through your account.
 
 ### 4.2 Account Linking & Authentication
 
-CraftCorps may integrate with third-party authentication providers, including the **Mojang API**, to enable game authentication.
+Nortix may integrate with third-party authentication providers, including the **Mojang API**, to enable game authentication.
 
 When you authenticate through Mojang or other providers:
 
 * authentication is handled by the third party,
 * their own terms and privacy policies apply,
-* CraftCorps does not control their systems or availability.
+* Nortix does not control their systems or availability.
 
-CraftCorps is not responsible for authentication service outages, changes, or decisions made by third-party providers.
+Nortix is not responsible for authentication service outages, changes, or decisions made by third-party providers.
 
 ### 4.3 Email Collection
 
-CraftCorps may optionally collect email addresses for purposes such as:
+Nortix may optionally collect email addresses for purposes such as:
 
 * early access registrations,
 * beta participation,
@@ -65,7 +65,7 @@ Server listings are provided by:
 * server owners, or
 * public or third-party sources.
 
-CraftCorps does **not** guarantee:
+Nortix does **not** guarantee:
 
 * server availability or uptime,
 * accuracy or completeness of listings,
@@ -94,7 +94,7 @@ Server owners are responsible for:
 * compliance with applicable laws,
 * user experience on their servers.
 
-CraftCorps may verify ownership and may restrict, hide, or remove listings that violate platform rules or pose risk to users or the platform.
+Nortix may verify ownership and may restrict, hide, or remove listings that violate platform rules or pose risk to users or the platform.
 
 ## 7. User Actions & Platform Integrity
 
@@ -114,7 +114,7 @@ You may not:
 
 ### 7.3 Abuse Prevention
 
-CraftCorps uses automated safeguards to detect and prevent abusive or manipulative activity, including weighted evaluation of interaction and technical signals.
+Nortix uses automated safeguards to detect and prevent abusive or manipulative activity, including weighted evaluation of interaction and technical signals.
 
 These safeguards may result in:
 
@@ -127,7 +127,7 @@ These measures are intended to protect platform integrity and fairness and do no
 
 ## 8. Playtime Tracking & Activity Metrics
 
-CraftCorps may track playtime and activity information associated with your account in order to:
+Nortix may track playtime and activity information associated with your account in order to:
 
 * display playtime information to you,
 * enable progression, cosmetic, or beta systems,
@@ -140,7 +140,7 @@ Playtime tracking is informational and feature-related and does not imply monito
 
 ### 9.1 Beta, Promotional & Discretionary Rewards
 
-CraftCorps may offer beta, promotional, or experimental reward programs, including cosmetics or account features.
+Nortix may offer beta, promotional, or experimental reward programs, including cosmetics or account features.
 
 Participation metrics (such as playtime or invitations) represent **participation only**.
 Rewards, if offered, are **discretionary**, **subject to change**, and **not guaranteed**.
@@ -155,14 +155,14 @@ Cosmetic items and virtual rewards:
 
 ### 9.3 Referrals, Invites & Incentives
 
-CraftCorps may offer incentives related to actions such as:
+Nortix may offer incentives related to actions such as:
 
 * inviting friends,
 * account activations,
 * playtime milestones,
 * beta participation.
 
-Eligibility does not guarantee delivery. CraftCorps reserves the right to modify, delay, withhold, revoke, or discontinue reward programs at any time, including for abuse prevention or technical reasons.
+Eligibility does not guarantee delivery. Nortix reserves the right to modify, delay, withhold, revoke, or discontinue reward programs at any time, including for abuse prevention or technical reasons.
 
 Failure to deliver a discretionary reward does **not** constitute a breach of these Terms.
 
@@ -170,7 +170,7 @@ Failure to deliver a discretionary reward does **not** constitute a breach of th
 
 ### 10.1 Use of Third-Party Services
 
-CraftCorps relies on third-party services to operate certain features. These may include, but are not limited to:
+Nortix relies on third-party services to operate certain features. These may include, but are not limited to:
 
 * **Cloudflare** (network delivery, security, and performance),
 * **Modrinth** (mod and content distribution),
@@ -184,21 +184,21 @@ These services operate independently and are governed by their own terms and pri
 
 Third-party services may collect data directly from you in accordance with their own policies.
 
-CraftCorps does **not** control how these providers process data and is **not responsible** for their practices. Users are encouraged to review applicable third-party policies.
+Nortix does **not** control how these providers process data and is **not responsible** for their practices. Users are encouraged to review applicable third-party policies.
 
 ## 11. Game Launching & In-Game Activity
 
-CraftCorps acts solely as a **launcher and facilitator**.
+Nortix acts solely as a **launcher and facilitator**.
 
 * We do **not** modify, control, or monitor gameplay.
 * We do **not** operate game servers.
 * We do **not** control in-game moderation, content, or conduct.
 
-All in-game activity is governed by the game publisher’s terms and the server operator’s rules. CraftCorps is not responsible for in-game behavior, disputes, or outcomes.
+All in-game activity is governed by the game publisherâ€™s terms and the server operatorâ€™s rules. Nortix is not responsible for in-game behavior, disputes, or outcomes.
 
 ## 12. Analytics & Diagnostics
 
-CraftCorps may process limited technical and interaction data to:
+Nortix may process limited technical and interaction data to:
 
 * operate and secure the service,
 * detect abuse,
@@ -209,7 +209,7 @@ Optional usage analytics may be offered separately and are subject to user choic
 
 ## 13. Suspension & Termination
 
-CraftCorps reserves the right to:
+Nortix reserves the right to:
 
 * suspend or terminate accounts,
 * restrict access to features,
@@ -227,23 +227,23 @@ Such actions may occur **with or without notice**, where appropriate.
 
 ## 14. Availability & Changes
 
-CraftCorps may modify, suspend, or discontinue features at any time.
+Nortix may modify, suspend, or discontinue features at any time.
 
 We do not guarantee uninterrupted, timely, or error-free operation.
 
 ## 15. Disclaimer of Warranties
 
-The service is provided **“as is” and “as available.”**
+The service is provided **â€œas isâ€ and â€œas available.â€**
 
 To the maximum extent permitted by law:
 
-* CraftCorps disclaims all warranties,
+* Nortix disclaims all warranties,
 * third-party servers and services are not guaranteed,
 * rankings, metrics, cosmetics, rewards, and features may change or be unavailable.
 
 ## 16. Limitation of Liability
 
-To the maximum extent permitted by law, CraftCorps is not liable for:
+To the maximum extent permitted by law, Nortix is not liable for:
 
 * third-party server behavior,
 * in-game activity or content,
@@ -261,4 +261,4 @@ Material changes will be communicated through the application or website. Contin
 ## 18. Contact
 
 Questions about these Terms may be directed to:
-📧 **[support@craftcorps.net](mailto:support@craftcorps.net)**
+ğŸ“§ **[support@nortixlauncher.com](mailto:support@nortixlauncher.com)**

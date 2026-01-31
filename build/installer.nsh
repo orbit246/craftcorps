@@ -1,5 +1,5 @@
-; Add branding text to the bottom of the installer
-BrandingText "CraftCorps"
+﻿; Add branding text to the bottom of the installer
+BrandingText "Nortix"
 
 !macro customHeader
   ; Custom header logic

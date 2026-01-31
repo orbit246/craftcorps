@@ -1,4 +1,4 @@
-const { ipcMain, dialog, app } = require('electron');
+﻿const { ipcMain, dialog, app } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const log = require('electron-log');
@@ -186,9 +186,9 @@ async function handlePerformImport(event, sourcePath) {
  * Logic:
  * 1. User selects a folder.
  * 2. We analyze the folder for instance metadata (minecraftinstance.json or manifest.json).
- * 3. We create a new instance in CraftCorps 'instances' directory.
+ * 3. We create a new instance in Nortix 'instances' directory.
  * 4. We recursively copy contents (Async) to avoid freezing UI.
- * 5. We generate a CraftCorps instance.json.
+ * 5. We generate a Nortix instance.json.
  * 6. Return the new instance object.
  */
 function setupImportHandlers() {

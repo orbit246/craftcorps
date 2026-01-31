@@ -1,18 +1,18 @@
-# PRIVACY POLICY
+﻿# PRIVACY POLICY
 
-**CraftCorps Launcher & Server Discovery**
+**Nortix Launcher & Server Discovery**
 
 *Last updated: 2026-01-18*
 
 ## 1. Overview
 
-This Privacy Policy explains how CraftCorps (“CraftCorps”, “we”, “us”, “our”) collects, uses, and processes information when you use the CraftCorps launcher, server discovery features, and related services.
+This Privacy Policy explains how Nortix (â€œNortixâ€, â€œweâ€, â€œusâ€, â€œourâ€) collects, uses, and processes information when you use the Nortix launcher, server discovery features, and related services.
 
 Some of the data we process may be considered **personal data** or **borderline personal data** (sometimes referred to as PII) depending on jurisdiction and context. We aim to be transparent about where those boundaries exist.
 
 ## 2. Who We Are (Data Controller)
 
-CraftCorps is the **data controller** for information processed through the CraftCorps launcher and services.
+Nortix is the **data controller** for information processed through the Nortix launcher and services.
 
 Third-party services we use may act as **data processors** or **independent controllers**, as described below.
 
@@ -58,9 +58,9 @@ IP addresses are not used for advertising or long-term tracking and may be trunc
 When you authenticate using third-party providers (such as the **Mojang / Microsoft API**):
 
 * authentication is handled by the provider,
-* CraftCorps receives confirmation necessary to launch or connect the game.
+* Nortix receives confirmation necessary to launch or connect the game.
 
-Minecraft authentication tokens and credentials are stored **locally on your device** and are **not stored on CraftCorps servers**.
+Minecraft authentication tokens and credentials are stored **locally on your device** and are **not stored on Nortix servers**.
 
 In the future, we may offer optional features that involve server-side token handling. If this occurs, this Privacy Policy will be updated and users will be informed.
 
@@ -185,13 +185,13 @@ We use collected information to:
 
 Where applicable, we process data under the following legal bases:
 
-* **Contract necessity** – to provide the service you use,
-* **Legitimate interests** – for security, abuse prevention, reliability, and analytics,
-* **Consent** – where explicitly requested (such as email communications or optional analytics).
+* **Contract necessity** â€“ to provide the service you use,
+* **Legitimate interests** â€“ for security, abuse prevention, reliability, and analytics,
+* **Consent** â€“ where explicitly requested (such as email communications or optional analytics).
 
 ## 7. Automated Processing
 
-CraftCorps uses automated systems to:
+Nortix uses automated systems to:
 
 * rank and display servers,
 * detect abuse or manipulation,
@@ -203,7 +203,7 @@ We do not use personal data to train general-purpose artificial intelligence mod
 
 ## 8. Third-Party Services
 
-CraftCorps relies on third-party services to operate parts of the platform, including but not limited to:
+Nortix relies on third-party services to operate parts of the platform, including but not limited to:
 
 * **Cloudflare** (network delivery and security),
 * **Modrinth** (mod and content distribution),
@@ -241,9 +241,9 @@ We apply reasonable technical and organizational measures to protect data from u
 
 No system is completely secure, and use of the service is at your own risk.
 
-## 12. Children’s Privacy
+## 12. Childrenâ€™s Privacy
 
-CraftCorps does not knowingly collect personal data from children under 13. If you believe a child has provided data, please contact us.
+Nortix does not knowingly collect personal data from children under 13. If you believe a child has provided data, please contact us.
 
 ## 13. Changes to This Policy
 
@@ -254,6 +254,6 @@ Material changes will be communicated through the application or website. Contin
 ## 14. Contact
 
 For privacy-related questions or requests, contact us at:
-📧 **[privacy@craftcorps.net](mailto:privacy@craftcorps.net)**
+ğŸ“§ **[privacy@nortixlauncher.com](mailto:privacy@nortixlauncher.com)**
 
 **End of Privacy Policy**

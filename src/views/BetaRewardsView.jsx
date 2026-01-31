@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Gift, HelpCircle, Clock, Users, Share2, Clipboard, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 
@@ -93,7 +93,7 @@ const ProgressBar = ({ current, milestones, theme, label, icon: Icon, action }) 
             <div className="flex flex-col items-center justify-center gap-4 mt-8">
                 <p className={`text-base text-center font-medium ${theme === 'white' ? 'text-slate-500' : 'text-slate-400'}`}>
                     {label.includes('Play') ? (
-                        "Play time is automatically recorded while you play using CraftCorps."
+                        "Play time is automatically recorded while you play using Nortix."
                     ) : (
                         "Invite friends to join the beta and be eligible for exclusive cosmetic rewards!"
                     )}

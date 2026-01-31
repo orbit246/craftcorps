@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
     Box, X, Play, Clock, Activity, Paintbrush, Settings, Folder, ExternalLink, Power, Plus, Pencil, Zap, ShieldCheck
 } from 'lucide-react';
@@ -45,7 +45,7 @@ const InstanceHero = React.memo(({
     const popoverRef = React.useRef(null);
     const launchAsRef = React.useRef(null);
 
-    const heroBg = selectedInstance?.name === 'CraftCorps Client' ? '/images/hero-bg-cc.png' : '/images/hero-bg.png';
+    const heroBg = selectedInstance?.name === 'Nortix Client' ? '/images/hero-bg-cc.png' : '/images/hero-bg.png';
 
     // Close popover on click outside
     useEffect(() => {
@@ -141,10 +141,10 @@ const InstanceHero = React.memo(({
                     <div className="flex justify-between items-start">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2">
-                                {selectedInstance.name === 'CraftCorps Client' && (
+                                {selectedInstance.name === 'Nortix Client' && (
                                     <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                                         <ShieldCheck size={10} className="fill-emerald-500/20" />
-                                        CraftCorps Verified
+                                        Nortix Verified
                                     </span>
                                 )}
                                 {isModdedContent && (
@@ -456,7 +456,7 @@ const InstanceHero = React.memo(({
                                                                 </div>
                                                                 <div className="flex flex-col min-w-0">
                                                                     <span className="text-xs font-bold text-white truncate">{inst.name}</span>
-                                                                    <span className="text-[10px] text-slate-500 truncate">{inst.username} • {inst.version}</span>
+                                                                    <span className="text-[10px] text-slate-500 truncate">{inst.username} â€¢ {inst.version}</span>
                                                                 </div>
                                                             </div>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Cpu, Globe, Monitor, Terminal, Palette } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../contexts/ToastContext';
@@ -17,16 +17,16 @@ const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHid
 
     const languages = [
         { code: 'en', label: 'English' },
-        { code: 'es', label: 'Español' },
-        { code: 'pt-BR', label: 'Português (Brasil)' },
-        { code: 'fr', label: 'Français' },
+        { code: 'es', label: 'EspaÃ±ol' },
+        { code: 'pt-BR', label: 'PortuguÃªs (Brasil)' },
+        { code: 'fr', label: 'FranÃ§ais' },
         { code: 'de', label: 'Deutsch' },
-        { code: 'ru', label: 'Русский' },
-        { code: 'tr', label: 'Türkçe' },
+        { code: 'ru', label: 'Ğ ÑƒÑÑĞºĞ¸Ğ¹' },
+        { code: 'tr', label: 'TÃ¼rkÃ§e' },
         { code: 'pl', label: 'Polski' },
-        { code: 'zh', label: '中文' },
-        { code: 'ja', label: '日本語' },
-        { code: 'ko', label: '한국어' }
+        { code: 'zh', label: 'ä¸­æ–‡' },
+        { code: 'ja', label: 'æ—¥æœ¬èª' },
+        { code: 'ko', label: 'í•œêµ­ì–´' }
     ];
 
     const handleBrowseJava = async () => {
@@ -319,10 +319,10 @@ const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHid
                         </p>
                     )}
                     <p className="text-slate-600 text-xs font-mono">
-                        CraftCorps Launcher v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}
+                        Nortix Launcher v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}
                     </p>
                     <p className="text-slate-700 text-[10px] mt-1">
-                        &copy; 2025 CraftCorps Authors
+                        &copy; 2025 Nortix Authors
                     </p>
                 </div>
             </div>

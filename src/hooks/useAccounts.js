@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 
 export const useAccounts = () => {
     const [accounts, setAccounts] = useState(() => {
         try {
-            const saved = localStorage.getItem('craftcorps_accounts');
+            const saved = localStorage.getItem('Nortix_accounts');
             return saved ? JSON.parse(saved) : [];
         } catch (e) {
             console.error("Failed to load accounts", e);
@@ -13,7 +13,7 @@ export const useAccounts = () => {
 
     const [activeAccount, setActiveAccount] = useState(() => {
         try {
-            const saved = localStorage.getItem('craftcorps_active_account');
+            const saved = localStorage.getItem('Nortix_active_account');
             return saved ? JSON.parse(saved) : null;
         } catch (e) {
             return null;
@@ -25,6 +25,7 @@ export const useAccounts = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const [authError, setAuthError] = useState(false);
+    const [isServicesOffline, setIsServicesOffline] = useState(false);
 
     // Track active account ID to prevent race conditions during async refresh
     const activeAccountIdRef = useRef(activeAccount?.id);
@@ -37,6 +38,21 @@ export const useAccounts = () => {
     const refreshAccounts = useCallback(async () => {
         // Prevent double refresh
         if (isRefreshing || !window.electronAPI?.microsoftRefresh) return;
+
+        // Check backend health parallel to Microsoft refresh
+        if (window.electronAPI?.refreshBackendSession) {
+            window.electronAPI.refreshBackendSession().then(res => {
+                if (!res.success && activeAccount?.type !== 'Offline') {
+                    // Only flag offline if we actually have a session to refresh using
+                    if (activeAccount?.refreshToken) {
+                        console.warn('[Auth] Backend session refresh failed, flagging services offline');
+                        setIsServicesOffline(true);
+                    }
+                } else if (res.success) {
+                    setIsServicesOffline(false);
+                }
+            }).catch(() => setIsServicesOffline(true));
+        }
 
         const accountsToRefresh = accounts.filter(a => a.type === 'Microsoft' && (a.minecraftRefreshToken || a.refreshToken));
         if (accountsToRefresh.length === 0) return;
@@ -78,13 +94,13 @@ export const useAccounts = () => {
 
         if (updatesMade) {
             setAccounts(currentAccounts);
-            localStorage.setItem('craftcorps_accounts', JSON.stringify(currentAccounts));
+            localStorage.setItem('Nortix_accounts', JSON.stringify(currentAccounts));
 
             if (activeAccountIdRef.current) {
                 const updatedActive = currentAccounts.find(a => a.id === activeAccountIdRef.current);
                 if (updatedActive) {
                     setActiveAccount(updatedActive);
-                    localStorage.setItem('craftcorps_active_account', JSON.stringify(updatedActive));
+                    localStorage.setItem('Nortix_active_account', JSON.stringify(updatedActive));
                 }
             }
             console.log(`[Auth] Refresh cycle complete. Updates made.`);
@@ -97,7 +113,7 @@ export const useAccounts = () => {
         }
 
         setTimeout(() => setIsRefreshing(false), 500);
-    }, [accounts, isRefreshing]);
+    }, [accounts, isRefreshing, activeAccount]);
 
     // Auto-refresh tokens on startup
     useEffect(() => {
@@ -122,24 +138,49 @@ export const useAccounts = () => {
         };
     }, [authError, isRefreshing, refreshAccounts]);
 
+    // Independent Service Health Check
+    useEffect(() => {
+        if (!window.electronAPI?.checkServerStatus) return;
+
+        const checkHealth = async () => {
+            const online = await window.electronAPI.checkServerStatus();
+            setIsServicesOffline(!online);
+            if (!online) console.warn('[Auth] Services detected offline via Independent Check');
+        };
+
+        // Check immediately
+        checkHealth();
+
+        // Check every 30s
+        const interval = setInterval(checkHealth, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
     const handleAccountSwitch = (account) => {
         setActiveAccount(account);
-        localStorage.setItem('craftcorps_active_account', JSON.stringify(account));
+        localStorage.setItem('Nortix_active_account', JSON.stringify(account));
         setShowProfileMenu(false);
     };
 
     const handleAddAccount = (newAccount) => {
         const updatedAccounts = [...accounts, { ...newAccount, id: `acc_${Date.now()}` }];
         setAccounts(updatedAccounts);
-        localStorage.setItem('craftcorps_accounts', JSON.stringify(updatedAccounts));
+        localStorage.setItem('Nortix_accounts', JSON.stringify(updatedAccounts));
+
+        // Check for offline login marker
+        if (newAccount.type === 'Microsoft' && !newAccount.accessToken) {
+            setIsServicesOffline(true);
+        } else if (newAccount.type === 'Microsoft' && newAccount.accessToken) {
+            setIsServicesOffline(false);
+        }
 
         // Auto-select if first account
         if (updatedAccounts.length === 1 || !activeAccount) {
             setActiveAccount(updatedAccounts[0]);
-            localStorage.setItem('craftcorps_active_account', JSON.stringify(updatedAccounts[0]));
+            localStorage.setItem('Nortix_active_account', JSON.stringify(updatedAccounts[0]));
         } else {
             setActiveAccount(updatedAccounts[updatedAccounts.length - 1]);
-            localStorage.setItem('craftcorps_active_account', JSON.stringify(updatedAccounts[updatedAccounts.length - 1]));
+            localStorage.setItem('Nortix_active_account', JSON.stringify(updatedAccounts[updatedAccounts.length - 1]));
         }
         setShowLoginModal(false);
     };
@@ -148,14 +189,14 @@ export const useAccounts = () => {
         if (!activeAccount) return;
         const newAccounts = accounts.filter(a => a.id !== activeAccount.id);
         setAccounts(newAccounts);
-        localStorage.setItem('craftcorps_accounts', JSON.stringify(newAccounts));
+        localStorage.setItem('Nortix_accounts', JSON.stringify(newAccounts));
 
         const nextAccount = newAccounts.length > 0 ? newAccounts[0] : null;
         setActiveAccount(nextAccount);
         if (nextAccount) {
-            localStorage.setItem('craftcorps_active_account', JSON.stringify(nextAccount));
+            localStorage.setItem('Nortix_active_account', JSON.stringify(nextAccount));
         } else {
-            localStorage.removeItem('craftcorps_active_account');
+            localStorage.removeItem('Nortix_active_account');
         }
         setShowProfileMenu(false);
     };
@@ -163,9 +204,25 @@ export const useAccounts = () => {
     const handleLogoutAll = () => {
         setAccounts([]);
         setActiveAccount(null);
-        localStorage.removeItem('craftcorps_accounts');
-        localStorage.removeItem('craftcorps_active_account');
+        localStorage.removeItem('Nortix_accounts');
+        localStorage.removeItem('Nortix_active_account');
         setShowProfileMenu(false);
+    };
+
+    const handleRemoveAccount = (accountId) => {
+        const newAccounts = accounts.filter(a => a.id !== accountId);
+        setAccounts(newAccounts);
+        localStorage.setItem('Nortix_accounts', JSON.stringify(newAccounts));
+
+        if (activeAccount?.id === accountId) {
+            const nextAccount = newAccounts.length > 0 ? newAccounts[0] : null;
+            setActiveAccount(nextAccount);
+            if (nextAccount) {
+                localStorage.setItem('Nortix_active_account', JSON.stringify(nextAccount));
+            } else {
+                localStorage.removeItem('Nortix_active_account');
+            }
+        }
     };
 
     const handleRefreshBackend = async () => {
@@ -183,8 +240,8 @@ export const useAccounts = () => {
             // Sync to accounts list
             const updatedAccounts = accounts.map(a => a.id === activeAccount.id ? updated : a);
             setAccounts(updatedAccounts);
-            localStorage.setItem('craftcorps_accounts', JSON.stringify(updatedAccounts));
-            localStorage.setItem('craftcorps_active_account', JSON.stringify(updated));
+            localStorage.setItem('Nortix_accounts', JSON.stringify(updatedAccounts));
+            localStorage.setItem('Nortix_active_account', JSON.stringify(updated));
             return true;
         }
         console.warn('[Auth] Backend refresh failed.');
@@ -203,9 +260,12 @@ export const useAccounts = () => {
         handleAddAccount,
         handleLogout,
         handleLogoutAll,
+        handleRemoveAccount,
         handleRefreshBackend,
         isRefreshing,
         authError,
+        isServicesOffline,
+        setIsServicesOffline,
         refreshAccounts
     };
 };

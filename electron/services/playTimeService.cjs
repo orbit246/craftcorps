@@ -1,4 +1,4 @@
-const log = require('electron-log');
+﻿const log = require('electron-log');
 const telemetryService = require('./telemetryService.cjs');
 const authService = require('./authService.cjs');
 const discordRpc = require('../discordRpc.cjs');
@@ -41,7 +41,7 @@ function notify() {
 }
 
 const activeSessions = {};
-const API_BASE = 'https://api.craftcorps.net'; // Assuming this base, or should I use authService base?
+const API_BASE = 'https://api.nortixlauncher.com'; // Assuming this base, or should I use authService base?
 
 // Caching System
 const cache = {};
@@ -358,7 +358,7 @@ async function sendHeartbeat() {
                     state: session.version ? `Playing Minecraft ${session.version}` : 'Playing Minecraft',
                     startTimestamp: session.startTime || Date.now(),
                     largeImageKey: 'icon',
-                    largeImageText: 'CraftCorps Launcher',
+                    largeImageText: 'Nortix Launcher',
                     instance: true,
                     priority: 1
                 });

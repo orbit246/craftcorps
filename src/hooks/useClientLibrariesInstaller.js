@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+﻿import { useState, useEffect, useMemo, useRef } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
 export const useClientLibrariesInstaller = (selectedInstance, installedMods, onRefreshMods, isLoadingMods, isLoadingInstances, launchStatus) => {
@@ -124,7 +124,7 @@ export const useClientLibrariesInstaller = (selectedInstance, installedMods, onR
         const untriedMods = missingManifestMods.filter(m => !ignoredMods.includes(m.id));
 
         // Use a ref or simple check to ensure we don't spam
-        const isClient = selectedInstance?.name === 'CraftCorps Client';
+        const isClient = selectedInstance?.name === 'Nortix Client';
 
         if (isClient &&
             untriedMods.length > 0 &&

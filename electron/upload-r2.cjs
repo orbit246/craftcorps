@@ -1,4 +1,4 @@
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+﻿const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
 const path = require('path');
 const mime = require('mime-types');
@@ -44,9 +44,9 @@ async function uploadFile(filePath) {
             ContentType: contentType,
             // ACL: 'public-read', // R2 custom domains are usually public by default if configured
         }));
-        console.log(`✅ Uploaded ${fileName}`);
+        console.log(`âœ… Uploaded ${fileName}`);
     } catch (err) {
-        console.error(`❌ Failed to upload ${fileName}:`, err.message);
+        console.error(`âŒ Failed to upload ${fileName}:`, err.message);
         throw err;
     }
 }
@@ -73,7 +73,7 @@ async function main() {
         const isCanaryDir = filePath.includes('canary') || filePath.includes('Canary');
         const fileName = path.basename(filePath);
         if (isCanaryDir && fileName.endsWith('.yml')) {
-            console.warn(`⚠️ Skipping dangerous artifact: ${filePath} (Would overwrite stable metadata)`);
+            console.warn(`âš ï¸ Skipping dangerous artifact: ${filePath} (Would overwrite stable metadata)`);
             return false;
         }
         return true;
@@ -101,7 +101,7 @@ async function main() {
             const size = fs.statSync(exeArtifact).size;
             const fileName = path.basename(exeArtifact);
 
-            // Extract version from filename (CraftCorps-Canary-Setup-0.3.5.exe)
+            // Extract version from filename (Nortix-Canary-Setup-0.3.5.exe)
             const versionMatch = fileName.match(/(\d+\.\d+\.\d+)/);
             const version = versionMatch ? versionMatch[0] : require('../package.json').version;
 
@@ -213,12 +213,12 @@ releaseDate: ${new Date().toISOString()}
         await uploadFile(filePath);
     }
 
-    console.log('🚀 All files uploaded successfully to R2!');
+    console.log('ğŸš€ All files uploaded successfully to R2!');
 
     // Revalidate website
     const revalidationToken = process.env.REVALIDATION_TOKEN;
-    // Default to craftcorps.net if not specified, but allow override
-    const revalidationUrl = process.env.REVALIDATION_URL || 'https://craftcorps.net/api/revalidate';
+    // Default to nortixlauncher.com if not specified, but allow override
+    const revalidationUrl = process.env.REVALIDATION_URL || 'https://nortixlauncher.com/api/revalidate';
 
     if (revalidationToken) {
         console.log(`Triggering website revalidation at ${revalidationUrl}...`);
@@ -232,17 +232,17 @@ releaseDate: ${new Date().toISOString()}
 
             if (response.ok) {
                 const data = await response.json().catch(() => ({}));
-                console.log('✅ Website revalidation successful:', data);
+                console.log('âœ… Website revalidation successful:', data);
             } else {
-                console.warn(`⚠️ Website revalidation failed: ${response.status} ${response.statusText}`);
+                console.warn(`âš ï¸ Website revalidation failed: ${response.status} ${response.statusText}`);
                 const text = await response.text();
                 console.warn('Response:', text);
             }
         } catch (e) {
-            console.error('❌ Error triggering revalidation:', e);
+            console.error('âŒ Error triggering revalidation:', e);
         }
     } else {
-        console.log('ℹ️ REVALIDATION_TOKEN not set, skipping website revalidation.');
+        console.log('â„¹ï¸ REVALIDATION_TOKEN not set, skipping website revalidation.');
     }
 }
 

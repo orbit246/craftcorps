@@ -1,6 +1,6 @@
 {
-    "productName": "CraftCorps Canary",
-    "appId": "com.craftcorps.launcher.canary",
+    "productName": "Nortix Canary",
+    "appId": "com.nortix.launcher.canary",
     "extraMetadata": {
         "isCanary": true
     },
@@ -8,18 +8,18 @@
         "output": "release/canary"
     },
     "win": {
-        "artifactName": "CraftCorps-Canary-Setup-${version}.exe"
+        "artifactName": "Nortix-Canary-Setup-${version}.exe"
     },
     "mac": {
-        "artifactName": "CraftCorps-Canary-Setup-${version}-${arch}.${ext}"
+        "artifactName": "Nortix-Canary-Setup-${version}-${arch}.${ext}"
     },
     "linux": {
-        "artifactName": "CraftCorps-Canary-Setup-${version}.${ext}"
+        "artifactName": "Nortix-Canary-Setup-${version}.${ext}"
     },
     "nsis": {
-        "artifactName": "CraftCorps-Canary-Setup-${version}.exe",
+        "artifactName": "Nortix-Canary-Setup-${version}.exe",
         "createDesktopShortcut": true,
         "createStartMenuShortcut": true,
-        "shortcutName": "CraftCorps Canary"
+        "shortcutName": "Nortix Canary"
     }
 }

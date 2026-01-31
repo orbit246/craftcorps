@@ -1,9 +1,9 @@
 {
-  "name": "craftcorps-launcher",
+  "name": "nortix-launcher",
   "private": true,
   "version": "0.4.0",
   "main": "electron/main.cjs",
-  "author": "CraftCorps Authors",
+  "author": "Nortix Authors",
   "description": "Premium Minecraft Instance Manager",
   "type": "module",
   "scripts": {
@@ -25,15 +25,15 @@
     "marketing": "node scripts/generate-marketing-assets.cjs"
   },
   "build": {
-    "appId": "com.craftcorps.launcher",
-    "productName": "CraftCorps",
+    "appId": "com.nortix.launcher",
+    "productName": "Nortix",
     "directories": {
       "output": "release"
     },
     "publish": [
       {
         "provider": "generic",
-        "url": "https://download.craftcorps.net/"
+        "url": "https://download.nortixlauncher.com/"
       }
     ],
     "files": [
@@ -44,7 +44,7 @@
     "win": {
       "target": "nsis",
       "icon": "public/images/cc-logo.png",
-      "artifactName": "CraftCorps Setup ${version}.exe"
+      "artifactName": "Nortix Setup ${version}.exe"
     },
     "mac": {
       "target": {
@@ -56,14 +56,14 @@
       },
       "category": "public.app-category.games",
       "icon": "public/images/cc-logo.png",
-      "artifactName": "CraftCorps Setup ${version} ${arch}.${ext}"
+      "artifactName": "Nortix Setup ${version} ${arch}.${ext}"
     },
     "compression": "maximum",
     "linux": {
       "target": "AppImage",
       "icon": "public/images/cc-logo.png",
       "category": "Game",
-      "artifactName": "CraftCorps Setup ${version}.${ext}"
+      "artifactName": "Nortix Setup ${version}.${ext}"
     },
     "nsis": {
       "oneClick": true,
@@ -71,7 +71,7 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "artifactName": "CraftCorps Setup ${version}.exe",
+      "artifactName": "Nortix Setup ${version}.exe",
       "include": "build/installer.nsh",
       "license": "build/license.txt",
       "installerHeader": "build/installer/header.png",

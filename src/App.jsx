@@ -143,10 +143,14 @@ function App() {
         handleAddAccount,
         handleLogout,
         handleLogoutAll,
+        handleRemoveAccount,
         isRefreshing,
         authError,
+        isServicesOffline,
         refreshAccounts
     } = useAccounts();
+
+    const [showAccountModal, setShowAccountModal] = useState(false);
 
     const {
         instances,
@@ -206,7 +210,7 @@ function App() {
 
     const onDeleteCropWithToast = (id) => {
         const inst = instances.find(i => i.id === id);
-        if (inst && inst.name === 'CraftCorps Client') {
+        if (inst && inst.name === 'Nortix Client') {
             setIdPendingDelete(id);
             setShowSpecialDeleteModal(true);
             setShowCropModal(false); // Close crop modal if open
@@ -335,7 +339,7 @@ function App() {
             details: detailsText,
             state: stateText,
             largeImageKey: 'icon',
-            largeImageText: 'CraftCorps Launcher',
+            largeImageText: 'Nortix Launcher',
             instance: false,
         });
 
@@ -386,6 +390,7 @@ function App() {
                             launchStatus={launchStatus}
                             isRefreshing={isRefreshing}
                             authError={authError}
+                            isServicesOffline={isServicesOffline}
                             onOpenConsole={() => setShowConsole(true)}
                             onRefreshAuth={refreshAccounts}
                             updateStatus={updateStatus}
@@ -401,6 +406,7 @@ function App() {
                             instances={instances} setSelectedInstance={setSelectedInstance} handleNewCrop={handleNewCrop} handleEditCrop={handleEditCrop} onRestoreDefault={handleRestoreDefault}
                             showCropModal={showCropModal}
                             accounts={accounts} onAccountSwitchWithToast={onAccountSwitchWithToast} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} onLogoutWithToast={onLogoutWithToast} onLogoutAllWithToast={onLogoutAllWithToast}
+                            showAccountModal={showAccountModal} setShowAccountModal={setShowAccountModal}
                             onDeleteCropWithToast={onDeleteCropWithToast} reorderInstances={reorderInstances}
                             ram={ram} setRam={setRam} javaPath={javaPath} setJavaPath={setJavaPath} hideOnLaunch={hideOnLaunch} setHideOnLaunch={setHideOnLaunch} setDisableAnimations={setDisableAnimations} availableJavas={availableJavas} enableDiscordRPC={enableDiscordRPC} setEnableDiscordRPC={setEnableDiscordRPC}
                             startOnStartup={startOnStartup} setStartOnStartup={setStartOnStartup}
@@ -420,6 +426,8 @@ function App() {
                             logs={logs} showConsole={showConsole} setShowConsole={setShowConsole}
                             launchStatus={launchStatus} launchStep={launchStep} launchProgress={launchProgress} selectedInstance={selectedInstance} handleStop={handleStop}
                             showLoginModal={showLoginModal} setShowLoginModal={setShowLoginModal} onAddAccountWithToast={onAddAccountWithToast} isRefreshing={isRefreshing}
+                            showAccountModal={showAccountModal} setShowAccountModal={setShowAccountModal}
+                            accounts={accounts} activeAccount={activeAccount} onAccountSwitch={onAccountSwitchWithToast} onRemoveAccount={handleRemoveAccount}
                             showCropModal={showCropModal} setShowCropModal={setShowCropModal} onSaveCropWithToast={onSaveCropWithToast} editingCrop={editingCrop} onDeleteCropWithToast={onDeleteCropWithToast}
                             instanceCount={instances.length}
                             showJavaModal={showJavaModal} setShowJavaModal={setShowJavaModal} handleJavaInstallComplete={handleJavaInstallComplete} refreshJavas={refreshJavas} requiredJavaVersion={requiredJavaVersion}

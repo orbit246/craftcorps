@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.craftcorps.net';
+﻿const BASE_URL = 'https://api.nortixlauncher.com';
 
 /**
  * Fetch active cape for a specific player (Client rendering)
@@ -111,7 +111,7 @@ export const equipCosmetic = async (token, cosmeticId, playerUuid) => {
 /**
  * Register/Link User
  * @param {string} token - User Token
- * @param {string} userId - CraftCorps User ID
+ * @param {string} userId - Nortix User ID
  * @param {Array<string>} playerUuids - List of Minecraft UUIDs
  */
 export const registerUser = async (token, userId, playerUuids) => {

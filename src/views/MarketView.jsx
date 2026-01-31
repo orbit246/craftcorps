@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ShoppingBag, Mail, Server, Check } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 
@@ -115,7 +115,7 @@ const MarketView = () => {
                                         onChange={(e) => setConsent(e.target.checked)}
                                     />
                                     <span className="text-xs text-slate-500 group-hover:text-slate-400 transition-colors leading-relaxed">
-                                        I agree to receive marketing emails and updates from CraftCorps. We respect your privacy and process data via Kit.com. {' '}
+                                        I agree to receive marketing emails and updates from Nortix. We respect your privacy and process data via Kit.com. {' '}
                                         <button
                                             type="button"
                                             className="text-emerald-500 hover:text-emerald-400 underline decoration-emerald-500/30 underline-offset-2 hover:decoration-emerald-500/50"
@@ -144,7 +144,7 @@ const MarketView = () => {
                 </div>
 
                 <div className="mt-12 text-slate-500 text-sm font-mono opacity-50">
-                    Coming soon to CraftCorps...
+                    Coming soon to Nortix...
                 </div>
             </div>
         </div>

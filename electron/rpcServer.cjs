@@ -1,10 +1,10 @@
-const net = require('net');
+﻿const net = require('net');
 const log = require('electron-log');
 const { setActivity, clearActivity } = require('./discordRpc.cjs');
 const authService = require('./services/authService.cjs');
 const pkg = require('../package.json');
-const API_BASE = 'https://api.craftcorps.net';
-const DEFAULT_HOVER_TEXT = `CraftCorps ${pkg.version}`;
+const API_BASE = 'https://api.nortixlauncher.com';
+const DEFAULT_HOVER_TEXT = `Nortix ${pkg.version}`;
 
 let server;
 let port = 0;

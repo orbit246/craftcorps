@@ -1,4 +1,4 @@
-
+﻿
 import React from 'react';
 import { Flame, Server, Search, Sparkles, Crown } from 'lucide-react';
 
@@ -93,11 +93,11 @@ const DiscoverGrid = React.memo(({
                         </div>
                     )}
 
-                    {/* CRAFTCORPS FEATURED (Registered) */}
+                    {/* Nortix FEATURED (Registered) */}
                     <div className="space-y-4">
                         <SectionHeader
                             icon={Crown}
-                            title="CraftCorps Featured"
+                            title="Nortix Featured"
                             subtitle="Community servers verified by us."
                         />
                         {sections.featuredCorp?.length > 0 ? (
@@ -122,7 +122,7 @@ const DiscoverGrid = React.memo(({
                                 </div>
                                 <h3 className="text-white font-medium">No Featured Servers Yet</h3>
                                 <p className="text-slate-400 text-sm max-w-sm">
-                                    CraftCorps Featured servers are coming soon!
+                                    Nortix Featured servers are coming soon!
                                 </p>
                             </div>
                         )}

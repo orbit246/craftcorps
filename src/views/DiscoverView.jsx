@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Info, Globe, ShieldAlert, Check, ChevronRight } from "lucide-react";
@@ -93,7 +93,7 @@ const DiscoverView = ({ selectedInstance, activeAccount }) => {
                         {/* Disclaimer Footer */}
                         <div className="mt-12 mb-4 text-center">
                             <p className="text-xs text-slate-600 font-medium">
-                                CraftCorps is not affiliated with any of the servers shown above.
+                                Nortix is not affiliated with any of the servers shown above.
                             </p>
                             <p className="text-[10px] text-slate-700 mt-1">
                                 All trademarks and content belong to their respective owners.

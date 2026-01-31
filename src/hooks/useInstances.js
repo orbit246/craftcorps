@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { INITIAL_INSTANCES } from '../data/mockData';
 
 export const useInstances = () => {
@@ -40,12 +40,12 @@ export const useInstances = () => {
                             let changed = false;
                             const patched = { ...inst };
 
-                            if (inst.name === 'CraftCorps Client' && !inst.icon) {
+                            if (inst.name === 'Nortix Client' && !inst.icon) {
                                 patched.icon = '/images/cc-logo.png';
                                 changed = true;
                             }
 
-                            if (inst.name === 'CraftCorps Client' && !inst.modManifest) {
+                            if (inst.name === 'Nortix Client' && !inst.modManifest) {
                                 patched.version = '1.21.11';
                                 patched.modManifest = [
                                     { id: 'sodium', name: 'Sodium (FPS)' },
@@ -57,7 +57,7 @@ export const useInstances = () => {
                                     { id: 'appleskin', name: 'AppleSkin' },
                                     { id: 'zoomify', name: 'Zoomify' },
                                     { id: 'continuity', name: 'Continuity' },
-                                    { id: 'craftcorps-core', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-cosmetics-0.1.3.jar' }
+                                    { id: 'Nortix-core', name: 'Nortix Core', directUrl: 'https://download.nortixlauncher.com/Nortix-cosmetics-0.1.3.jar' }
                                 ];
                                 changed = true;
                             }
@@ -78,20 +78,20 @@ export const useInstances = () => {
                             setSelectedInstance(sorted[0]);
                         }
                     } else {
-                        // Create default 'CraftCorps Client' instance if none exist
+                        // Create default 'Nortix Client' instance if none exist
                         let defaultPath = null;
                         try {
                             if (window.electronAPI?.getNewInstancePath) {
-                                defaultPath = await window.electronAPI.getNewInstancePath('CraftCorps Client');
+                                defaultPath = await window.electronAPI.getNewInstancePath('Nortix Client');
                             }
                         } catch (e) {
                             console.error("Failed to generate default path:", e);
                         }
 
-                        console.log("[Instances] No instances found. Creating default 'CraftCorps Client'...");
+                        console.log("[Instances] No instances found. Creating default 'Nortix Client'...");
                         const defaultInstance = {
                             id: `cc_client_${Date.now()}`,
-                            name: 'CraftCorps Client',
+                            name: 'Nortix Client',
                             version: '1.21.11',
                             loader: 'Vanilla', // Start with nothing
                             status: 'Ready',
@@ -119,7 +119,7 @@ export const useInstances = () => {
                 } else {
                     // Fallback to localStorage or mock (dev mode)
                     try {
-                        const saved = localStorage.getItem('craftcorps_instances');
+                        const saved = localStorage.getItem('Nortix_instances');
                         setInstances(saved ? JSON.parse(saved) : INITIAL_INSTANCES);
                     } catch (e) {
                         setInstances(INITIAL_INSTANCES);
@@ -153,13 +153,13 @@ export const useInstances = () => {
         }
     }, [instances, selectedInstance]);
 
-    // Hydrate CraftCorps Client Manifest after a delay (Render first, then load)
+    // Hydrate Nortix Client Manifest after a delay (Render first, then load)
     useEffect(() => {
         if (isLoading || instances.length === 0) return;
 
-        const ccClient = instances.find(inst => inst.name === 'CraftCorps Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'craftcorps-core') || !inst.modManifest.some(m => m.id === 'geckolib')));
+        const ccClient = instances.find(inst => inst.name === 'Nortix Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'Nortix-core') || !inst.modManifest.some(m => m.id === 'geckolib')));
         if (ccClient) {
-            console.log("[Instances] CraftCorps Client detected with no manifest or missing core mods. Scheduling hydration...");
+            console.log("[Instances] Nortix Client detected with no manifest or missing core mods. Scheduling hydration...");
             const timer = setTimeout(async () => {
                 const hydratedManifest = [
                     { id: 'sodium', name: 'Sodium (FPS)' },
@@ -172,7 +172,7 @@ export const useInstances = () => {
                     { id: 'zoomify', name: 'Zoomify' },
                     { id: 'continuity', name: 'Continuity' },
                     { id: 'geckolib', name: 'Geckolib' },
-                    { id: 'craftcorps', name: 'CraftCorps Core', directUrl: 'https://download.craftcorps.net/craftcorps-cosmetics-0.1.3.jar' }
+                    { id: 'Nortix', name: 'Nortix Core', directUrl: 'https://download.nortixlauncher.com/Nortix-cosmetics-0.1.3.jar' }
                 ];
 
                 // Functional update to avoid clobbering other state changes (like lastPlayed)
@@ -191,7 +191,7 @@ export const useInstances = () => {
                     }
                     return inst;
                 }));
-                console.log("[Instances] CraftCorps Client hydrated with Fabric and Mod Manifest.");
+                console.log("[Instances] Nortix Client hydrated with Fabric and Mod Manifest.");
             }, 3000); // 3 second delay after rendering
             return () => clearTimeout(timer);
         }
@@ -300,7 +300,7 @@ export const useInstances = () => {
         let defaultPath = null;
         try {
             if (window.electronAPI?.getNewInstancePath) {
-                defaultPath = await window.electronAPI.getNewInstancePath('CraftCorps Client');
+                defaultPath = await window.electronAPI.getNewInstancePath('Nortix Client');
             }
         } catch (e) {
             console.error("Failed to generate default path:", e);
@@ -308,7 +308,7 @@ export const useInstances = () => {
 
         const defaultInstance = {
             id: `cc_client_${Date.now()}`,
-            name: 'CraftCorps Client',
+            name: 'Nortix Client',
             version: '1.21.11',
             loader: 'Vanilla', // Start with nothing
             status: 'Ready',

@@ -1,7 +1,7 @@
-const { app } = require('electron');
+﻿const { app } = require('electron');
 const authService = require('./authService.cjs'); // [NEW]
 
-const API_BASE = 'https://telemetry.craftcorps.net';
+const API_BASE = 'https://telemetry.nortixlauncher.com';
 
 class TelemetryService {
     constructor() {
@@ -172,11 +172,11 @@ class TelemetryService {
         formData.append('ver', this.appVersion);
         formData.append('platform', process.platform);
         formData.append('process_type', 'browser');
-        formData.append('_productName', 'CraftCorps');
+        formData.append('_productName', 'Nortix');
         formData.append('_version', this.appVersion);
         formData.append('userId', this.userId);
 
-        const uploadUrl = 'https://api.craftcorps.net/crashes/report';
+        const uploadUrl = 'https://api.nortixlauncher.com/crashes/report';
 
         const response = await authService.fetchAuthenticated(uploadUrl, {
             method: 'POST',

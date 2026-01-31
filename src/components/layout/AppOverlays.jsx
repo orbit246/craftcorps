@@ -8,6 +8,7 @@ import ErrorModal from '../modals/ErrorModal';
 import CrashReportModal from '../modals/CrashReportModal';
 import UpdateModal from '../modals/UpdateModal';
 import SpecialDeleteModal from '../modals/SpecialDeleteModal';
+import AccountManagementModal from '../modals/AccountManagementModal';
 
 const AppOverlays = ({
     // Console
@@ -16,6 +17,8 @@ const AppOverlays = ({
     launchStatus, launchStep, launchProgress, selectedInstance, handleStop,
     // Login
     showLoginModal, setShowLoginModal, onAddAccountWithToast, isRefreshing,
+    // Account Management
+    showAccountModal, setShowAccountModal, accounts, activeAccount, onAccountSwitch, onRemoveAccount,
     // Crop
     showCropModal, setShowCropModal, onSaveCropWithToast, editingCrop, onDeleteCropWithToast,
     // Java
@@ -101,6 +104,16 @@ const AppOverlays = ({
                 onClose={() => setShowSpecialDeleteModal(false)}
                 onConfirm={onConfirmSpecialDelete}
                 onNewInstance={onNewCrop}
+            />
+
+            <AccountManagementModal
+                isOpen={showAccountModal}
+                onClose={() => setShowAccountModal(false)}
+                accounts={accounts}
+                activeAccount={activeAccount}
+                onSwitchAccount={(acc) => { onAccountSwitch(acc); setShowAccountModal(false); }}
+                onRemoveAccount={onRemoveAccount}
+                onAddAccount={() => { setShowLoginModal(true); setShowAccountModal(false); }}
             />
         </>
     );

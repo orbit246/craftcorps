@@ -1,4 +1,4 @@
-import { Sprout, Plus, Sparkles, ShieldCheck } from 'lucide-react';
+﻿import { Sprout, Plus, Sparkles, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const EmptyState = ({ onNewCrop, onRestoreDefault }) => {
@@ -30,7 +30,7 @@ const EmptyState = ({ onNewCrop, onRestoreDefault }) => {
                     <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2rem] blur-xl pointer-events-none" />
                 </button>
 
-                {/* Option 2: CraftCorps Client */}
+                {/* Option 2: Nortix Client */}
                 <button
                     onClick={onRestoreDefault}
                     className="group relative flex flex-col items-center p-8 bg-slate-900/40 border border-white/10 rounded-[2rem] hover:border-blue-500/50 hover:bg-blue-500/5 transition-all duration-300 ring-1 ring-inset ring-white/5 text-center"
@@ -39,7 +39,7 @@ const EmptyState = ({ onNewCrop, onRestoreDefault }) => {
                         <Sparkles size={28} />
                     </div>
                     <div className="flex items-center gap-1.5 mb-2">
-                        <h4 className="text-lg font-bold text-slate-100 line-clamp-1 leading-tight">CraftCorps Client</h4>
+                        <h4 className="text-lg font-bold text-slate-100 line-clamp-1 leading-tight">Nortix Client</h4>
                         <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
                     </div>
                     <p className="text-slate-500 text-xs leading-relaxed px-4">Quick-start with optimized performance mods and verified settings.</p>

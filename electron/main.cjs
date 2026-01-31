@@ -18,10 +18,10 @@ const isHidden = process.argv.includes('--hidden');
 
 // Set AppUserModelID for Windows Taskbar
 if (process.platform === 'win32') {
-    const baseId = isCanary ? 'com.craftcorps.launcher.canary' : 'com.craftcorps.launcher';
+    const baseId = isCanary ? 'com.nortix.launcher.canary' : 'com.nortix.launcher';
     app.setAppUserModelId(isDev ? `${baseId}.dev` : baseId);
 }
-app.setName(isCanary ? 'CraftCorps Canary' : 'CraftCorps Launcher');
+app.setName(isCanary ? 'Nortix Canary' : 'Nortix Launcher');
 
 // --- Instance Isolation & Profile Support ---
 // This ensures that development, marketing shots, or different user profiles don't collide.
@@ -36,7 +36,7 @@ if (profileArg || isDev || isMarketing) {
     else if (isMarketing) profileSuffix = 'marketing';
 
     const currentDataPath = app.getPath('userData');
-    const newDataPath = path.join(path.dirname(currentDataPath), `CraftCorps-${profileSuffix}`);
+    const newDataPath = path.join(path.dirname(currentDataPath), `Nortix-${profileSuffix}`);
 
     app.setPath('userData', newDataPath);
 
@@ -357,7 +357,7 @@ async function createWindow() {
                 }
             }
         ]);
-        tray.setToolTip('CraftCorps Launcher');
+        tray.setToolTip('Nortix Launcher');
         tray.setContextMenu(contextMenu);
         tray.on('double-click', () => mainWindow.show());
     }

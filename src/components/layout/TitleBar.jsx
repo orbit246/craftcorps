@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Terminal, Maximize2, Minimize2, X, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ActiveInstances from '../common/ActiveInstances';
@@ -12,15 +12,28 @@ function TitleBar({
     updateStatus,
     updateInfo,
     onOpenUpdateModal,
-    onSelectRunningInstance
+    onSelectRunningInstance,
+    isServicesOffline
 }) {
     const { t } = useTranslation();
 
     return (
         <header className="absolute top-0 left-0 right-0 h-10 flex items-center justify-between px-4 z-[100] select-none drag glass-spotlight border-b border-white/5">
             <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span>CraftCorps Launcher v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}</span>
-                {launchStatus === 'running' && <span className="text-emerald-500 flex items-center gap-1">● {t('top_bar_running')}</span>}
+                <span>Nortix Launcher v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}</span>
+                {launchStatus === 'running' && <span className="text-emerald-500 flex items-center gap-1">â— {t('top_bar_running')}</span>}
+                {/* Services Offline Indicator */}
+                {isServicesOffline && (
+                    <div className="relative group ml-3 no-drag">
+                        <div className="flex items-center gap-1.5 text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/30 cursor-help select-none">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                            <span className="font-bold tracking-tight">Nortix Services are Offline</span>
+                        </div>
+                        <div className="absolute top-full left-0 mt-2 w-64 p-2.5 bg-slate-900/95 backdrop-blur border border-red-500/30 rounded-lg shadow-xl text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
+                            We cannot connect to Nortix servers. You can still launch Minecraft offline or with Microsoft accounts, but social features and cloud sync are unavailable.
+                        </div>
+                    </div>
+                )}
                 {isRefreshing && (
                     <div className="relative group ml-3 no-drag">
                         <div className="flex items-center gap-1.5 text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20 cursor-help">
