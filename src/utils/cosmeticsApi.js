@@ -1,4 +1,4 @@
-﻿const BASE_URL = 'https://api.nortixlauncher.com';
+﻿const BASE_URL = 'https://api.nortixlabs.com';
 
 /**
  * Fetch active cape for a specific player (Client rendering)

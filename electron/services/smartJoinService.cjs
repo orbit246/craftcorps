@@ -5,7 +5,7 @@ const { execFile } = require('child_process');
 const path = require('path');
 const os = require('os');
 
-const API_BASE = 'https://api.nortixlauncher.com';
+const API_BASE = 'https://api.nortixlabs.com';
 
 /**
  * Smart Server Join Handler

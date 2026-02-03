@@ -217,8 +217,8 @@ releaseDate: ${new Date().toISOString()}
 
     // Revalidate website
     const revalidationToken = process.env.REVALIDATION_TOKEN;
-    // Default to nortixlauncher.com if not specified, but allow override
-    const revalidationUrl = process.env.REVALIDATION_URL || 'https://nortixlauncher.com/api/revalidate';
+    // Default to nortixlabs.com if not specified, but allow override
+    const revalidationUrl = process.env.REVALIDATION_URL || 'https://nortixlabs.com/api/revalidate';
 
     if (revalidationToken) {
         console.log(`Triggering website revalidation at ${revalidationUrl}...`);

@@ -1,6 +1,6 @@
 ﻿// Native fetch assumed
 
-const BASE_URL = 'https://api.nortixlauncher.com';
+const BASE_URL = 'https://api.nortixlabs.com';
 
 async function probe() {
     const endpoints = [

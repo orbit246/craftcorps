@@ -2,9 +2,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
 const STORE_KEY = 'telemetry_user_id';
-const AUTH_API = 'https://auth.nortixlauncher.com';
-const TELEMETRY_API = 'https://telemetry.nortixlauncher.com';
-const API_BASE = 'https://api.nortixlauncher.com';
+const AUTH_API = 'https://auth.nortixlabs.com';
+const TELEMETRY_API = 'https://telemetry.nortixlabs.com';
+const API_BASE = 'https://api.nortixlabs.com';
 
 class TelemetryService {
     constructor() {

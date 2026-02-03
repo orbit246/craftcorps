@@ -41,7 +41,7 @@ function notify() {
 }
 
 const activeSessions = {};
-const API_BASE = 'https://api.nortixlauncher.com'; // Assuming this base, or should I use authService base?
+const API_BASE = 'https://api.nortixlabs.com'; // Assuming this base, or should I use authService base?
 
 // Caching System
 const cache = {};

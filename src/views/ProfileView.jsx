@@ -173,7 +173,7 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                 const owned = catalogData.filter(c => ownedIds.includes(c.cosmeticId)).map(c => {
                     let textureUrl = c.textureUrl;
                     if (textureUrl && textureUrl.startsWith('/')) {
-                        textureUrl = `https://api.nortixlauncher.com${textureUrl}`;
+                        textureUrl = `https://api.nortixlabs.com${textureUrl}`;
                     } else if (!textureUrl) {
                         textureUrl = getCosmeticTextureUrl(c.cosmeticId);
                     }

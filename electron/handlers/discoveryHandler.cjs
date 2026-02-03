@@ -5,7 +5,7 @@ const log = require('electron-log');
 const fs = require('fs');
 const path = require('path');
 
-const API_BASE = 'https://api.nortixlauncher.com';
+const API_BASE = 'https://api.nortixlabs.com';
 
 /**
  * Fetch discover servers from the backend

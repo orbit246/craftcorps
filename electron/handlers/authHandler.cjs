@@ -249,7 +249,7 @@ function setupAuthHandlers(getMainWindow) {
 
             // Backend endpoint that starts the Discord OAuth flow for a logged-in user
             // We append a custom param to signal the backend to redirect to a launcher-friendly success page
-            const authUrl = `https://api.nortixlauncher.com/auth/link/discord?client=launcher`;
+            const authUrl = `https://api.nortixlabs.com/auth/link/discord?client=launcher`;
 
             return new Promise((resolve) => {
                 const authWindow = new BrowserWindow({
@@ -318,7 +318,7 @@ function setupAuthHandlers(getMainWindow) {
 
     ipcMain.handle('equip-cosmetic', async (event, { cosmeticId, playerUuid }) => {
         try {
-            const url = 'https://api.nortixlauncher.com/cosmetics/equip';
+            const url = 'https://api.nortixlabs.com/cosmetics/equip';
             const res = await authService.fetchAuthenticated(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

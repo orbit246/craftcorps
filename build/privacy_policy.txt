@@ -85,7 +85,7 @@ You have the right to:
 - Opt-out: Disable telemetry collection at any time via Application Settings
 - Data portability: Request your data in a machine-readable format
 
-To exercise these rights, contact us at: support@nortixlauncher.com
+To exercise these rights, contact us at: support@nortixlabs.com
 
 ================================================================================
 6. USER CONDUCT
@@ -162,8 +162,8 @@ You may not assign or transfer this Agreement without our prior written consent.
 
 13.5. CONTACT INFORMATION
 For questions about this Agreement, contact us at:
-Email: support@nortixlauncher.com
-Website: https://nortixlauncher.com
+Email: support@nortixlabs.com
+Website: https://nortixlabs.com
 
 ================================================================================
 14. ACKNOWLEDGMENT

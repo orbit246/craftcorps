@@ -57,7 +57,7 @@ export const useInstances = () => {
                                     { id: 'appleskin', name: 'AppleSkin' },
                                     { id: 'zoomify', name: 'Zoomify' },
                                     { id: 'continuity', name: 'Continuity' },
-                                    { id: 'Nortix-core', name: 'Nortix Core', directUrl: 'https://download.nortixlauncher.com/Nortix-cosmetics-0.1.3.jar' }
+                                    { id: 'Nortix-core', name: 'Nortix Core', directUrl: 'https://download.nortixlabs.com/Nortix-cosmetics-0.1.3.jar' }
                                 ];
                                 changed = true;
                             }
@@ -172,7 +172,7 @@ export const useInstances = () => {
                     { id: 'zoomify', name: 'Zoomify' },
                     { id: 'continuity', name: 'Continuity' },
                     { id: 'geckolib', name: 'Geckolib' },
-                    { id: 'Nortix', name: 'Nortix Core', directUrl: 'https://download.nortixlauncher.com/Nortix-cosmetics-0.1.3.jar' }
+                    { id: 'Nortix', name: 'Nortix Core', directUrl: 'https://download.nortixlabs.com/Nortix-cosmetics-0.1.3.jar' }
                 ];
 
                 // Functional update to avoid clobbering other state changes (like lastPlayed)

@@ -22,7 +22,7 @@ function setupUpdateHandlers(getMainWindow) {
     // Switch to generic provider to avoid GitHub API limits/errors
     autoUpdater.setFeedURL({
         provider: 'generic',
-        url: 'https://download.nortixlauncher.com/'
+        url: 'https://download.nortixlabs.com/'
     });
 
     // Disable auto-downloading if you want to ask the user first

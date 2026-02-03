@@ -370,8 +370,8 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing }) => {
                                     <Trans
                                         i18nKey="auth_tos_agreement"
                                         components={{
-                                            1: <a href="https://nortixlauncher.com/legal/terms" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>ToS</a>,
-                                            2: <a href="https://nortixlauncher.com/legal/privacy" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>
+                                            1: <a href="https://nortixlabs.com/legal/terms" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>ToS</a>,
+                                            2: <a href="https://nortixlabs.com/legal/privacy" target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 hover:underline transition-colors font-medium decoration-emerald-500/30" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>
                                         }}
                                     />
                                 </div>

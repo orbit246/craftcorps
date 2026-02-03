@@ -8,7 +8,7 @@ const AdmZip = require('adm-zip');
 
 // Initialize Modrinth Client
 const client = new ModrinthV2Client({
-    userAgent: 'Nortix/1.0.0 (contact@nortixlauncher.com)',
+    userAgent: 'Nortix/1.0.0 (contact@nortixlabs.com)',
 });
 
 // Track active installations at module level

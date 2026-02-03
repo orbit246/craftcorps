@@ -230,7 +230,7 @@ export const useWardrobe = (activeAccount) => {
             const enrich = (catalog) => catalog.map(c => {
                 let textureUrl = c.textureUrl;
                 if (textureUrl && textureUrl.startsWith('/')) {
-                    textureUrl = `https://api.nortixlauncher.com${textureUrl}`;
+                    textureUrl = `https://api.nortixlabs.com${textureUrl}`;
                 } else if (!textureUrl) {
                     textureUrl = getCosmeticTextureUrl(c.cosmeticId);
                 }

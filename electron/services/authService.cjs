@@ -7,7 +7,7 @@ const STORE_KEY_INSTALL_ID = 'install_id'; // New UUID for anonymous account
 const STORE_KEY_AUTH_TOKEN = 'auth_token';
 const STORE_KEY_REFRESH_TOKEN = 'refresh_token';
 const STORE_KEY_USER_ID = 'user_id';
-const AUTH_BASE = 'https://auth.nortixlauncher.com';
+const AUTH_BASE = 'https://auth.nortixlabs.com';
 
 class AuthService {
     constructor() {
@@ -340,7 +340,7 @@ class AuthService {
     async getPlayerCosmetics(uuid) {
         log.info(`[AuthService] Fetching player cosmetics${uuid ? ` for ${uuid}` : ''}...`);
         try {
-            const url = `https://api.nortixlauncher.com/cosmetics/player${uuid ? `?uuid=${uuid}` : ''}`;
+            const url = `https://api.nortixlabs.com/cosmetics/player${uuid ? `?uuid=${uuid}` : ''}`;
             const res = await this.fetchAuthenticated(url);
             log.info("Response: " + res.ok);
             if (res.ok) {

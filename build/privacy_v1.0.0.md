@@ -254,6 +254,6 @@ Material changes will be communicated through the application or website. Contin
 ## 14. Contact
 
 For privacy-related questions or requests, contact us at:
-ğŸ“§ **[privacy@nortixlauncher.com](mailto:privacy@nortixlauncher.com)**
+ğŸ“§ **[privacy@nortixlabs.com](mailto:privacy@nortixlabs.com)**
 
 **End of Privacy Policy**

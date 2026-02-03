@@ -261,4 +261,4 @@ Material changes will be communicated through the application or website. Contin
 ## 18. Contact
 
 Questions about these Terms may be directed to:
-ğŸ“§ **[support@nortixlauncher.com](mailto:support@nortixlauncher.com)**
+ğŸ“§ **[support@nortixlabs.com](mailto:support@nortixlabs.com)**
