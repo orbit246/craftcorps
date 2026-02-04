@@ -14,6 +14,21 @@ export const getGradient = (str) => {
     return colors[Math.abs(hash) % colors.length];
 };
 
+export const getTextColor = (str) => {
+    const hash = str
+        .split("")
+        .reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+    const colors = [
+        "text-amber-400",
+        "text-emerald-400",
+        "text-purple-400",
+        "text-blue-400",
+        "text-red-400",
+        "text-indigo-400",
+    ];
+    return colors[Math.abs(hash) % colors.length];
+};
+
 export const getSolidColor = (str) => {
     const hash = str
         .split("")

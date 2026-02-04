@@ -4,7 +4,7 @@ import { discovery } from '../services/DiscoveryService';
 import { useToast } from '../contexts/ToastContext';
 import AccountManager from '../utils/AccountManager';
 
-export const useDiscover = (selectedInstance, activeAccount) => {
+export const useDiscover = (selectedInstance, activeAccount, onJoinStart, onPlay) => {
     const { addToast } = useToast();
 
     // State
@@ -282,24 +282,28 @@ export const useDiscover = (selectedInstance, activeAccount) => {
                 // Found compatible instance - launch using consistent account data!
                 log(`Compatible instance found: ${result.instance.name}, launching...`);
 
-                // Use AccountManager to build launch options (same as Play button)
-                const launchOptions = await AccountManager.buildLaunchOptions(
-                    result.instance,
-                    (result.instance.maxRam || 4096) / 1024, // MB to GB
-                    serverIp, // Auto-connect server
-                    result.instance.javaPath || '',
-                    activeAccount // Explicitly pass the active account
-                );
+                // Navigate to play page
+                if (typeof onJoinStart === 'function') {
+                    onJoinStart();
+                }
 
-                window.electronAPI.launchGame(launchOptions);
+                // Trigger official play handler so the global launch status updates
+                if (typeof onPlay === 'function') {
+                    onPlay(result.instance, serverIp, activeAccount);
+                } else {
+                    // Fallback if prop not passed (legacy)
+                    const launchOptions = await AccountManager.buildLaunchOptions(
+                        result.instance,
+                        (result.instance.maxRam || 4096) / 1024,
+                        serverIp,
+                        result.instance.javaPath || '',
+                        activeAccount
+                    );
+                    window.electronAPI.launchGame(launchOptions);
+                }
 
-                // Show "Launching..." for 5 seconds more before showing "Currently Playing"
-                await new Promise(r => setTimeout(r, 15000));
-
-                // Only set playing if launch is still considered active (no error occurred)
                 if (isLaunchingRef.current) {
                     setPlayingServerIp(serverIp);
-                    addToast(`Launching ${serverIp}...`, 'success');
                 }
                 setShowJoinProgress(null);
             } else {
@@ -326,7 +330,7 @@ export const useDiscover = (selectedInstance, activeAccount) => {
                 return newSet;
             });
         }
-    }, [addToast, servers, log, joiningServers.size, playingServerIp, selectedInstance, activeAccount]); // Added dependencies
+    }, [addToast, servers, log, joiningServers.size, playingServerIp, selectedInstance, activeAccount, onJoinStart, onPlay]); // Added dependencies
 
     const handleCopy = useCallback((serverIp) => {
         navigator.clipboard.writeText(serverIp);

@@ -177,7 +177,12 @@ const AppContent = ({
             {/* Discover View - Keep Alive */}
             {(activeTab === 'discover' || hasOpenedDiscover) && (
                 <div className={`flex-1 flex-col h-full overflow-hidden ${activeTab === 'discover' ? 'flex' : 'hidden'}`}>
-                    <DiscoverView selectedInstance={selectedInstance} activeAccount={activeAccount} />
+                    <DiscoverView
+                        selectedInstance={selectedInstance}
+                        activeAccount={activeAccount}
+                        onJoinStart={() => setActiveTab('home')}
+                        onPlay={onPlayWrapper}
+                    />
                 </div>
             )}
             {activeTab === 'profile' && <ProfileView activeAccount={activeAccount} accounts={accounts} instances={instances} theme={theme} onLogout={onLogoutWithToast} onLogoutAll={onLogoutAllWithToast} setActiveTab={setActiveTab} setShowProfileMenu={setShowProfileMenu} onManageAccounts={() => setShowAccountModal(true)} />}

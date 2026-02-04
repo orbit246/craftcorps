@@ -7,7 +7,7 @@ import DiscoverHeader from "../components/discover/DiscoverHeader";
 import DiscoverGrid from "../components/discover/DiscoverGrid";
 import sprinkleBg from '/images/sprinkle_bg.svg';
 
-const DiscoverView = ({ selectedInstance, activeAccount }) => {
+const DiscoverView = ({ selectedInstance, activeAccount, onJoinStart, onPlay }) => {
     const { t } = useTranslation();
     const [showDisclaimer, setShowDisclaimer] = useState(false);
     const [agreed, setAgreed] = useState(false);
@@ -23,6 +23,20 @@ const DiscoverView = ({ selectedInstance, activeAccount }) => {
         localStorage.setItem('discover_welcome_v1', 'true');
         setShowDisclaimer(false);
     };
+
+    // Optimized Parallax Effect (using CSS variables to avoid re-renders)
+    const containerRef = React.useRef(null);
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!containerRef.current) return;
+            const x = (e.clientX / window.innerWidth) * 15;
+            const y = (e.clientY / window.innerHeight) * 15;
+            containerRef.current.style.setProperty('--mouse-x', `${x * -1}px`);
+            containerRef.current.style.setProperty('--mouse-y', `${y * -1}px`);
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
 
     const {
         servers,
@@ -42,11 +56,13 @@ const DiscoverView = ({ selectedInstance, activeAccount }) => {
         playingServerIp,
         isBusy,
         handleStop
-    } = useDiscover(selectedInstance, activeAccount);
+    } = useDiscover(selectedInstance, activeAccount, onJoinStart, onPlay);
 
     return (
         <div
+            ref={containerRef}
             className="flex-1 bg-slate-900 overflow-hidden relative flex flex-col select-none"
+            style={{ '--mouse-x': '0px', '--mouse-y': '0px' }}
         >
             <div
                 className="flex-1 overflow-y-auto custom-scrollbar relative z-10"
@@ -54,13 +70,13 @@ const DiscoverView = ({ selectedInstance, activeAccount }) => {
                 <div className="relative min-h-full w-full p-8">
                     {/* Background Layer - Anchored to expanding block container */}
                     <div
-                        className="absolute inset-0 -z-10 pointer-events-none opacity-30"
+                        className="absolute inset-0 -z-10 pointer-events-none opacity-30 will-change-transform"
                         style={{
                             backgroundImage: `url(${sprinkleBg})`,
                             backgroundRepeat: 'repeat',
                             backgroundSize: '600px',
                             filter: 'blur(0.5px)',
-                            willChange: 'transform'
+                            transform: `translate(var(--mouse-x), var(--mouse-y))`
                         }}
                     />
                     {/* Darkening Overlay */}

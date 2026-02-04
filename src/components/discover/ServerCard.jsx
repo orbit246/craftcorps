@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Users, Server, Crown, Wifi, Zap, ArrowRight, Copy, Info, Loader2 } from 'lucide-react';
-import { getGradient, getSolidColor, toInt } from './utils';
+import { Users, Server, Crown, Wifi, Zap, ArrowRight, Copy, Info, Loader2, Sword } from 'lucide-react';
+import { getGradient, getSolidColor, getTextColor, toInt } from './utils';
 import ServerBadge from './ServerBadge';
 import Pill from './Pill';
 
@@ -15,6 +15,7 @@ const ServerCard = React.memo(({
     disabled = false
 }) => {
     const solidColor = getSolidColor(server.ip);
+    const textColor = getTextColor(server.ip);
     const players = toInt(server.players);
 
     const base =
@@ -54,6 +55,20 @@ const ServerCard = React.memo(({
         >
             {/* Banner */}
             <div className={`${bannerH} bg-slate-900 relative overflow-hidden`}>
+                {/* Blurred Icon Background (Big variant only) */}
+                {variant === "big" && (
+                    <div className="absolute inset-0 z-0">
+                        {server.icon ? (
+                            <div
+                                className="absolute inset-0 bg-cover bg-center scale-125 opacity-30 blur-2xl hydrate"
+                                style={{ backgroundImage: `url(${iconSrc})` }}
+                            />
+                        ) : (
+                            <div className={`absolute inset-0 ${solidColor} opacity-20`} />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 to-slate-950/80" />
+                    </div>
+                )}
 
                 {/* Status Banners */}
                 <ServerBadge server={server} isHot={isHot} />
@@ -69,9 +84,9 @@ const ServerCard = React.memo(({
 
             {/* Content */}
             <div className={`${pad} pt-10 relative flex-1 flex flex-col`}>
-                {/* Icon */}
+                {/* Icon (Pop-Out - Deep Overlap) */}
                 <div
-                    className={`absolute -top-8 left-6 ${iconSize} rounded-2xl bg-slate-800 p-1 shadow-lg border border-slate-700 group-hover:scale-105 transition-transform duration-300`}
+                    className={`absolute -top-12 left-6 ${iconSize} rounded-[1.5rem] bg-slate-900 p-1 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.7)] border-4 border-slate-900 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300 z-10`}
                 >
                     {!imgError ? (
                         <div className="w-full h-full relative rounded-xl overflow-hidden bg-slate-800">
@@ -99,7 +114,7 @@ const ServerCard = React.memo(({
 
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                        <h3 className={`${titleSize} font-bold text-white mb-1 mt-2 truncate`}>
+                        <h3 className={`${titleSize} font-black mb-1 mt-6 truncate drop-shadow-sm ${textColor}`}>
                             {server.ip}
                         </h3>
 
@@ -164,9 +179,10 @@ const ServerCard = React.memo(({
                         className={`flex-1 font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group/btn
                             ${isPlaying
                                 ? 'bg-blue-500/15 hover:bg-red-500/20 border border-blue-500/25 hover:border-red-500/40 text-blue-200 hover:text-red-200'
-                                : 'bg-emerald-500/15 hover:bg-emerald-500/22 border border-emerald-500/25 hover:border-emerald-500/40 text-emerald-200'
+                                : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white shadow-lg shadow-emerald-900/20 border-t border-white/10 shadow-inner relative overflow-hidden'
                             }`}
                     >
+                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
                         {isJoining ? (
                             <>
                                 <Loader2 size={16} className="animate-spin" />
@@ -187,9 +203,8 @@ const ServerCard = React.memo(({
                             </>
                         ) : (
                             <>
-                                <Zap size={16} className="opacity-95" />
+                                <Sword size={16} className="group-hover/btn:rotate-12 transition-transform" />
                                 Join
-                                <ArrowRight size={16} className="opacity-80" />
                             </>
                         )}
                     </button>

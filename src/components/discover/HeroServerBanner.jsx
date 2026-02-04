@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Crown, Zap, Copy, Info, Loader2 } from 'lucide-react';
-import { getGradient, getSolidColor, toInt } from './utils';
+import { Crown, Zap, Copy, Info, Loader2, Sword, Users } from 'lucide-react';
+import { getGradient, getSolidColor, getTextColor, toInt } from './utils';
 import ServerBadge from './ServerBadge';
 
 const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining = false, isPlaying = false, disabled = false }) => {
     const solidColor = getSolidColor(server.ip);
+    const textColor = getTextColor(server.ip);
     const players = toInt(server.players);
     const isHot = players >= 1500;
 
@@ -21,13 +22,24 @@ const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining
     };
 
     return (
-        <div className="relative w-full h-[400px] rounded-3xl overflow-hidden group shrink-0 mb-8 border border-white/10 shadow-2xl shadow-black/50 bg-slate-900 hover:bg-slate-800 transition-colors duration-300">
+        <div className="relative w-full h-[340px] rounded-3xl overflow-hidden group shrink-0 mb-8 border border-white/10 shadow-2xl shadow-black/50 bg-slate-900 transition-colors duration-300">
             {/* Backgrounds */}
-            <div className="absolute inset-0 bg-slate-900/40" />
+            <div className="absolute inset-0 z-0">
+                {server.icon ? (
+                    <div
+                        className="absolute inset-0 bg-cover bg-center scale-110 opacity-40 blur-3xl saturate-150"
+                        style={{ backgroundImage: `url(${server.icon})` }}
+                    />
+                ) : (
+                    <div className={`absolute inset-0 ${solidColor} opacity-10`} />
+                )}
+                <div className="absolute inset-0 bg-slate-950/60 transition-opacity group-hover:opacity-40" />
+            </div>
+
             <ServerBadge server={server} isHot={isHot} />
 
             {/* Content */}
-            <div className="absolute inset-0 p-10 flex flex-col justify-end items-start md:items-end md:flex-row md:justify-between gap-6">
+            <div className="absolute inset-0 p-8 flex flex-col justify-end items-start md:items-end md:flex-row md:justify-between gap-6">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-4">
                         <span className="px-3 py-1 rounded-full bg-amber-500 text-amber-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
@@ -39,24 +51,27 @@ const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining
                         </div>
                     </div>
 
-                    <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight drop-shadow-lg truncate w-full">
+                    <h1 className={`text-4xl md:text-5xl font-black mb-3 tracking-tighter drop-shadow-2xl truncate w-full ${textColor}`}>
                         {server.ip}
                     </h1>
 
-                    <div className="text-slate-300 text-lg max-w-2xl line-clamp-2 md:line-clamp-3 mb-6" dangerouslySetInnerHTML={{ __html: typeof server.motd === 'string' ? server.motd : String(server.motd || "") }} />
+                    <div className="text-slate-300 text-base max-w-2xl line-clamp-2 md:line-clamp-2 mb-6" dangerouslySetInnerHTML={{ __html: typeof server.motd === 'string' ? server.motd : String(server.motd || "") }} />
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => isPlaying ? onStop() : onJoin(server.ip, server)}
                             disabled={isJoining || disabled}
                             className={`
-                                font-bold px-8 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 group/btn
+                                relative font-bold px-8 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 group/btn shadow-lg overflow-hidden border-t border-white/20 shadow-inner
                                 ${isPlaying
-                                    ? 'bg-blue-500 text-white hover:bg-red-500 hover:text-white border-blue-400'
-                                    : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+                                    ? 'bg-blue-600 text-white hover:bg-red-500 hover:text-white border-blue-400/30'
+                                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-slate-950 shadow-emerald-900/50'
                                 }
                             `}
                         >
+                            {/* Shiny effect overlay */}
+                            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+
                             {isJoining ? (
                                 <>
                                     <Loader2 size={18} className="animate-spin" />
@@ -77,7 +92,7 @@ const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining
                                 </>
                             ) : (
                                 <>
-                                    <Zap size={18} fill="currentColor" />
+                                    <Sword size={20} className="group-hover/btn:rotate-12 transition-transform" />
                                     Join Server
                                 </>
                             )}
@@ -124,10 +139,12 @@ const HeroServerBanner = React.memo(({ server, onJoin, onCopy, onStop, isJoining
                 </div>
 
                 {/* Visual Icon (Large) */}
-                <div className="hidden md:block shrink-0">
-                    <div className="w-32 h-32 rounded-3xl bg-slate-900 border-2 border-white/10 shadow-2xl p-1 overflow-hidden rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                {/* Visual Icon (Large Pop-Out Overlapping Edges) */}
+                <div className="hidden md:block shrink-0 relative z-20 -mr-12 -mb-12 group/icon">
+                    <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full scale-150 group-hover/icon:scale-200 transition-transform duration-700" />
+                    <div className="w-44 h-44 rounded-[2rem] bg-slate-900 border-8 border-slate-900 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] p-1 overflow-hidden rotate-6 group-hover/icon:rotate-0 group-hover/icon:scale-110 transition-all duration-500 z-10 relative">
                         {server.icon ? (
-                            <img src={server.icon} alt="" className="w-full h-full object-cover rounded-2xl" />
+                            <img src={server.icon} alt="" className="w-full h-full object-cover rounded-[2rem]" />
                         ) : (
                             <div className={`w-full h-full bg-slate-800 flex items-center justify-center`} >
                                 <div className={`w-full h-full ${solidColor} opacity-20`} />

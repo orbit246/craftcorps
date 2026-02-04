@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Crown, BadgeCheck, Copy, Info, Loader2 } from 'lucide-react';
-import { getGradient, toInt } from './utils';
+import { getGradient, getTextColor, toInt } from './utils';
 
 const CompactServerRow = React.memo(({ server, onJoin, onCopy, onStop, rank, isJoining = false, isPlaying = false, disabled = false }) => {
     const players = toInt(server.players);
+    const textColor = getTextColor(server.ip);
 
     // Status Flag Logic
     let status = { label: "Unverified", color: "bg-slate-900/80 text-slate-500 border-slate-700", icon: null };
@@ -63,7 +64,7 @@ const CompactServerRow = React.memo(({ server, onJoin, onCopy, onStop, rank, isJ
                 </div>
 
                 <div className="min-w-0 flex flex-col">
-                    <div className="text-white font-bold text-base truncate tracking-tight">{server.ip}</div>
+                    <div className={`font-bold text-base truncate tracking-tight ${textColor}`}>{server.ip}</div>
                     <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono leading-none mt-1">
                         <span className="text-emerald-400 font-bold">{players.toLocaleString()}</span> online
                         {server.version && (
