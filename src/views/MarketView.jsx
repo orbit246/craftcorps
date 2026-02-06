@@ -1,20 +1,25 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Sparkles, Crown, Coins, Palette, Package, Search, X } from 'lucide-react';
+import { ShoppingBag, Sparkles, Crown, Coins, Palette, Package, Search, X, Tag } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { catalog } from '../services/CatalogService';
 import { payments } from '../services/PaymentsService';
 import PaymentModal from '../components/modals/PaymentModal';
 
-const CATEGORIES = [
-    { id: 'all', name: 'All Items', icon: Package },
-    { id: 'ranks', name: 'Ranks', icon: Crown },
-    { id: 'currency', name: 'Currency', icon: Coins },
-    { id: 'cosmetics', name: 'Cosmetics', icon: Palette },
-    { id: 'bundles', name: 'Bundles', icon: Sparkles }
-];
+// Icon mapping for dynamic category icons from backend
+const ICON_MAP = {
+    Package: Package,
+    Crown: Crown,
+    Coins: Coins,
+    Palette: Palette,
+    Sparkles: Sparkles,
+    ShoppingBag: ShoppingBag,
+    Tag: Tag
+};
 
 const MarketView = () => {
     const { addToast } = useToast();
-    const [packages, setPackages] = useState([]);
+    const [items, setItems] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -23,48 +28,57 @@ const MarketView = () => {
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [checkoutData, setCheckoutData] = useState(null);
-    const [selectedPackage, setSelectedPackage] = useState(null);
+    const [selectedItem, setSelectedItem] = useState(null);
 
     useEffect(() => {
-        loadPackages();
+        loadMarketData();
     }, []);
 
-    const loadPackages = async () => {
+    const loadMarketData = async () => {
         setIsLoading(true);
         try {
-            // For now, use public packages (no auth required)
-            // When auth is implemented, use payments.getPackages(authToken) instead
-            const data = await payments.getPublicPackages();
-            setPackages(data);
+            // Fetch categories and items in parallel using CatalogService
+            const [categoriesData, itemsData] = await Promise.all([
+                catalog.getCategories(),
+                catalog.getAllItems()
+            ]);
+
+            setCategories(categoriesData);
+            setItems(itemsData);
         } catch (error) {
-            console.error('Failed to load packages:', error);
+            console.error('Failed to load market data:', error);
             addToast('Failed to load market items', 'error');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const filteredPackages = packages.filter(pkg => {
-        const matchesCategory = selectedCategory === 'all' || pkg.category === selectedCategory;
+    // Helper to get icon component from string
+    const getIconComponent = (iconName) => {
+        return ICON_MAP[iconName] || Package;
+    };
+
+    const filteredItems = items.filter(item => {
+        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
         const matchesSearch = searchQuery === '' ||
-            pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            pkg.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.description?.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
-    const handlePurchase = async (pkg) => {
+    const handlePurchase = async (item) => {
         if (isPurchasing) return;
 
         setIsPurchasing(true);
-        setSelectedPackage(pkg);
-        addToast(`Starting checkout for ${pkg.name}...`, 'info');
+        setSelectedItem(item);
+        addToast(`Starting checkout for ${item.name}...`, 'info');
 
         try {
-            // Retrieve auth token if available (using a placeholder for now as authToken logic is in App.jsx/hooks)
-            // In a real scenario, we'd pass the auth token from context or props
-            const authToken = 'placeholder_token'; // TODO: Get from useAccounts/useAuth
+            // Retrieve auth token if available
+            // TODO: Get from useAccounts/useAuth context
+            const authToken = 'placeholder_token';
 
-            const session = await payments.createCheckoutSession(pkg.id, authToken);
+            const session = await payments.createCheckoutSession(item.id, authToken);
 
             setCheckoutData(session);
             setShowPaymentModal(true);
@@ -79,7 +93,7 @@ const MarketView = () => {
     const handleClosePayment = () => {
         setShowPaymentModal(false);
         setCheckoutData(null);
-        setSelectedPackage(null);
+        setSelectedItem(null);
     };
 
     return (
@@ -89,78 +103,74 @@ const MarketView = () => {
                 onClose={handleClosePayment}
                 sessionId={checkoutData?.sessionId}
                 publicKey={checkoutData?.publicKey}
-                productName={selectedPackage?.name}
-                price={selectedPackage?.price}
+                productName={selectedItem?.name}
+                price={selectedItem?.price}
             />
 
-            {/* Header */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600/20 via-slate-900/95 to-slate-900 border-b border-white/5">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555680202-c86f0e12f086?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-5" />
-
-                <div className="relative z-10 px-8 py-12">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center ring-2 ring-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
-                            <ShoppingBag size={32} className="text-emerald-400" />
+            {/* Sticky Header */}
+            <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/5">
+                <div className="px-6 py-4">
+                    {/* Title Row with Search */}
+                    <div className="flex items-center justify-between gap-6 mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center ring-1 ring-emerald-500/30">
+                                <ShoppingBag size={20} className="text-emerald-400" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-300 tracking-tight">
+                                    Market
+                                </h1>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-300 tracking-tight">
-                                Market
-                            </h1>
-                            <p className="text-emerald-400/80 text-sm font-medium mt-1">
-                                Enhance your adventure with premium items
-                            </p>
+
+                        {/* Search Bar */}
+                        <div className="relative flex-1 max-w-sm">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search items..."
+                                className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 pl-10 pr-8 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 focus:bg-slate-800/80 transition-all"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
                         </div>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="relative max-w-md mt-6">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search items..."
-                            className="w-full bg-slate-950/50 border border-slate-700/50 rounded-xl py-3 pl-12 pr-10 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 focus:bg-slate-950/80 transition-all shadow-inner"
-                        />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-                            >
-                                <X size={18} />
-                            </button>
-                        )}
+                    {/* Category Tabs */}
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                        {categories.map((category) => {
+                            const Icon = getIconComponent(category.icon);
+                            const isActive = selectedCategory === category.id;
+                            return (
+                                <button
+                                    key={category.id}
+                                    onClick={() => setSelectedCategory(category.id)}
+                                    className={`
+                                        flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap text-sm
+                                        ${isActive
+                                            ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/25'
+                                            : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-700/50'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={14} />
+                                    <span>{category.name}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
 
-            {/* Category Tabs */}
-            <div className="px-8 py-4 border-b border-white/5 bg-slate-900/50 backdrop-blur-sm">
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                    {CATEGORIES.map((category) => {
-                        const Icon = category.icon;
-                        const isActive = selectedCategory === category.id;
-                        return (
-                            <button
-                                key={category.id}
-                                onClick={() => setSelectedCategory(category.id)}
-                                className={`
-                                    flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 whitespace-nowrap
-                                    ${isActive
-                                        ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/25'
-                                        : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-700/50'
-                                    }
-                                `}
-                            >
-                                <Icon size={16} />
-                                <span className="text-sm">{category.name}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Package Grid */}
+            {/* Items Grid */}
             <div className="flex-1 overflow-y-auto px-8 py-6">
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -168,7 +178,7 @@ const MarketView = () => {
                             <div key={i} className="bg-slate-800/30 rounded-2xl h-80 animate-pulse" />
                         ))}
                     </div>
-                ) : filteredPackages.length === 0 ? (
+                ) : filteredItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center py-20">
                         <Package size={64} className="text-slate-700 mb-4" />
                         <h3 className="text-xl font-bold text-slate-400 mb-2">No items found</h3>
@@ -176,10 +186,10 @@ const MarketView = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-                        {filteredPackages.map((pkg) => (
-                            <PackageCard
-                                key={pkg.id}
-                                package={pkg}
+                        {filteredItems.map((item) => (
+                            <ItemCard
+                                key={item.id}
+                                item={item}
                                 onPurchase={handlePurchase}
                             />
                         ))}
@@ -190,21 +200,22 @@ const MarketView = () => {
     );
 };
 
-const PackageCard = ({ package: pkg, onPurchase }) => {
+const ItemCard = ({ item, onPurchase }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const formatPrice = () => {
-        if (pkg.priceSeeds) {
-            return `${pkg.priceSeeds} Seeds`;
+        if (item.priceSeeds) {
+            return `${item.priceSeeds} Seeds`;
         }
-        if (pkg.price) {
-            return `$${pkg.price.toFixed(2)}`;
+        if (item.price) {
+            return `$${item.price.toFixed(2)}`;
         }
         return 'Free';
     };
 
     const getRewardBadges = () => {
-        return pkg.rewards.slice(0, 3).map((reward, idx) => {
+        if (!item.rewards) return null;
+        return item.rewards.slice(0, 3).map((reward, idx) => {
             if (reward.type === 'RANK') {
                 return (
                     <div key={idx} className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg px-2 py-1">
@@ -242,14 +253,14 @@ const PackageCard = ({ package: pkg, onPurchase }) => {
             {/* Image */}
             <div className="relative h-40 bg-slate-900 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/60" />
-                {pkg.image && (
+                {item.image && (
                     <img
-                        src={pkg.image}
-                        alt={pkg.name}
+                        src={item.image}
+                        alt={item.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                 )}
-                {pkg.isSubscription && (
+                {item.isSubscription && (
                     <div className="absolute top-3 right-3 bg-blue-500/90 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-lg">
                         Subscription
                     </div>
@@ -259,11 +270,11 @@ const PackageCard = ({ package: pkg, onPurchase }) => {
             {/* Content */}
             <div className="p-5">
                 <h3 className="text-lg font-bold text-slate-100 mb-2 line-clamp-1">
-                    {pkg.name}
+                    {item.name}
                 </h3>
 
                 <p className="text-sm text-slate-400 mb-4 line-clamp-2 min-h-[2.5rem]">
-                    {pkg.description}
+                    {item.description}
                 </p>
 
                 {/* Reward Badges */}
@@ -281,7 +292,7 @@ const PackageCard = ({ package: pkg, onPurchase }) => {
                     </div>
 
                     <button
-                        onClick={() => onPurchase(pkg)}
+                        onClick={() => onPurchase(item)}
                         className={`
                             px-6 py-2.5 rounded-xl font-bold transition-all duration-200
                             ${isHovered
