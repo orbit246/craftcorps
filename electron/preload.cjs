@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     linkMicrosoftAccount: (consent) => ipcRenderer.invoke('link-microsoft', consent),
     getUserProfile: () => ipcRenderer.invoke('get-user-profile'),
     linkDiscord: () => ipcRenderer.invoke('link-discord'),
+    oauthLogin: (provider) => ipcRenderer.invoke('oauth-login', { provider }),
     getInviteCode: () => ipcRenderer.invoke('get-invite-code'),
 
     microsoftLogin: (consent) => ipcRenderer.invoke('microsoft-login', consent),
@@ -35,8 +36,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Unified Wardrobe (Authenticated via main process)
     fetchDetailedCosmetics: (uuid) => ipcRenderer.invoke('fetch-detailed-cosmetics', uuid),
     equipCosmetic: (payload) => ipcRenderer.invoke('equip-cosmetic', payload),
+    uploadCosmetic: (payload) => ipcRenderer.invoke('upload-cosmetic', payload),
 
-    selectFile: () => ipcRenderer.invoke('select-file'),
+    selectFile: (options) => ipcRenderer.invoke('select-file', options),
     openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
     openPath: (path) => ipcRenderer.invoke('open-path', path),
     log: (level, message) => ipcRenderer.send('renderer-log', { level, message }),
@@ -156,6 +158,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     smartJoinServer: (payload) => ipcRenderer.invoke('smart-join-server', payload),
     createServer: (payload) => ipcRenderer.invoke('create-server', payload),
     verifyServer: (payload) => ipcRenderer.invoke('verify-server', payload),
+    // Server Registration
+    getMyServers: () => ipcRenderer.invoke('get-my-servers'),
+    registerServer: (payload) => ipcRenderer.invoke('register-server', payload),
+    getServerToken: (serverId) => ipcRenderer.invoke('get-server-token', serverId),
+    verifyServerRegistration: (payload) => ipcRenderer.invoke('verify-server-registration', payload),
+    getServerRegistrationStatus: (serverId) => ipcRenderer.invoke('get-server-registration-status', serverId),
+    getServerDetails: (serverId) => ipcRenderer.invoke('get-server-details', serverId),
+    pingServer: (ip) => ipcRenderer.invoke('ping-server', ip),
+
     voteServer: (payload) => ipcRenderer.invoke('vote-server', payload),
     on: (channel, callback) => {
         const validChannels = ['smart-join-progress'];

@@ -57,7 +57,7 @@ export const useInstances = () => {
                                     { id: 'appleskin', name: 'AppleSkin' },
                                     { id: 'zoomify', name: 'Zoomify' },
                                     { id: 'continuity', name: 'Continuity' },
-                                    { id: 'Nortix-core', name: 'Nortix Core', directUrl: 'https://download.nortixlabs.com/Nortix-cosmetics-0.1.3.jar' }
+                                    { id: 'nortix-client', name: 'Nortix Core' }
                                 ];
                                 changed = true;
                             }
@@ -157,7 +157,7 @@ export const useInstances = () => {
     useEffect(() => {
         if (isLoading || instances.length === 0) return;
 
-        const ccClient = instances.find(inst => inst.name === 'Nortix Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'Nortix-core') || !inst.modManifest.some(m => m.id === 'geckolib')));
+        const ccClient = instances.find(inst => inst.name === 'Nortix Client' && (!inst.modManifest || inst.modManifest.length === 0 || inst.modManifest.some(m => m.id === 'Nortix-core' || m.id === 'Nortix') || !inst.modManifest.some(m => m.id === 'nortix-client')));
         if (ccClient) {
             console.log("[Instances] Nortix Client detected with no manifest or missing core mods. Scheduling hydration...");
             const timer = setTimeout(async () => {
@@ -172,7 +172,7 @@ export const useInstances = () => {
                     { id: 'zoomify', name: 'Zoomify' },
                     { id: 'continuity', name: 'Continuity' },
                     { id: 'geckolib', name: 'Geckolib' },
-                    { id: 'Nortix', name: 'Nortix Core', directUrl: 'https://download.nortixlabs.com/Nortix-cosmetics-0.1.3.jar' }
+                    { id: 'nortix-client', name: 'Nortix Core' }
                 ];
 
                 // Functional update to avoid clobbering other state changes (like lastPlayed)

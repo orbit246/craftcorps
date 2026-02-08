@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { ChevronRight, PlusCircle, LogOut, Check, Calendar, Settings } from 'lucide-react';
+import { ChevronRight, PlusCircle, LogOut, Check, Calendar, Settings, Server } from 'lucide-react';
 import PlayerAvatar from '../common/PlayerAvatar';
 
 const AccountProfile = ({
@@ -10,7 +10,8 @@ const AccountProfile = ({
     onSwitchAccount,
     onAddAccount,
     onLogout,
-    onManageAccounts
+    onManageAccounts,
+    onManageServers
 }) => {
     const profileMenuRef = useRef(null);
     const [joinedDate, setJoinedDate] = useState(null);
@@ -135,6 +136,13 @@ const AccountProfile = ({
                         >
                             <Settings size={14} className="text-slate-500 group-hover:text-emerald-400 transition-colors" />
                             Manage Identities
+                        </button>
+                        <button
+                            onClick={() => { if (onManageServers) onManageServers(); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors text-xs font-medium group"
+                        >
+                            <Server size={14} className="text-slate-500 group-hover:text-emerald-400 transition-colors" />
+                            My Servers
                         </button>
                         <button
                             onClick={() => { onLogout(); setShowProfileMenu(false); }}

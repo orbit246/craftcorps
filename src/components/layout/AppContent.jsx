@@ -14,7 +14,7 @@ import { useToast } from '../../contexts/ToastContext';
 
 const AppContent = ({
     activeTab, setActiveTab,
-    activeAccount, setShowLoginModal, disableAnimations,
+    activeAccount, setShowLoginModal, showLoginModal, disableAnimations,
     selectedInstance, launchStatus, launchStep, launchProgress, launchFeedback, handlePlay, handleStop, isRefreshing,
     instances, setSelectedInstance, handleNewCrop, handleEditCrop, onRestoreDefault, showCropModal,
     accounts, onAccountSwitchWithToast, showProfileMenu, setShowProfileMenu, onLogoutWithToast, onLogoutAllWithToast,
@@ -27,7 +27,8 @@ const AppContent = ({
     isLoadingInstances,
     runningInstances,
     launchCooldown,
-    minimizeOnClose, setMinimizeOnClose
+    minimizeOnClose, setMinimizeOnClose,
+    onManageServers
 }) => {
     const { addToast } = useToast();
     const [hasOpenedMods, setHasOpenedMods] = React.useState(false);
@@ -111,12 +112,14 @@ const AppContent = ({
                         onSaveCrop={onSaveCropWithToast}
                         setActiveTab={setActiveTab}
                         showCropModal={showCropModal}
+                        showLoginModal={showLoginModal}
                         // Account System Props
                         accounts={accounts}
                         onSwitchAccount={onAccountSwitchWithToast}
                         onAddAccount={() => { setShowLoginModal(true); setShowProfileMenu(false); }}
                         onLogout={onLogoutWithToast}
                         onManageAccounts={() => setShowAccountModal(true)}
+                        onManageServers={onManageServers}
                         showProfileMenu={showProfileMenu}
                         setShowProfileMenu={setShowProfileMenu}
                         disableAnimations={disableAnimations}
@@ -185,11 +188,11 @@ const AppContent = ({
                     />
                 </div>
             )}
-            {activeTab === 'profile' && <ProfileView activeAccount={activeAccount} accounts={accounts} instances={instances} theme={theme} onLogout={onLogoutWithToast} onLogoutAll={onLogoutAllWithToast} setActiveTab={setActiveTab} setShowProfileMenu={setShowProfileMenu} onManageAccounts={() => setShowAccountModal(true)} />}
+            {activeTab === 'profile' && <ProfileView activeAccount={activeAccount} accounts={accounts} instances={instances} theme={theme} onLogout={onLogoutWithToast} onLogoutAll={onLogoutAllWithToast} setActiveTab={setActiveTab} setShowProfileMenu={setShowProfileMenu} onManageAccounts={() => setShowAccountModal(true)} onManageServers={onManageServers} />}
             {/* Market View - Keep Alive */}
             {(activeTab === 'market' || hasOpenedMarket) && (
                 <div className={`flex-1 flex-col h-full overflow-hidden ${activeTab === 'market' ? 'flex' : 'hidden'}`}>
-                    <MarketView />
+                    <MarketView theme={theme} />
                 </div>
             )}
             {activeTab === 'rewards' && <BetaRewardsView theme={theme} selectedInstance={selectedInstance} />}

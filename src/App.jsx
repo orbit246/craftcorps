@@ -151,6 +151,7 @@ function App() {
     } = useAccounts();
 
     const [showAccountModal, setShowAccountModal] = useState(false);
+    const [showServersModal, setShowServersModal] = useState(false);
 
     const {
         instances,
@@ -401,12 +402,13 @@ function App() {
 
                         <AppContent
                             activeTab={activeTab} setActiveTab={setActiveTab}
-                            activeAccount={activeAccount} setShowLoginModal={setShowLoginModal} disableAnimations={disableAnimations}
+                            activeAccount={activeAccount} setShowLoginModal={setShowLoginModal} showLoginModal={showLoginModal} disableAnimations={disableAnimations}
                             selectedInstance={selectedInstance} launchStatus={launchStatus} launchStep={launchStep} launchProgress={launchProgress} launchFeedback={launchFeedback} handlePlay={handlePlay} handleStop={handleStop} isRefreshing={isRefreshing}
                             instances={instances} setSelectedInstance={setSelectedInstance} handleNewCrop={handleNewCrop} handleEditCrop={handleEditCrop} onRestoreDefault={handleRestoreDefault}
                             showCropModal={showCropModal}
                             accounts={accounts} onAccountSwitchWithToast={onAccountSwitchWithToast} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} onLogoutWithToast={onLogoutWithToast} onLogoutAllWithToast={onLogoutAllWithToast}
                             showAccountModal={showAccountModal} setShowAccountModal={setShowAccountModal}
+                            onManageServers={() => setShowServersModal(true)}
                             onDeleteCropWithToast={onDeleteCropWithToast} reorderInstances={reorderInstances}
                             ram={ram} setRam={setRam} javaPath={javaPath} setJavaPath={setJavaPath} hideOnLaunch={hideOnLaunch} setHideOnLaunch={setHideOnLaunch} setDisableAnimations={setDisableAnimations} availableJavas={availableJavas} enableDiscordRPC={enableDiscordRPC} setEnableDiscordRPC={setEnableDiscordRPC}
                             startOnStartup={startOnStartup} setStartOnStartup={setStartOnStartup}
@@ -441,6 +443,8 @@ function App() {
                             setShowSpecialDeleteModal={setShowSpecialDeleteModal}
                             onConfirmSpecialDelete={confirmSpecialDelete}
                             onNewCrop={handleNewCrop}
+                            showServersModal={showServersModal}
+                            setShowServersModal={setShowServersModal}
                         />
                     </React.Suspense>
                 </>

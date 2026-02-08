@@ -432,6 +432,9 @@ app.whenReady().then(async () => {
     const { setupDiscoveryHandlers } = require('./handlers/discoveryHandler.cjs');
     setupDiscoveryHandlers();
 
+    const { setupServerRegistrationHandlers } = require('./handlers/serverRegistrationHandler.cjs');
+    setupServerRegistrationHandlers();
+
     // --- Lazy Handlers (Performance) ---
 
     /**

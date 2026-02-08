@@ -1,7 +1,8 @@
 import React from 'react';
-import { Shirt, Sparkles, PlusCircle, RefreshCw } from 'lucide-react';
+import { Shirt, Sparkles, PlusCircle, RefreshCw, Wand2 } from 'lucide-react';
 import SkinCard from './SkinCard';
 import CosmeticCard from './CosmeticCard';
+import CosmeticStudio from './CosmeticStudio';
 
 const WardrobeLibrary = ({
     activeTab,
@@ -25,7 +26,8 @@ const WardrobeLibrary = ({
     unequippedCosmeticSlots,
     activeCosmetics,
     toggleCosmetic,
-    refreshCosmetics
+    refreshCosmetics,
+    activeAccount
 }) => {
     return (
         <div className={`flex-1 rounded-[2rem] border p-8 flex flex-col min-h-0 relative overflow-hidden group/card ${theme === 'white' ? 'bg-white/60 border-slate-200 shadow-xl' : 'bg-slate-900/40 border-white/10 shadow-2xl backdrop-blur-xl'}`}>
@@ -58,6 +60,15 @@ const WardrobeLibrary = ({
                             <Sparkles size={16} /> Cosmetics
                         </div>
                         {activeTab === 'cosmetics' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400 rounded-t-full shadow-[0_-4px_10px_rgba(16,185,129,0.5)] animate-in slide-in-from-bottom-1" />}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('studio')}
+                        className={`pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'studio' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Wand2 size={16} /> Studio
+                        </div>
+                        {activeTab === 'studio' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400 rounded-t-full shadow-[0_-4px_10px_rgba(16,185,129,0.5)] animate-in slide-in-from-bottom-1" />}
                     </button>
                 </div>
 
@@ -129,7 +140,7 @@ const WardrobeLibrary = ({
                             <span className="text-xs font-bold uppercase tracking-widest">Add Skin</span>
                         </div>
                     </div>
-                ) : (
+                ) : activeTab === 'cosmetics' ? (
                     <div className="space-y-12 pb-8">
                         {isLoadingCosmetics && Object.keys(categorizedCosmetics).every(cat => categorizedCosmetics[cat].length === 0) ? (
                             <div className="py-20 text-center">
@@ -188,6 +199,8 @@ const WardrobeLibrary = ({
                             </>
                         )}
                     </div>
+                ) : (
+                    <CosmeticStudio theme={theme} refreshCosmetics={refreshCosmetics} activeAccount={activeAccount} />
                 )}
             </div>
         </div>

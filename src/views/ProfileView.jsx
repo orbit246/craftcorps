@@ -84,7 +84,7 @@ const CosmeticCard = ({ item }) => {
 
 
 
-const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLogoutAll, setActiveTab, setShowProfileMenu, onManageAccounts }) => {
+const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLogoutAll, setActiveTab, setShowProfileMenu, onManageAccounts, onManageServers }) => {
     const { addToast } = useToast();
 
     // Data States
@@ -581,7 +581,13 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                                 <div className="flex flex-col items-center justify-center py-12 text-slate-600 gap-3 border border-white/5 rounded-xl bg-slate-900/30 border-dashed">
                                     <Server size={32} className="opacity-50" />
                                     <div className="text-center">
-                                        <p className="text-sm font-bold text-slate-400 tracking-wide">Server management coming soon...</p>
+                                        <button
+                                            onClick={onManageServers}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 text-sm flex items-center gap-2"
+                                        >
+                                            <Server size={16} />
+                                            Manage My Servers
+                                        </button>
                                     </div>
                                 </div>
                             </div>

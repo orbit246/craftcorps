@@ -46,7 +46,10 @@ async function pingServer(serverIp) {
             version: data.version,
             players: data.players?.online || 0,
             maxPlayers: data.players?.max || 0,
-            platform: data.software?.includes('Bedrock') ? 'Bedrock' : 'Java'
+            platform: data.software?.includes('Bedrock') ? 'Bedrock' : 'Java',
+            icon: data.icon,
+            motd: data.motd?.clean?.join(' ') || '', // Joined clean MOTD
+            hostname: data.hostname || serverIp
         };
     } catch (error) {
         log.error(`[SmartJoin] Failed to ping ${serverIp}:`, error.message);

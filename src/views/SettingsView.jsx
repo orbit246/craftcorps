@@ -31,9 +31,9 @@ const SettingsView = ({ ram, setRam, javaPath, setJavaPath, hideOnLaunch, setHid
 
     const handleBrowseJava = async () => {
         if (window.electronAPI && window.electronAPI.selectFile) {
-            const path = await window.electronAPI.selectFile();
-            if (path) {
-                setJavaPath(path);
+            const result = await window.electronAPI.selectFile();
+            if (result && result.path) {
+                setJavaPath(result.path);
             }
         } else {
             console.warn("Electron API not available");

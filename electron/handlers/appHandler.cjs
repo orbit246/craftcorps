@@ -68,16 +68,31 @@ function setupAppHandlers(getMainWindow, store) {
     });
 
     // File Selection
-    ipcMain.handle('select-file', async () => {
-        const filters = process.platform === 'win32'
+    ipcMain.handle('select-file', async (event, options = {}) => {
+        const defaultFilters = process.platform === 'win32'
             ? [{ name: 'Executables', extensions: ['exe'] }]
-            : []; // Allow any file on Mac/Linux
+            : [];
 
         const result = await dialog.showOpenDialog(getMainWindow(), {
             properties: ['openFile'],
-            filters: filters
+            filters: options.filters || defaultFilters,
+            title: options.title || 'Select File'
         });
-        return result.canceled ? null : result.filePaths[0];
+
+        if (result.canceled || result.filePaths.length === 0) return null;
+
+        const filePath = result.filePaths[0];
+        try {
+            const stats = fs.statSync(filePath);
+            return {
+                path: filePath,
+                size: stats.size,
+                name: path.basename(filePath)
+            };
+        } catch (e) {
+            log.error(`Failed to get stats for file ${filePath}:`, e);
+            return { path: filePath, size: 0, name: path.basename(filePath) };
+        }
     });
 
     // Logging from Renderer

@@ -242,6 +242,95 @@ function setupAuthHandlers(getMainWindow) {
         }
     });
 
+    ipcMain.handle('oauth-login', async (event, { provider }) => {
+        try {
+            const { BrowserWindow } = require('electron');
+            // Endpoint convention: /auth/google or /auth/discord
+            const authUrl = `https://api.nortixlabs.com/auth/${provider}?client=launcher`;
+
+            return new Promise((resolve) => {
+                const authWindow = new BrowserWindow({
+                    width: 500,
+                    height: 800,
+                    show: true,
+                    parent: getMainWindow(),
+                    modal: true,
+                    autoHideMenuBar: true,
+                    webPreferences: {
+                        nodeIntegration: false,
+                        contextIsolation: true
+                    }
+                });
+
+                let processed = false;
+
+                const checkUrl = (url) => {
+                    if (processed) return;
+
+                    // Check for success signals
+                    // Expected URL: .../auth/success?accessToken=...&refreshToken=...
+                    if (url.includes('/auth/success') || url.includes('success=true')) {
+                        try {
+                            const urlObj = new URL(url);
+                            const accessToken = urlObj.searchParams.get('accessToken');
+                            const refreshToken = urlObj.searchParams.get('refreshToken');
+
+                            if (accessToken) {
+                                processed = true;
+                                authWindow.close();
+
+                                // Update local auth service state
+                                authService._handleAuthResponse({ accessToken, refreshToken });
+
+                                // Fetch profile to return complete user object
+                                authService.getUserProfile().then(user => {
+                                    resolve({
+                                        success: true,
+                                        data: {
+                                            accessToken,
+                                            refreshToken,
+                                            user: {
+                                                id: user.id || user._id,
+                                                username: user.username,
+                                                email: user.email,
+                                                ...user
+                                            }
+                                        }
+                                    });
+                                }).catch(err => {
+                                    console.error('Failed to fetch profile after OAuth:', err);
+                                    resolve({ success: false, error: 'Failed to fetch user profile' });
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error parsing OAuth URL:', e);
+                        }
+                    }
+
+                    if (url.includes('error=')) {
+                        processed = true;
+                        authWindow.close();
+                        resolve({ success: false, error: 'Authentication failed' });
+                    }
+                };
+
+                authWindow.webContents.on('will-navigate', (_, url) => checkUrl(url));
+                authWindow.webContents.on('did-navigate', (_, url) => checkUrl(url));
+                authWindow.webContents.on('will-redirect', (_, url) => checkUrl(url));
+
+                authWindow.on('closed', () => {
+                    if (!processed) resolve({ success: false, error: 'Cancelled by user' });
+                });
+
+                authWindow.loadURL(authUrl);
+            });
+
+        } catch (error) {
+            console.error('[AuthHandler] OAuth Login failed:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
     ipcMain.handle('link-discord', async (event) => {
         try {
             const { BrowserWindow } = require('electron');
@@ -333,6 +422,38 @@ function setupAuthHandlers(getMainWindow) {
         } catch (error) {
             console.error('[AuthHandler] Equip cosmetic failed:', error);
             throw error;
+        }
+    });
+
+    ipcMain.handle('upload-cosmetic', async (event, { filePath, type, name }) => {
+        try {
+            const fs = require('fs');
+            const fileBuffer = fs.readFileSync(filePath);
+            const fileName = require('path').basename(filePath);
+
+            // Create Blob from buffer (Node 20 supports this)
+            const blob = new Blob([fileBuffer], { type: 'image/png' });
+
+            const formData = new FormData();
+            formData.append('file', blob, fileName);
+            formData.append('type', type || 'CAPE');
+            formData.append('name', name || fileName);
+
+            const url = 'https://api.nortixlabs.com/cosmetics/upload';
+            const res = await authService.fetchAuthenticated(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || err.error || `Upload failed: ${res.status}`);
+            }
+
+            return { success: true, data: await res.json() };
+        } catch (error) {
+            console.error('[AuthHandler] Upload cosmetic failed:', error);
+            return { success: false, error: error.message };
         }
     });
 }

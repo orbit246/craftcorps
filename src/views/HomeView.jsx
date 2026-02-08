@@ -41,6 +41,7 @@ const HomeView = ({
     onManageAccounts,
     showProfileMenu,
     setShowProfileMenu,
+    onManageServers,
     disableAnimations,
     theme,
     isLoadingInstances,
@@ -49,6 +50,7 @@ const HomeView = ({
     onSaveCrop,
     setActiveTab,
     showCropModal,
+    showLoginModal,
     onRestoreDefault
 }) => {
     const { t } = useTranslation();
@@ -235,6 +237,7 @@ const HomeView = ({
                             onAddAccount={onAddAccount}
                             onLogout={onLogout}
                             onManageAccounts={onManageAccounts}
+                            onManageServers={onManageServers}
                         />
                     </div>
                 </div>
@@ -395,7 +398,7 @@ const HomeView = ({
             </div>
 
             {/* Baked Quick Switch at Bottom - Persistent Footer */}
-            {selectedInstance && !showAdvanced && !showCropModal && (
+            {selectedInstance && !showAdvanced && !showCropModal && !showLoginModal && (
                 <div className="flex-none z-[100]">
                     <QuickSwitchPanel
                         instances={instances}

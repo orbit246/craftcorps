@@ -432,6 +432,25 @@ class AuthService {
 
         const response = await fetch(url, { ...options, headers });
 
+        // Log response for debugging
+        const status = response.status;
+        log.info(`[AuthService] Response Status: ${status}`);
+
+        if (!response.ok) {
+            try {
+                const debugClone = response.clone();
+                const errorData = await debugClone.json();
+                log.info(`[AuthService] Error Response Body: ${JSON.stringify(errorData)}`);
+            } catch (e) {
+                // If not JSON, maybe text?
+                try {
+                    const debugClone = response.clone();
+                    const text = await debugClone.text();
+                    log.info(`[AuthService] Error Response Text: ${text.substring(0, 200)}`);
+                } catch (e2) { }
+            }
+        }
+
         if (response.status === 401 && !retried) {
             log.info(`[AuthService] 401 received for ${url}. Attempting to refresh session...`);
             const refreshSuccess = await this.refreshSession();
@@ -459,6 +478,8 @@ class AuthService {
             this.store.delete(STORE_KEY_USER_ID);
         }
     }
+    // --- Server Registration ---
+
 }
 
 module.exports = new AuthService();

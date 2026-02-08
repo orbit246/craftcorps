@@ -9,6 +9,7 @@ import CrashReportModal from '../modals/CrashReportModal';
 import UpdateModal from '../modals/UpdateModal';
 import SpecialDeleteModal from '../modals/SpecialDeleteModal';
 import AccountManagementModal from '../modals/AccountManagementModal';
+import MyServersModal from '../modals/MyServersModal';
 
 const AppOverlays = ({
     // Console
@@ -30,7 +31,8 @@ const AppOverlays = ({
     // Update
     showUpdateModal, setShowUpdateModal, updateStatus, updateInfo, downloadProgress, onDownloadUpdate, onInstallUpdate,
     instanceCount,
-    showSpecialDeleteModal, setShowSpecialDeleteModal, onConfirmSpecialDelete, onNewCrop
+    showSpecialDeleteModal, setShowSpecialDeleteModal, onConfirmSpecialDelete, onNewCrop,
+    showServersModal, setShowServersModal
 }) => {
     return (
         <>
@@ -55,6 +57,7 @@ const AppOverlays = ({
                 onClose={() => setShowLoginModal(false)}
                 onAddAccount={onAddAccountWithToast}
                 isAutoRefreshing={isRefreshing}
+                accounts={accounts}
             />
 
             {/* Crop (Edit/Create) Modal */}
@@ -114,6 +117,11 @@ const AppOverlays = ({
                 onSwitchAccount={(acc) => { onAccountSwitch(acc); setShowAccountModal(false); }}
                 onRemoveAccount={onRemoveAccount}
                 onAddAccount={() => { setShowLoginModal(true); setShowAccountModal(false); }}
+            />
+
+            <MyServersModal
+                isOpen={showServersModal}
+                onClose={() => setShowServersModal(false)}
             />
         </>
     );

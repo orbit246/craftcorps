@@ -131,6 +131,7 @@ const WardrobeView = ({ theme, activeAccount, isActive }) => {
                     activeCosmetics={activeCosmetics}
                     toggleCosmetic={toggleCosmetic}
                     refreshCosmetics={refreshCosmetics}
+                    activeAccount={activeAccount}
                 />
             </div>
         </div>
