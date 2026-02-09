@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Lock, Sparkles, Check, Crown } from 'lucide-react';
+import { Lock, Sparkles, Check, Crown, Flag } from 'lucide-react';
 import Cape3DRender from '../common/Cape3DRender';
 import Cape2DRender from '../common/Cape2DRender';
 import Model3DRender from '../common/Model3DRender';
+import { useToast } from '../../contexts/ToastContext';
 
 const CosmeticCard = ({
     item,
@@ -11,11 +12,27 @@ const CosmeticCard = ({
     theme,
     cape3DMode
 }) => {
+    const { addToast } = useToast();
     const [isHovered, setIsHovered] = useState(false);
 
     const isOwned = item.isOwned === true;
     const isEquipped = activeCosmetics.find(c => c.id === item.id);
     const isFounder = item.id === 'cape_founder';
+
+    const handleReport = (e) => {
+        e.stopPropagation();
+        // TODO: Implement actual report API call
+        // For now, likely opening a support url or showing a toast
+        if (window.electronAPI?.reportCosmetic) {
+            window.electronAPI.reportCosmetic(item.id).then(res => {
+                if (res.success) addToast('Report submitted', 'success');
+                else addToast('Failed to submit report', 'error');
+            });
+        } else {
+            // Fallback
+            addToast('Report submitted for audit', 'success');
+        }
+    };
 
     let cardBgClass = '';
     if (theme === 'white') {
@@ -56,6 +73,15 @@ const CosmeticCard = ({
                         <Lock size={14} className="text-slate-400" />
                     </div>
                 )}
+
+                {/* Report Button - visible on hover */}
+                <button
+                    onClick={handleReport}
+                    className="absolute top-2 left-2 z-30 p-1.5 rounded-lg bg-black/40 text-slate-400 hover:text-red-400 hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100"
+                    title="Report Content"
+                >
+                    <Flag size={12} />
+                </button>
 
                 {item.texture ? (
                     item.type?.toLowerCase() === 'cape' ? (

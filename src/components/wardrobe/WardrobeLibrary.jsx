@@ -1,8 +1,9 @@
 import React from 'react';
-import { Shirt, Sparkles, PlusCircle, RefreshCw, Wand2 } from 'lucide-react';
+import { Shirt, Sparkles, PlusCircle, RefreshCw, Wand2, Globe } from 'lucide-react';
 import SkinCard from './SkinCard';
 import CosmeticCard from './CosmeticCard';
 import CosmeticStudio from './CosmeticStudio';
+import CommunityCosmetics from './CommunityCosmetics';
 
 const WardrobeLibrary = ({
     activeTab,
@@ -27,7 +28,9 @@ const WardrobeLibrary = ({
     activeCosmetics,
     toggleCosmetic,
     refreshCosmetics,
-    activeAccount
+    activeAccount,
+    studioState,
+    setStudioState
 }) => {
     return (
         <div className={`flex-1 rounded-[2rem] border p-8 flex flex-col min-h-0 relative overflow-hidden group/card ${theme === 'white' ? 'bg-white/60 border-slate-200 shadow-xl' : 'bg-slate-900/40 border-white/10 shadow-2xl backdrop-blur-xl'}`}>
@@ -45,7 +48,7 @@ const WardrobeLibrary = ({
                 <div className="flex gap-8">
                     <button
                         onClick={() => setActiveTab('skins')}
-                        className={`pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'skins' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`pt-2 pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'skins' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         <div className="flex items-center gap-2">
                             <Shirt size={16} /> My Skins
@@ -54,7 +57,7 @@ const WardrobeLibrary = ({
                     </button>
                     <button
                         onClick={() => setActiveTab('cosmetics')}
-                        className={`pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'cosmetics' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`pt-2 pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'cosmetics' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         <div className="flex items-center gap-2">
                             <Sparkles size={16} /> Cosmetics
@@ -62,8 +65,17 @@ const WardrobeLibrary = ({
                         {activeTab === 'cosmetics' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400 rounded-t-full shadow-[0_-4px_10px_rgba(16,185,129,0.5)] animate-in slide-in-from-bottom-1" />}
                     </button>
                     <button
+                        onClick={() => setActiveTab('community')}
+                        className={`pt-2 pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'community' ? 'text-purple-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Globe size={16} /> Community
+                        </div>
+                        {activeTab === 'community' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-400 rounded-t-full shadow-[0_-4px_10px_rgba(168,85,247,0.5)] animate-in slide-in-from-bottom-1" />}
+                    </button>
+                    <button
                         onClick={() => setActiveTab('studio')}
-                        className={`pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'studio' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`pt-2 pb-4 font-bold text-sm tracking-tight transition-all relative ${activeTab === 'studio' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         <div className="flex items-center gap-2">
                             <Wand2 size={16} /> Studio
@@ -199,8 +211,22 @@ const WardrobeLibrary = ({
                             </>
                         )}
                     </div>
+                ) : activeTab === 'community' ? (
+                    <CommunityCosmetics
+                        categorizedCosmetics={categorizedCosmetics}
+                        activeAccount={activeAccount}
+                        refreshCosmetics={refreshCosmetics}
+                        theme={theme}
+                        toggleCosmetic={toggleCosmetic}
+                    />
                 ) : (
-                    <CosmeticStudio theme={theme} refreshCosmetics={refreshCosmetics} activeAccount={activeAccount} />
+                    <CosmeticStudio
+                        theme={theme}
+                        refreshCosmetics={refreshCosmetics}
+                        activeAccount={activeAccount}
+                        studioState={studioState}
+                        setStudioState={setStudioState}
+                    />
                 )}
             </div>
         </div>

@@ -1,6 +1,6 @@
 ﻿import React, { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sprout, Play, FolderMinus, Box, Settings, Shirt, Store, Gift, PanelLeftClose, PanelLeftOpen, Star, User } from 'lucide-react';
+import { Sprout, Play, FolderMinus, Box, Settings, Shirt, Store, Gift, PanelLeftClose, PanelLeftOpen, Star, User, Crown, Scroll } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 
 const Sidebar = ({ activeTab, onTabChange, theme, onSelectRunningInstance }) => {
@@ -153,10 +153,10 @@ const Sidebar = ({ activeTab, onTabChange, theme, onSelectRunningInstance }) => 
 
                     <div className={`pt-4 mt-4 border-t border-slate-800 ${isCollapsed ? 'border-transparent' : ''}`}>
                         <SidebarItem
-                            icon={Gift}
-                            label="Beta Rewards"
-                            active={activeTab === 'rewards'}
-                            onClick={() => onTabChange('rewards')}
+                            icon={Scroll}
+                            label="Quests"
+                            active={activeTab === 'quests'}
+                            onClick={() => onTabChange('quests')}
                             collapsed={isCollapsed}
                             fill="#fca5a5"
                         />

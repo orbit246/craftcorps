@@ -110,7 +110,7 @@ const MyServersModal = ({ isOpen, onClose }) => {
                 addToast('Server Registered!', 'success');
 
                 // Reset and go to list
-                fetchServers();
+                await fetchServers();
                 setView('list');
 
                 // Only go to verify if they want to? No, better to show list with "Verify" button as requested

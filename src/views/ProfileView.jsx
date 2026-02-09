@@ -329,11 +329,11 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                         {/* Integrated Seeds Balance */}
                         <div className="absolute top-8 right-8 w-52 h-24 bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-[1.5rem] p-5 flex flex-col justify-between transition-all hover:border-emerald-500/30 group/seeds shadow-2xl">
                             <div className="text-emerald-500 font-black uppercase text-[11px] tracking-[0.2em] opacity-80 group-hover/seeds:opacity-100 transition-opacity">
-                                Seeds
+                                Shards
                             </div>
                             <div className="flex items-baseline justify-end gap-2 leading-none">
                                 <span className="text-4xl font-black text-white tabular-nums tracking-tighter drop-shadow-md">0</span>
-                                <span className="text-sm font-bold text-slate-500 tracking-wide">Seeds</span>
+                                <span className="text-sm font-bold text-slate-500 tracking-wide">Shards</span>
                             </div>
                         </div>
                     </div>
@@ -374,12 +374,20 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                                     <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
                                         <Users className="text-blue-400" size={20} /> Game Accounts
                                     </h2>
-                                    <button
-                                        onClick={onManageAccounts}
-                                        className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20 transition-all"
-                                    >
-                                        Manage
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setActiveTab('creator')}
+                                            className="text-[10px] font-black uppercase tracking-widest text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded border border-purple-500/20 transition-all flex items-center gap-1"
+                                        >
+                                            <Crown size={12} /> Creator
+                                        </button>
+                                        <button
+                                            onClick={onManageAccounts}
+                                            className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20 transition-all"
+                                        >
+                                            Manage
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="space-y-3">
                                     {accounts?.map((acc) => (
@@ -578,17 +586,25 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
                                         <Server className="text-indigo-400" size={20} /> Your Servers
                                     </h2>
                                 </div>
-                                <div className="flex flex-col items-center justify-center py-12 text-slate-600 gap-3 border border-white/5 rounded-xl bg-slate-900/30 border-dashed">
-                                    <Server size={32} className="opacity-50" />
-                                    <div className="text-center">
-                                        <button
-                                            onClick={onManageServers}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 text-sm flex items-center gap-2"
-                                        >
-                                            <Server size={16} />
-                                            Manage My Servers
-                                        </button>
+                                <div className="flex flex-col items-center justify-center py-8 px-6 text-slate-600 gap-4 border border-white/5 rounded-xl bg-slate-900/30 border-dashed">
+                                    <div className="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center mb-1">
+                                        <Server size={24} className="text-indigo-400" />
                                     </div>
+
+                                    <div className="text-center max-w-sm space-y-1 mb-2">
+                                        <h3 className="text-slate-200 font-bold">Own a Minecraft Server?</h3>
+                                        <p className="text-xs text-slate-400 leading-relaxed">
+                                            Claim your server to enable <span className="text-indigo-300">voting</span>, access <span className="text-indigo-300">market features</span>, and manage your community.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={onManageServers}
+                                        className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 text-sm flex items-center gap-2"
+                                    >
+                                        <Server size={16} />
+                                        Manage My Servers
+                                    </button>
                                 </div>
                             </div>
 

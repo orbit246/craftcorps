@@ -186,8 +186,15 @@ async function readSkin(filePath) {
         const { width, height, format } = metadata;
 
         if (format !== 'png') throw new Error('Only PNG files are allowed.');
-        const isValid = (width === 64 && height === 64) || (width === 64 && height === 32);
-        if (!isValid) throw new Error(`Invalid dimensions: ${width}x${height}. Must be 64x64 or 64x32.`);
+
+        // Allow standard skin sizes (64x64, 64x32) AND HD ratios (1:1 or 2:1)
+        const aspect = width / height;
+        const isSquare = Math.abs(aspect - 1) < 0.01;
+        const isTwoToOne = Math.abs(aspect - 2) < 0.01;
+
+        if (!isSquare && !isTwoToOne) {
+            throw new Error(`Invalid aspect ratio: ${width}x${height}. Must be 1:1 (Skin) or 2:1 (Cape/Legacy).`);
+        }
 
         const base64 = fileBuffer.toString('base64');
         return {

@@ -6,7 +6,8 @@ import WardrobeView from '../../views/WardrobeView';
 import SettingsView from '../../views/SettingsView';
 import ModsView from '../../views/ModsView';
 import MarketView from '../../views/MarketView';
-import BetaRewardsView from '../../views/BetaRewardsView';
+import CreatorView from '../../views/CreatorView';
+import QuestsView from '../../views/QuestsView';
 import DiscoverView from '../../views/DiscoverView';
 import ProfileView from '../../views/ProfileView';
 import { SKINS } from '../../data/mockData';
@@ -195,7 +196,8 @@ const AppContent = ({
                     <MarketView theme={theme} />
                 </div>
             )}
-            {activeTab === 'rewards' && <BetaRewardsView theme={theme} selectedInstance={selectedInstance} />}
+            {activeTab === 'creator' && <CreatorView theme={theme} />}
+            {activeTab === 'quests' && <QuestsView theme={theme} />}
         </div>
     );
 };

@@ -10,8 +10,8 @@ import { useWardrobe } from '../hooks/useWardrobe';
  * Uses useWardrobe hook for state and business logic.
  */
 const WardrobeView = ({ theme, activeAccount, isActive }) => {
-    // Unified Seeds State (Fetched from backend profile)
-    const [seeds, setSeeds] = React.useState(0);
+    // Unified Shards State (Fetched from backend profile)
+    const [shards, setShards] = React.useState(0);
 
     React.useEffect(() => {
         let isMounted = true;
@@ -19,14 +19,14 @@ const WardrobeView = ({ theme, activeAccount, isActive }) => {
         if (activeAccount && window.electronAPI?.getUserProfile) {
             window.electronAPI.getUserProfile().then(res => {
                 if (isMounted && res.success && res.profile) {
-                    setSeeds(res.profile.seeds || 0);
+                    setShards(res.profile.seeds || 0);
                 }
             }).catch(err => {
-                console.error("[Wardrobe] Failed to fetch seeds:", err);
-                if (isMounted) setSeeds(0);
+                console.error("[Wardrobe] Failed to fetch shards:", err);
+                if (isMounted) setShards(0);
             });
         } else {
-            setSeeds(0);
+            setShards(0);
         }
 
         return () => { isMounted = false; };
@@ -56,7 +56,9 @@ const WardrobeView = ({ theme, activeAccount, isActive }) => {
         viewerSkin,
         unequippedCosmeticSlots,
         refreshCosmetics,
-        isInitializing
+        isInitializing,
+        studioState,
+        setStudioState
     } = useWardrobe(activeAccount);
 
     return (
@@ -81,9 +83,9 @@ const WardrobeView = ({ theme, activeAccount, isActive }) => {
                             <button className="ml-1 text-[9px] hover:underline opacity-60">Learn more</button>
                         </div>
                     )}
-                    <div className="status-pill text-emerald-500/90 border-emerald-500/20 bg-emerald-500/5 group/seeds cursor-help transition-all hover:bg-emerald-500/10 hover:border-emerald-500/30 justify-center min-w-[64px]">
-                        <span key={seeds} className="tabular-nums font-bold animate-in fade-in zoom-in-95 duration-300">{seeds}</span>
-                        <span className="opacity-60 text-[9px] uppercase tracking-tighter">Seeds</span>
+                    <div className="status-pill text-emerald-500/90 border-emerald-500/20 bg-emerald-500/5 group/shards cursor-help transition-all hover:bg-emerald-500/10 hover:border-emerald-500/30 justify-center min-w-[64px]">
+                        <span key={shards} className="tabular-nums font-bold animate-in fade-in zoom-in-95 duration-300">{shards}</span>
+                        <span className="opacity-60 text-[9px] uppercase tracking-tighter">Shards</span>
                     </div>
                     <div className="status-pill text-slate-400 border-white/5 bg-white/5">
                         <User size={12} />
@@ -132,6 +134,8 @@ const WardrobeView = ({ theme, activeAccount, isActive }) => {
                     toggleCosmetic={toggleCosmetic}
                     refreshCosmetics={refreshCosmetics}
                     activeAccount={activeAccount}
+                    studioState={studioState}
+                    setStudioState={setStudioState}
                 />
             </div>
         </div>

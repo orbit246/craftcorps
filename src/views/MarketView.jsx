@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Sparkles, Crown, Coins, Palette, Package, Search, X, Tag } from 'lucide-react';
+import { ShoppingBag, Sparkles, Crown, Gem, Palette, Package, Search, X, Tag } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { catalog } from '../services/CatalogService';
 import { payments } from '../services/PaymentsService';
@@ -9,7 +9,7 @@ import PaymentModal from '../components/modals/PaymentModal';
 const ICON_MAP = {
     Package: Package,
     Crown: Crown,
-    Coins: Coins,
+    Coins: Gem,
     Palette: Palette,
     Sparkles: Sparkles,
     ShoppingBag: ShoppingBag,
@@ -205,7 +205,7 @@ const ItemCard = ({ item, onPurchase }) => {
 
     const formatPrice = () => {
         if (item.priceSeeds) {
-            return `${item.priceSeeds} Seeds`;
+            return `${item.priceSeeds} Shards`;
         }
         if (item.price) {
             return `$${item.price.toFixed(2)}`;
@@ -224,10 +224,10 @@ const ItemCard = ({ item, onPurchase }) => {
                     </div>
                 );
             }
-            if (reward.type === 'SEEDS') {
+            if (reward.type === 'SEEDS' || reward.type === 'SHARDS') {
                 return (
                     <div key={idx} className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1">
-                        <Coins size={12} className="text-emerald-400" />
+                        <Gem size={12} className="text-emerald-400" />
                         <span className="text-xs font-medium text-emerald-300">{reward.amount.toLocaleString()}</span>
                     </div>
                 );

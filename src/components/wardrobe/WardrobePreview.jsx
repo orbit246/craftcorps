@@ -15,7 +15,7 @@ const WardrobePreview = ({
     isInitializing = false
 }) => {
     return (
-        <div className="lg:w-2/5 flex flex-col gap-6 h-full">
+        <div className="lg:w-[32%] flex flex-col gap-6 h-full">
             <div className="flex-1 flex flex-col items-center justify-center relative group min-h-[450px] bg-slate-900/40 rounded-[2rem] border border-white/5 overflow-hidden shadow-inner group/card">
                 {/* Slow Background Shine */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent animate-slow-sweep pointer-events-none" />

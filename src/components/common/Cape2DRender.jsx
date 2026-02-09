@@ -4,13 +4,14 @@ import React, { useRef, useEffect } from 'react';
  * Renders a Minecraft cape texture in 2D with perspective
  * Cape textures are 64x32 or 46x22 pixels
  */
-const Cape2DRender = ({ capeUrl, scale = 6, className = '' }) => {
+const Cape2DRender = ({ capeUrl, scale = 6, className = '', onError }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        if (!capeUrl || !canvasRef.current) return;
+        if (!capeUrl) return;
 
         const canvas = canvasRef.current;
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
         const img = new Image();
@@ -78,11 +79,12 @@ const Cape2DRender = ({ capeUrl, scale = 6, className = '' }) => {
 
         img.onerror = () => {
             console.error('[Cape2DRender] Failed to load cape:', capeUrl);
+            if (onError) onError();
         };
 
         img.src = capeUrl;
 
-    }, [capeUrl, scale]);
+    }, [capeUrl, scale, onError]);
 
     return (
         <canvas

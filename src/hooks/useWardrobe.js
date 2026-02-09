@@ -97,6 +97,14 @@ export const useWardrobe = (activeAccount) => {
     const [editingSkinId, setEditingSkinId] = useState(null);
     const [editName, setEditName] = useState("");
 
+    // Studio Inputs State
+    const [studioState, setStudioState] = useState({
+        previewUrl: null,
+        selectedFilePath: null,
+        cosmeticName: '',
+        isPublic: false
+    });
+
     // Cape Preview Mode (3D or 2D)
     const [cape3DMode, setCape3DMode] = useState(true);
 
@@ -524,11 +532,18 @@ export const useWardrobe = (activeAccount) => {
         const STEVE_URL = "https://mc-heads.net/skin/steve";
         const ALEX_URL = "https://mc-heads.net/skin/alex";
 
+        // Check for Studio Test Cape
+        let capeUrl = base.capeUrl;
+        if (studioState?.testCapeUrl) {
+            capeUrl = studioState.testCapeUrl;
+        }
+
         return {
             ...base,
             skinUrl: base.skinUrl || (base.model === 'slim' ? ALEX_URL : STEVE_URL),
+            capeUrl: capeUrl
         };
-    }, [selectedSkin, currentSkin]);
+    }, [selectedSkin, currentSkin, studioState?.testCapeUrl]);
 
     const unequippedCosmeticSlots = useMemo(() => {
         const allTypes = ['Capes', 'Wings', 'Heads', 'Jackets'];
@@ -566,6 +581,8 @@ export const useWardrobe = (activeAccount) => {
         viewerSkin,
         unequippedCosmeticSlots,
         refreshCosmetics,
-        isInitializing
+        isInitializing,
+        studioState,
+        setStudioState
     };
 };

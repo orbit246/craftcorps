@@ -300,8 +300,8 @@ class CatalogService {
             },
             {
                 id: 'pkg_seeds_500',
-                name: '500 Seeds',
-                description: 'Small seed bundle for quick purchases',
+                name: '500 Shards',
+                description: 'Small shard bundle for quick purchases',
                 image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=300&fit=crop',
                 price: 2.99,
                 currency: 'USD',
@@ -317,8 +317,8 @@ class CatalogService {
             },
             {
                 id: 'pkg_seeds_1000',
-                name: '1,000 Seeds',
-                description: 'Popular seed bundle',
+                name: '1,000 Shards',
+                description: 'Popular shard bundle',
                 image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=300&fit=crop',
                 price: 4.99,
                 currency: 'USD',
@@ -334,8 +334,8 @@ class CatalogService {
             },
             {
                 id: 'pkg_seeds_5000',
-                name: '5,000 Seeds',
-                description: 'Best value seed bundle! +20% bonus',
+                name: '5,000 Shards',
+                description: 'Best value shard bundle! +20% bonus',
                 image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&h=300&fit=crop',
                 price: 19.99,
                 currency: 'USD',
@@ -386,7 +386,7 @@ class CatalogService {
             {
                 id: 'pkg_starter_bundle',
                 name: 'Starter Bundle',
-                description: 'Everything you need to get started! Includes VIP, 1000 seeds, and a cape',
+                description: 'Everything you need to get started! Includes VIP, 1000 shards, and a cape',
                 image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=400&h=300&fit=crop',
                 price: 14.99,
                 currency: 'USD',
