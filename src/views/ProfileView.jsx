@@ -94,6 +94,7 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
     const [isLoadingProfile, setIsLoadingProfile] = useState(false);
     const [totalPlayTime, setTotalPlayTime] = useState(0);
     const [joinedDate, setJoinedDate] = useState(null);
+    const [authConnections, setAuthConnections] = useState(null);
 
     // Secure Account State
     const [isSecuring, setIsSecuring] = useState(false);
@@ -125,6 +126,13 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
             if (window.electronAPI?.getTotalPlayTime) {
                 const ms = await window.electronAPI.getTotalPlayTime();
                 setTotalPlayTime(ms || 0);
+            }
+            // Fetch Auth Connections
+            if (window.electronAPI?.getAuthConnections) {
+                const res = await window.electronAPI.getAuthConnections();
+                if (res.success) {
+                    setAuthConnections(res.connections);
+                }
             }
         } catch (e) {
             console.error("Failed to load profile", e);
@@ -446,58 +454,89 @@ const ProfileView = ({ activeAccount, accounts, instances, theme, onLogout, onLo
 
                                 {/* Link Actions */}
                                 <div className="relative">
-                                    {/* Blurred Content */}
-                                    <div className="space-y-3 blur-[2px] pointer-events-none opacity-40">
+                                    <div className="space-y-3">
                                         <h3 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Linked Accounts</h3>
 
                                         {/* Microsoft */}
-                                        <div className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-white/5">
+                                        <div className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${authConnections?.connections?.some(a => a.provider === 'microsoft') ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-slate-900/50 border-white/5 hover:bg-slate-800'}`}>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-[#0078D4]/20 text-[#0078D4] flex items-center justify-center">
                                                     <Globe size={16} />
                                                 </div>
                                                 <div className="text-left">
-                                                    <div className="text-sm font-medium text-slate-200">Microsoft Account</div>
-                                                    <div className="text-[10px] text-slate-500">Link your Minecraft Profile</div>
+                                                    <div className="text-sm font-medium text-slate-200">
+                                                        {authConnections?.connections?.find(a => a.provider === 'microsoft')?.username || 'Microsoft Account'}
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-500">
+                                                        {authConnections?.connections?.some(a => a.provider === 'microsoft') ? 'Linked' : 'Link your Minecraft Profile'}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <Plus size={16} className="text-slate-500" />
+                                            {authConnections?.connections?.some(a => a.provider === 'microsoft') ? (
+                                                <CheckCircle2 size={16} className="text-emerald-500" />
+                                            ) : (
+                                                <button onClick={handleLinkMicrosoft} className="p-1 hover:bg-white/10 rounded transition-colors">
+                                                    <Plus size={16} className="text-slate-500 hover:text-white" />
+                                                </button>
+                                            )}
                                         </div>
 
                                         {/* Discord */}
-                                        <div className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-white/5">
+                                        <div className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${authConnections?.connections?.some(a => a.provider === 'discord') ? 'bg-[#5865F2]/10 border-[#5865F2]/20' : 'bg-slate-900/50 border-white/5 hover:bg-slate-800'}`}>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-[#5865F2]/20 text-[#5865F2] flex items-center justify-center">
                                                     <Gamepad2 size={16} />
                                                 </div>
                                                 <div className="text-left">
-                                                    <div className="text-sm font-medium text-slate-200">Discord</div>
-                                                    <div className="text-[10px] text-slate-500">Link for community rewards</div>
+                                                    <div className="text-sm font-medium text-slate-200">
+                                                        {authConnections?.connections?.find(a => a.provider === 'discord')?.username || 'Discord'}
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-500">
+                                                        {authConnections?.connections?.some(a => a.provider === 'discord') ? 'Linked' : 'Link for community rewards'}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <Plus size={16} className="text-slate-500" />
+                                            {authConnections?.connections?.some(a => a.provider === 'discord') ? (
+                                                <CheckCircle2 size={16} className="text-[#5865F2]" />
+                                            ) : (
+                                                <button onClick={handleLinkDiscord} className="p-1 hover:bg-white/10 rounded transition-colors">
+                                                    <Plus size={16} className="text-slate-500 hover:text-white" />
+                                                </button>
+                                            )}
                                         </div>
 
-                                        <div className="pt-4 border-t border-white/5 space-y-3">
-                                            <div className="flex items-center gap-2 text-amber-400">
-                                                <ShieldAlert size={16} />
-                                                <span className="text-xs font-bold">Unsecured Account</span>
+                                        {/* Other Connections */}
+                                        {authConnections?.connections?.filter(a => a.provider !== 'discord' && a.provider !== 'microsoft' && a.provider !== 'credentials' && a.provider !== 'local').map(conn => (
+                                            <div key={conn.provider} className="w-full flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 transition-all">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                                                        <Globe size={16} />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="text-sm font-medium text-slate-200 capitalize">{conn.provider}</div>
+                                                        <div className="text-[10px] text-slate-500">{conn.username}</div>
+                                                    </div>
+                                                </div>
+                                                <CheckCircle2 size={16} className="text-emerald-500" />
                                             </div>
-                                            <p className="text-[10px] text-amber-200/70">Link an email and password to secure progress.</p>
-                                        </div>
-                                    </div>
+                                        ))}
 
-                                    {/* Coming Soon Overlay */}
-                                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 bg-slate-900/10 rounded-2xl">
-                                        <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl flex flex-col items-center gap-2 max-w-[240px]">
-                                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-1">
-                                                <Shield size={20} className="text-blue-400" />
+                                        {/* Security Status */}
+                                        {!hasCredentials && (
+                                            <div className="pt-4 border-t border-white/5 space-y-3">
+                                                <div className="flex items-center gap-2 text-amber-400">
+                                                    <ShieldAlert size={16} />
+                                                    <span className="text-xs font-bold">Unsecured Account</span>
+                                                </div>
+                                                <p className="text-[10px] text-amber-200/70">Link an email and password to secure progress.</p>
+                                                <button
+                                                    onClick={onManageAccounts}
+                                                    className="w-full py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-widest rounded border border-amber-500/20 transition-all"
+                                                >
+                                                    Secure Now
+                                                </button>
                                             </div>
-                                            <span className="text-lg font-black text-white uppercase tracking-tighter">Coming Soon</span>
-                                            <p className="text-xs font-medium text-slate-400 leading-relaxed">
-                                                We're adding new way to help you login faster.
-                                            </p>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
 

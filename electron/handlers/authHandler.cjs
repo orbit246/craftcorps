@@ -12,12 +12,22 @@ const DEFAULT_CONSENT = {
 function setupAuthHandlers(getMainWindow) {
     // --- Standard Auth ---
 
-    ipcMain.handle('register', async (event, { email, password, username }) => {
+    ipcMain.handle('register', async (event, { email, password, username, inviteCode }) => {
         try {
-            await authService.register(email, password, username);
-            return { success: true };
+            const result = await authService.register(email, password, username, inviteCode);
+            return { success: true, data: result };
         } catch (error) {
             console.error('[AuthHandler] Register failed:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('verify-registration', async (event, { token }) => {
+        try {
+            const result = await authService.verifyRegistration(token);
+            return { success: true, data: result };
+        } catch (error) {
+            console.error('[AuthHandler] Verify Registration failed:', error);
             return { success: false, error: error.message };
         }
     });
@@ -112,10 +122,20 @@ function setupAuthHandlers(getMainWindow) {
 
     ipcMain.handle('link-credentials', async (event, { email, password }) => {
         try {
-            await authService.linkCredentials(email, password);
-            return { success: true };
+            const result = await authService.linkCredentials(email, password);
+            return { success: true, data: result };
         } catch (error) {
             console.error('[AuthHandler] Link Credentials failed:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('verify-email-link', async (event, { token }) => {
+        try {
+            const result = await authService.verifyEmailLink(token);
+            return { success: true, data: result };
+        } catch (error) {
+            console.error('[AuthHandler] Verify Email Link failed:', error);
             return { success: false, error: error.message };
         }
     });
@@ -227,6 +247,16 @@ function setupAuthHandlers(getMainWindow) {
             return { success: true, profile };
         } catch (error) {
             console.error('[AuthHandler] Get Profile failed:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('get-auth-connections', async () => {
+        try {
+            const connections = await authService.getConnections();
+            return { success: true, connections };
+        } catch (error) {
+            console.error('[AuthHandler] Get Connections failed:', error);
             return { success: false, error: error.message };
         }
     });

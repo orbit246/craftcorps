@@ -16,11 +16,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Auth
     register: (payload) => ipcRenderer.invoke('register', payload),
+    verifyRegistration: (payload) => ipcRenderer.invoke('verify-registration', payload),
     login: (payload) => ipcRenderer.invoke('login', payload),
     logout: () => ipcRenderer.invoke('logout'),
     linkCredentials: (payload) => ipcRenderer.invoke('link-credentials', payload),
+    verifyEmailLink: (payload) => ipcRenderer.invoke('verify-email-link', payload),
     linkMicrosoftAccount: (consent) => ipcRenderer.invoke('link-microsoft', consent),
     getUserProfile: () => ipcRenderer.invoke('get-user-profile'),
+    getAuthConnections: () => ipcRenderer.invoke('get-auth-connections'),
     linkDiscord: () => ipcRenderer.invoke('link-discord'),
     oauthLogin: (provider) => ipcRenderer.invoke('oauth-login', { provider }),
     getInviteCode: () => ipcRenderer.invoke('get-invite-code'),

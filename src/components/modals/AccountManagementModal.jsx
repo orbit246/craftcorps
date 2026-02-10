@@ -17,6 +17,25 @@ const AccountManagementModal = ({
     const [linkError, setLinkError] = useState(null);
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [emailForm, setEmailForm] = useState({ email: '', password: '' });
+    const [authConnections, setAuthConnections] = useState(null);
+    const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
+
+    const fetchAuthConnections = async () => {
+        if (window.electronAPI?.getAuthConnections) {
+            setIsLoadingConnections(true);
+            try {
+                const res = await window.electronAPI.getAuthConnections();
+                if (res.success) {
+                    setAuthConnections(res.connections);
+                }
+            } catch (error) {
+                console.error("Failed to fetch Auth connections:", error);
+            } finally {
+                setIsLoadingConnections(false);
+            }
+        }
+    };
 
     const fetchNortixProfile = async () => {
         if (window.electronAPI?.getUserProfile) {
@@ -43,9 +62,16 @@ const AccountManagementModal = ({
         }
     };
 
+    const fetchAllData = async () => {
+        await Promise.all([
+            fetchNortixProfile(),
+            fetchAuthConnections()
+        ]);
+    };
+
     useEffect(() => {
         if (isOpen) {
-            fetchNortixProfile();
+            fetchAllData();
         }
     }, [isOpen, activeAccount?.id]);
 
@@ -105,11 +131,10 @@ const AccountManagementModal = ({
                     password: emailForm.password
                 });
                 if (res.success) {
-                    await fetchNortixProfile();
-                    setShowEmailForm(false);
-                    setEmailForm({ email: '', password: '' });
+                    setVerificationSent(true);
+                    setLinkError(null);
                 } else {
-                    setLinkError(res.error || "Failed to link credentials");
+                    setLinkError(res.error || "Failed to link email");
                 }
             }
         } catch (e) {
@@ -205,10 +230,12 @@ const AccountManagementModal = ({
                                         )}
 
                                         {/* Discord */}
-                                        {nortixProfile?.linkedAccounts?.some(a => a.provider === 'discord') ? (
+                                        {(authConnections?.connections?.some(a => a.provider === 'discord') || nortixProfile?.linkedAccounts?.some(a => a.provider === 'discord')) ? (
                                             <div className="px-3 py-2 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/30 flex items-center gap-2 text-[#5865F2]">
                                                 <Gamepad2 size={14} />
-                                                <span className="text-xs font-bold">Discord</span>
+                                                <span className="text-xs font-bold">
+                                                    Discord: {authConnections?.connections?.find(a => a.provider === 'discord')?.username || 'Connected'}
+                                                </span>
                                                 <CheckCircle size={12} className="ml-1" />
                                             </div>
                                         ) : (
@@ -224,10 +251,12 @@ const AccountManagementModal = ({
                                         )}
 
                                         {/* Microsoft */}
-                                        {nortixProfile?.linkedAccounts?.some(a => a.provider === 'microsoft') ? (
+                                        {(authConnections?.connections?.some(a => a.provider === 'microsoft') || nortixProfile?.linkedAccounts?.some(a => a.provider === 'microsoft')) ? (
                                             <div className="px-3 py-2 rounded-lg bg-[#0078D4]/20 border border-[#0078D4]/30 flex items-center gap-2 text-[#0078D4] shadow-[0_0_10px_rgba(0,120,212,0.1)]">
                                                 <Globe size={14} />
-                                                <span className="text-xs font-bold">Microsoft</span>
+                                                <span className="text-xs font-bold">
+                                                    Microsoft: {authConnections?.connections?.find(a => a.provider === 'microsoft')?.username || 'Connected'}
+                                                </span>
                                                 <CheckCircle size={12} className="ml-1" />
                                             </div>
                                         ) : (
@@ -241,59 +270,89 @@ const AccountManagementModal = ({
                                                 {isLinking ? <Loader2 size={12} className="ml-1 animate-spin" /> : <PlusCircle size={12} className="ml-1 opacity-50" />}
                                             </button>
                                         )}
+
+                                        {/* Any other connections from /auth/connections */}
+                                        {authConnections?.connections?.filter(a => a.provider !== 'discord' && a.provider !== 'microsoft' && a.provider !== 'credentials' && a.provider !== 'local').map(conn => (
+                                            <div key={conn.provider} className="px-3 py-2 rounded-lg bg-slate-800/50 border border-white/10 flex items-center gap-2 text-slate-300">
+                                                <Globe size={14} />
+                                                <span className="text-xs font-bold capitalize">{conn.provider}: {conn.username}</span>
+                                                <CheckCircle size={12} className="ml-1 text-emerald-500" />
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
                                 {/* Email Form */}
                                 {showEmailForm && (
-                                    <form onSubmit={handleLinkEmail} className="mt-2 p-4 bg-slate-900/80 rounded-xl border border-white/10 space-y-3 animate-in fade-in slide-in-from-top-2">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] uppercase font-bold text-slate-500">Email Address</label>
-                                            <div className="relative">
-                                                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                                                <input
-                                                    type="email"
-                                                    value={emailForm.email}
-                                                    onChange={e => setEmailForm(prev => ({ ...prev, email: e.target.value }))}
-                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
-                                                    placeholder="name@example.com"
-                                                    required
-                                                />
+                                    <div className="mt-2 animate-in fade-in slide-in-from-top-2">
+                                        {verificationSent ? (
+                                            <div className="p-6 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-center space-y-3">
+                                                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto">
+                                                    <Mail size={24} />
+                                                </div>
+                                                <h4 className="text-sm font-bold text-white uppercase tracking-wider">Verification Email Sent</h4>
+                                                <p className="text-xs text-slate-400">
+                                                    We've sent a link to <span className="text-emerald-400 font-bold">{emailForm.email}</span>.<br />
+                                                    Please check your inbox and click the link to confirm.
+                                                </p>
+                                                <button
+                                                    onClick={() => { setShowEmailForm(false); setVerificationSent(false); }}
+                                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
+                                                >
+                                                    Dismiss
+                                                </button>
                                             </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] uppercase font-bold text-slate-500">Password</label>
-                                            <div className="relative">
-                                                <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                                                <input
-                                                    type="password"
-                                                    value={emailForm.password}
-                                                    onChange={e => setEmailForm(prev => ({ ...prev, password: e.target.value }))}
-                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
-                                                    placeholder="Create a password"
-                                                    required
-                                                    minLength={6}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-end gap-2 pt-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowEmailForm(false)}
-                                                className="px-3 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={isLinking}
-                                                className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2"
-                                            >
-                                                {isLinking ? <Loader2 size={12} className="animate-spin" /> : <Shield size={12} />}
-                                                Secure Account
-                                            </button>
-                                        </div>
-                                    </form>
+                                        ) : (
+                                            <form onSubmit={handleLinkEmail} className="p-4 bg-slate-900/80 rounded-xl border border-white/10 space-y-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] uppercase font-bold text-slate-500">Email Address</label>
+                                                    <div className="relative">
+                                                        <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                        <input
+                                                            type="email"
+                                                            value={emailForm.email}
+                                                            onChange={e => setEmailForm(prev => ({ ...prev, email: e.target.value }))}
+                                                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
+                                                            placeholder="name@example.com"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] uppercase font-bold text-slate-500">Password</label>
+                                                    <div className="relative">
+                                                        <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                        <input
+                                                            type="password"
+                                                            value={emailForm.password}
+                                                            onChange={e => setEmailForm(prev => ({ ...prev, password: e.target.value }))}
+                                                            className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
+                                                            placeholder="Create a password"
+                                                            required
+                                                            minLength={6}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end gap-2 pt-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setShowEmailForm(false); setVerificationSent(false); }}
+                                                        className="px-3 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={isLinking}
+                                                        className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2"
+                                                    >
+                                                        {isLinking ? <Loader2 size={12} className="animate-spin" /> : <Shield size={12} />}
+                                                        Secure Account
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        )}
+                                    </div>
                                 )}
 
                                 {linkError && (

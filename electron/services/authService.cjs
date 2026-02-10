@@ -84,16 +84,34 @@ class AuthService {
 
     // --- Public Auth Endpoints ---
 
-    async register(email, password, username) {
-        log.info(`[AuthService] Registering ${email}...`);
+    async register(email, password, username, inviteCode) {
+        log.info(`[AuthService] Registering ${email} (Invite: ${inviteCode || 'None'})...`);
         const res = await fetch(`${AUTH_BASE}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, username })
+            body: JSON.stringify({ email, password, username, inviteCode })
         });
 
-        if (!res.ok) throw new Error(`Registration failed: ${res.status}`);
-        return true;
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || `Registration failed: ${res.status}`);
+        }
+        return await res.json();
+    }
+
+    async verifyRegistration(token) {
+        log.info(`[AuthService] Verifying registration with token...`);
+        const res = await fetch(`${AUTH_BASE}/auth/register/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || `Verification failed: ${res.status}`);
+        }
+        return await res.json();
     }
 
     async login(email, password) {
@@ -212,14 +230,33 @@ class AuthService {
     }
 
     async linkCredentials(email, password) {
-        log.info(`[AuthService] Linking credentials for ${email}...`);
-        const res = await this.fetchAuthenticated(`${AUTH_BASE}/auth/link/credentials`, {
+        log.info(`[AuthService] Starting email link for ${email}...`);
+        const res = await this.fetchAuthenticated(`${AUTH_BASE}/auth/link/email`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        if (!res.ok) throw new Error(`Link Credentials failed: ${res.status}`);
-        return true;
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || `Link Credentials failed: ${res.status}`);
+        }
+        return await res.json(); // Backend might return { message: "Verification email sent" }
+    }
+
+    async verifyEmailLink(token) {
+        log.info(`[AuthService] Verifying email link with token...`);
+        const res = await fetch(`${AUTH_BASE}/auth/link/email/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || `Verification failed: ${res.status}`);
+        }
+        return await res.json();
     }
 
     async linkProfile(profile) {
@@ -330,6 +367,13 @@ class AuthService {
         this.profileCache = profile;
         this.profileCacheExpiry = now + this.PROFILE_CACHE_TTL;
         return profile;
+    }
+
+    async getConnections() {
+        log.info('[AuthService] Fetching connected accounts...');
+        const res = await this.fetchAuthenticated(`${AUTH_BASE}/auth/connections`);
+        if (!res.ok) throw new Error('Failed to fetch connections');
+        return await res.json();
     }
 
     invalidateProfileCache() {

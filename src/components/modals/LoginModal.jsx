@@ -15,15 +15,16 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing, accounts 
     const [loginType, setLoginType] = useState(null); // microsoft | offline | nortix
     const [errorMsg, setErrorMsg] = useState(null);
     const [detectedAccounts, setDetectedAccounts] = useState([]);
+    const [regVerificationSent, setRegVerificationSent] = useState(false);
 
-    const [nortixCreds, setNortixCreds] = useState({ email: '', password: '' });
+    const [nortixCreds, setNortixCreds] = useState({ email: '', password: '', username: '', inviteCode: '' });
 
     // Reset state when modal opens/closes
     React.useEffect(() => {
         if (!isOpen) {
             setOfflineName('');
             setValidationMsg('');
-            setNortixCreds({ email: '', password: '' });
+            setNortixCreds({ email: '', password: '', username: '', inviteCode: '' });
             setErrorMsg(null);
             setTosAgreed(false);
             setLoginType(null);
@@ -445,103 +446,124 @@ const LoginModal = ({ isOpen, onClose, onAddAccount, isAutoRefreshing, accounts 
                                     </div>
 
                                     {loginType === 'nortix_register' ? (
-                                        <form onSubmit={async (e) => {
-                                            e.preventDefault();
-                                            if (!nortixCreds.email || !nortixCreds.password || !nortixCreds.username) return;
-                                            setIsLoading(true);
-                                            setErrorMsg(null);
-                                            try {
-                                                if (window.electronAPI?.register) {
-                                                    const res = await window.electronAPI.register({
-                                                        email: nortixCreds.email,
-                                                        password: nortixCreds.password,
-                                                        username: nortixCreds.username
-                                                    });
-                                                    if (res.success) {
-                                                        // Auto login after register? Or prompt to login?
-                                                        // Let's try to auto-login
-                                                        const loginRes = await window.electronAPI.login({
-                                                            email: nortixCreds.email,
-                                                            password: nortixCreds.password
-                                                        });
-
-                                                        if (loginRes.success) {
-                                                            onAddAccount({
-                                                                id: loginRes.data.user.id,
-                                                                name: loginRes.data.user.username || loginRes.data.user.email,
-                                                                type: 'Nortix',
-                                                                accessToken: loginRes.data.accessToken,
-                                                                refreshToken: loginRes.data.refreshToken,
-                                                                uuid: loginRes.data.user.id,
-                                                                avatarColor: 'bg-purple-600'
+                                        <div className="animate-in fade-in duration-300">
+                                            {regVerificationSent ? (
+                                                <div className="p-8 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-center space-y-4">
+                                                    <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto shadow-inner">
+                                                        <Mail size={32} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <h4 className="text-lg font-black text-white uppercase tracking-tighter">Check Your Inbox</h4>
+                                                        <p className="text-sm text-slate-400 leading-relaxed">
+                                                            We've sent a verification link to<br />
+                                                            <span className="text-emerald-400 font-bold">{nortixCreds.email}</span>
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5 text-left">
+                                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center">Next Step</p>
+                                                        <p className="text-[11px] text-slate-400 mt-1 text-center">Click the link in the email to activate your account, then you can login here.</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => { setRegVerificationSent(false); setLoginType('nortix'); }}
+                                                        className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-white/5"
+                                                    >
+                                                        Back to Login
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <form onSubmit={async (e) => {
+                                                    e.preventDefault();
+                                                    if (!nortixCreds.email || !nortixCreds.password || !nortixCreds.username) return;
+                                                    setIsLoading(true);
+                                                    setErrorMsg(null);
+                                                    try {
+                                                        if (window.electronAPI?.register) {
+                                                            const res = await window.electronAPI.register({
+                                                                email: nortixCreds.email,
+                                                                password: nortixCreds.password,
+                                                                username: nortixCreds.username,
+                                                                inviteCode: nortixCreds.inviteCode
                                                             });
-                                                            onClose();
-                                                        } else {
-                                                            setLoginType('nortix'); // Switch to login
-                                                            setErrorMsg("Registration successful! Please log in.");
+                                                            if (res.success) {
+                                                                setRegVerificationSent(true);
+                                                                setErrorMsg(null);
+                                                            } else {
+                                                                setErrorMsg(res.error || "Registration failed");
+                                                            }
                                                         }
-                                                    } else {
-                                                        setErrorMsg(res.error || "Registration failed");
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        setErrorMsg(err.message || "Registration failed");
+                                                    } finally {
+                                                        setIsLoading(false);
                                                     }
-                                                }
-                                            } catch (err) {
-                                                console.error(err);
-                                                setErrorMsg(err.message || "Registration failed");
-                                            } finally {
-                                                setIsLoading(false);
-                                            }
-                                        }} className="space-y-3">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] uppercase font-bold text-slate-500">Username</label>
-                                                <div className="relative">
-                                                    <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                                                    <input
-                                                        type="text"
-                                                        value={nortixCreds.username || ''}
-                                                        onChange={e => setNortixCreds({ ...nortixCreds, username: e.target.value })}
-                                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
-                                                        placeholder="AgentSmith"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] uppercase font-bold text-slate-500">Email Address</label>
-                                                <div className="relative">
-                                                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                                                    <input
-                                                        type="email"
-                                                        value={nortixCreds.email}
-                                                        onChange={e => setNortixCreds({ ...nortixCreds, email: e.target.value })}
-                                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
-                                                        placeholder="name@example.com"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] uppercase font-bold text-slate-500">Password</label>
-                                                <div className="relative">
-                                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                                                    <input
-                                                        type="password"
-                                                        value={nortixCreds.password}
-                                                        onChange={e => setNortixCreds({ ...nortixCreds, password: e.target.value })}
-                                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
-                                                        placeholder="••••••••"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
+                                                }} className="space-y-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] uppercase font-bold text-slate-500">Username</label>
+                                                        <div className="relative">
+                                                            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                            <input
+                                                                type="text"
+                                                                value={nortixCreds.username || ''}
+                                                                onChange={e => setNortixCreds({ ...nortixCreds, username: e.target.value })}
+                                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
+                                                                placeholder="AgentSmith"
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] uppercase font-bold text-slate-500">Email Address</label>
+                                                        <div className="relative">
+                                                            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                            <input
+                                                                type="email"
+                                                                value={nortixCreds.email}
+                                                                onChange={e => setNortixCreds({ ...nortixCreds, email: e.target.value })}
+                                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
+                                                                placeholder="name@example.com"
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] uppercase font-bold text-slate-500">Password</label>
+                                                        <div className="relative">
+                                                            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                            <input
+                                                                type="password"
+                                                                value={nortixCreds.password}
+                                                                onChange={e => setNortixCreds({ ...nortixCreds, password: e.target.value })}
+                                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
+                                                                placeholder="••••••••"
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] uppercase font-bold text-slate-500">Invite Code (Optional)</label>
+                                                        <div className="relative">
+                                                            <ShieldCheck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                                            <input
+                                                                type="text"
+                                                                value={nortixCreds.inviteCode || ''}
+                                                                onChange={e => setNortixCreds({ ...nortixCreds, inviteCode: e.target.value })}
+                                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
+                                                                placeholder="NORTIX-XXXX"
+                                                            />
+                                                        </div>
+                                                    </div>
 
-                                            <button
-                                                type="submit"
-                                                disabled={isLoading}
-                                                className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 mt-4 shadow-lg shadow-purple-900/20"
-                                            >
-                                                {isLoading ? <Loader2 size={18} className="animate-spin" /> : <div className="flex items-center gap-2"><span>Create Account</span></div>}
-                                            </button>
-                                        </form>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={isLoading}
+                                                        className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 mt-4 shadow-lg shadow-purple-900/20"
+                                                    >
+                                                        {isLoading ? <Loader2 size={18} className="animate-spin" /> : <div className="flex items-center gap-2"><span>Create Account</span></div>}
+                                                    </button>
+                                                </form>
+                                            )}
+                                        </div>
                                     ) : (
                                         /* Login Form */
                                         <form onSubmit={handleNortixLogin} className="space-y-3">
